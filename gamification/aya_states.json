@@ -1,0 +1,253 @@
+{
+  "_comment": "Configuration des états d’Aya pour FeedFormula AI. Ce fichier définit les déclencheurs, messages multilingues, animations et sons. Il inclut aussi des règles de sécurité pour gérer les cas limites (traduction manquante, durée invalide, état inconnu).",
+  "version": "1.0.0",
+  "updated_at": "2026-01-01T00:00:00Z",
+  "default_language": "fr",
+  "fallbacks": {
+    "language_order": ["fr", "en"],
+    "unknown_state": "neutre_accueil",
+    "max_display_seconds": 12,
+    "min_display_seconds": 2,
+    "default_animation": "aya_idle_breathing",
+    "default_sound": "aya_soft_chime"
+  },
+  "validation_rules": {
+    "required_fields": [
+      "id",
+      "etat",
+      "declencheur",
+      "messages",
+      "duree_affichage_sec",
+      "animation_associee",
+      "son_associe"
+    ],
+    "required_languages": ["fr", "fon", "yor", "en"],
+    "message_max_chars": 220
+  },
+  "states": [
+    {
+      "id": "neutre_accueil",
+      "etat": "neutre",
+      "declencheur": "connexion_utilisateur",
+      "messages": {
+        "fr": "Bonjour 👋 Je suis Aya. On avance étape par étape aujourd’hui.",
+        "fon": "Azɔ̀n! Un wɛ Aya. Mí na jì nù gbèdo-gbèdo egbe.",
+        "yor": "Báwo! Èmi ni Aya. A máa lọ ní ìgbésẹ̀ díẹ̀ díẹ̀ lónìí.",
+        "en": "Hello 👋 I’m Aya. We’ll move step by step today."
+      },
+      "duree_affichage_sec": 5,
+      "animation_associee": "aya_wave_soft",
+      "son_associe": "aya_soft_chime"
+    },
+    {
+      "id": "joie_objectif_jour",
+      "etat": "joie",
+      "declencheur": "objectif_quotidien_atteint",
+      "messages": {
+        "fr": "Excellent travail ! Ton objectif du jour est validé ✅",
+        "fon": "Gbè! Wémɛn nɔ̀ tɔn nù xwé tɔn yi wa ✅",
+        "yor": "Ó dáa gan! O ti ṣàṣeparí ibi-afẹ́de òní ✅",
+        "en": "Great job! Your daily goal is completed ✅"
+      },
+      "duree_affichage_sec": 6,
+      "animation_associee": "aya_jump_happy",
+      "son_associe": "aya_success_bell"
+    },
+    {
+      "id": "celebration_level_up",
+      "etat": "celebration",
+      "declencheur": "niveau_superieur",
+      "messages": {
+        "fr": "Niveau supérieur débloqué 🎉 Tu progresses comme un champion.",
+        "fon": "Niveau yiyí wá! 🎉 Nù tɔn do vɛvɛ.",
+        "yor": "Ipele tuntun ṣí sílẹ̀ 🎉 O ń lọ sókè dáadáa.",
+        "en": "New level unlocked 🎉 You’re making champion progress."
+      },
+      "duree_affichage_sec": 7,
+      "animation_associee": "aya_confetti_spin",
+      "son_associe": "aya_level_up_fanfare"
+    },
+    {
+      "id": "fierte_trophee",
+      "etat": "fierte",
+      "declencheur": "trophee_debloque",
+      "messages": {
+        "fr": "Trophée débloqué 🏆 Ta rigueur fait la différence.",
+        "fon": "Trophée yí bó! 🏆 Kpódo tɔn nɔ̀ dù.",
+        "yor": "O ṣí àmì-ẹ̀yẹ sílẹ̀ 🏆 Ìfarabalẹ̀ rẹ ń san.",
+        "en": "Trophy unlocked 🏆 Your consistency is paying off."
+      },
+      "duree_affichage_sec": 6,
+      "animation_associee": "aya_proud_pose",
+      "son_associe": "aya_trophy_ping"
+    },
+    {
+      "id": "coach_nutricore",
+      "etat": "coach",
+      "declencheur": "demande_ration",
+      "messages": {
+        "fr": "Parfait. Donne-moi l’espèce, le stade et ton stock, je calcule la ration optimale.",
+        "fon": "Dó nú. Nà mí espèce, stade kpo stock tɔn, ɖé nɔ̀ na vɔ ration nyɔ.",
+        "yor": "Dáadáa. Fun mi ní ẹ̀yà, ìpele àti ohun tí o ní nínú àkójọpọ̀, màá ṣe iṣírò ration to dáa.",
+        "en": "Great. Give me species, stage, and stock, and I’ll compute the optimal feed ration."
+      },
+      "duree_affichage_sec": 8,
+      "animation_associee": "aya_point_board",
+      "son_associe": "aya_hint_soft"
+    },
+    {
+      "id": "alerte_sante_critique",
+      "etat": "alerte",
+      "declencheur": "symptome_grave_detecte",
+      "messages": {
+        "fr": "Alerte santé ⚠️ Isole l’animal et contacte rapidement un vétérinaire.",
+        "fon": "Alerte sɔ̀tɔ́ ⚠️ Yì nyi alɔ́ kpo bɔ veterinɛr kpó bó.",
+        "yor": "Ìkìlọ̀ ìlera ⚠️ Ya ẹranko náà sọ́tọ̀, kó sì bá dókítà ẹranko sọ̀rọ̀ kíákíá.",
+        "en": "Health alert ⚠️ Isolate the animal and contact a veterinarian quickly."
+      },
+      "duree_affichage_sec": 9,
+      "animation_associee": "aya_alert_flash",
+      "son_associe": "aya_alert_tone"
+    },
+    {
+      "id": "soutien_echec_quiz",
+      "etat": "soutien",
+      "declencheur": "quiz_echoue",
+      "messages": {
+        "fr": "Ce n’est pas grave 💛 On revoit ensemble et tu vas réussir au prochain essai.",
+        "fon": "Ayi ɖo nù mã 💛 Mí na xwla bo nà se ɖe gudo.",
+        "yor": "Kò burú 💛 A máa tún kọ́ ẹ pọ̀, ìgbìyànjú tó kàn yóò dáa.",
+        "en": "It’s okay 💛 We’ll review together and you’ll do better next try."
+      },
+      "duree_affichage_sec": 6,
+      "animation_associee": "aya_gentle_nod",
+      "son_associe": "aya_reassure_soft"
+    },
+    {
+      "id": "tristesse_inactivite_2j",
+      "etat": "tristesse",
+      "declencheur": "inactivite_2_jours",
+      "messages": {
+        "fr": "Tu m’as manqué 🌾 Reviens, je t’aide à reprendre en 2 minutes.",
+        "fon": "N wá do mí nù 🌾 Wá gbɔ, mí na jlọ do nù tɔn kpó kpó.",
+        "yor": "Mo ṣàì rí ẹ 🌾 Pada wá, màá ràn ẹ lọ́wọ́ láìpé.",
+        "en": "I missed you 🌾 Come back, I’ll help you restart in 2 minutes."
+      },
+      "duree_affichage_sec": 7,
+      "animation_associee": "aya_sad_blink",
+      "son_associe": "aya_soft_flute"
+    },
+    {
+      "id": "encouragement_streak_7",
+      "etat": "encouragement",
+      "declencheur": "serie_7_jours",
+      "messages": {
+        "fr": "7 jours d’affilée 🔥 Ta discipline construit une ferme solide.",
+        "fon": "Azán 7 kpo-kpo 🔥 Aɖíxixá tɔn na xwé nyɔ.",
+        "yor": "Ọjọ́ meje tẹ̀lé ara wọn 🔥 Ìbáṣepọ̀ rẹ ń kọ́ oko tó lágbára.",
+        "en": "7 days in a row 🔥 Your discipline builds a stronger farm."
+      },
+      "duree_affichage_sec": 6,
+      "animation_associee": "aya_fire_streak",
+      "son_associe": "aya_streak_pop"
+    },
+    {
+      "id": "conseil_eau_chaleur",
+      "etat": "conseil",
+      "declencheur": "meteo_chaleur_elevee",
+      "messages": {
+        "fr": "Il fait très chaud aujourd’hui ☀️ Ajoute des points d’eau et de l’ombre.",
+        "fon": "Zán dɔ̀ gã egbe ☀️ Sɔxwɛ mí kpo hɔn-hɔn do.",
+        "yor": "Òru gbóná lónìí ☀️ Fi omi síi kí o sì pese ojiji.",
+        "en": "It’s very hot today ☀️ Add water points and more shade."
+      },
+      "duree_affichage_sec": 8,
+      "animation_associee": "aya_weather_sun",
+      "son_associe": "aya_weather_ping"
+    },
+    {
+      "id": "marche_bonne_affaire",
+      "etat": "joie",
+      "declencheur": "baisse_prix_ingredient",
+      "messages": {
+        "fr": "Bonne nouvelle 💰 Le prix a baissé. C’est un bon moment pour acheter.",
+        "fon": "Nù nyɔ! 💰 Prix jì. Egbe yi nɔ̀ nyɔ na xó.",
+        "yor": "Ìròyìn rere 💰 Iye ti rọ̀. Àkókò dára láti rà.",
+        "en": "Good news 💰 Price dropped. This is a good time to buy."
+      },
+      "duree_affichage_sec": 6,
+      "animation_associee": "aya_coin_spin",
+      "son_associe": "aya_market_cash"
+    },
+    {
+      "id": "rappel_suivi_24h",
+      "etat": "rappel",
+      "declencheur": "suivi_vetscan_24h",
+      "messages": {
+        "fr": "Rappel: fais le suivi de santé à 24h pour confirmer l’évolution.",
+        "fon": "Nù-ɖokpo: wá bo hùn sɔ̀tɔ́ 24h mè na jì azɔ́.",
+        "yor": "Ìrántí: ṣe atẹ̀lé ilera ní wákàtí 24 láti jẹ́risi ìlera.",
+        "en": "Reminder: complete the 24h health follow-up to confirm progress."
+      },
+      "duree_affichage_sec": 7,
+      "animation_associee": "aya_clock_reminder",
+      "son_associe": "aya_reminder_tick"
+    },
+    {
+      "id": "coach_donnees_incompletes",
+      "etat": "coach",
+      "declencheur": "donnees_insuffisantes",
+      "messages": {
+        "fr": "J’ai besoin de plus d’infos pour être précise: espèce, stade, objectif et stock.",
+        "fon": "Mí hwe nù gà: espèce, stade, objectif kpo stock tɔn.",
+        "yor": "Mo nílò alaye díẹ̀ síi: ẹ̀yà, ìpele, ibi-afẹ́de àti àkójọpọ̀.",
+        "en": "I need more details to be accurate: species, stage, objective, and stock."
+      },
+      "duree_affichage_sec": 8,
+      "animation_associee": "aya_question_pose",
+      "son_associe": "aya_info_ping"
+    },
+    {
+      "id": "gratitude_communaute",
+      "etat": "fierte",
+      "declencheur": "aide_communaute_validee",
+      "messages": {
+        "fr": "Merci pour ton aide 🤝 Ta réponse a été utile à la communauté.",
+        "fon": "Akpé na wɛ 🤝 Nù tɔn hù wɛ nú hɛn-hɛn.",
+        "yor": "Ẹ ṣé gan 🤝 Ìdáhùn rẹ ràn àwùjọ lọ́wọ́.",
+        "en": "Thank you 🤝 Your response helped the community."
+      },
+      "duree_affichage_sec": 6,
+      "animation_associee": "aya_hand_heart",
+      "son_associe": "aya_thank_you_tone"
+    },
+    {
+      "id": "focus_plan_jour",
+      "etat": "conseil",
+      "declencheur": "debut_journee",
+      "messages": {
+        "fr": "Plan du jour: 1 ration, 1 observation santé, 1 mise à jour finance. Tu peux le faire.",
+        "fon": "Plan egbe: ration 1, sɔ̀tɔ́ 1, finance 1. A yí se!",
+        "yor": "Ètò òní: ration 1, ayẹwo ilera 1, imudojuiwọn ináwo 1. O lè ṣe é.",
+        "en": "Today’s plan: 1 ration, 1 health check, 1 finance update. You can do it."
+      },
+      "duree_affichage_sec": 8,
+      "animation_associee": "aya_checklist_show",
+      "son_associe": "aya_focus_tone"
+    },
+    {
+      "id": "repos_sans_push",
+      "etat": "repos",
+      "declencheur": "limite_notification_atteinte",
+      "messages": {
+        "fr": "Je te laisse respirer 🌿 Je reviendrai demain avec l’essentiel.",
+        "fon": "Mí na ɖo wɛ bo wɛ jla 🌿 Mí na gbɔ egbe zã bo nù gà.",
+        "yor": "Máa fi ẹ sílẹ̀ kí o sinmi 🌿 Màá padà bọ̀ lọ́la pẹ̀lú ohun pàtàkì.",
+        "en": "I’ll give you space 🌿 I’ll come back tomorrow with only what matters."
+      },
+      "duree_affichage_sec": 5,
+      "animation_associee": "aya_sleep_breathing",
+      "son_associe": "aya_night_soft"
+    }
+  ]
+}
