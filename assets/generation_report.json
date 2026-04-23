@@ -1,0 +1,97 @@
+{
+  "started_at": "2026-04-23T06:03:56.069981+00:00",
+  "base_url": "https://build.lewisnote.com/v1",
+  "model": "gpt-image-2",
+  "assets_dir": "C:\\Users\\Léonel TOGBE\\Documents\\feedformula-ai\\assets",
+  "force": false,
+  "max_retries": 5,
+  "images": [
+    {
+      "index": 1,
+      "filename": "logo_principal.png",
+      "size": "1024x1024",
+      "status": "skipped_existing",
+      "attempts": 0,
+      "duration_seconds": 0.057,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "index": 2,
+      "filename": "aya_joie.png",
+      "size": "1024x1024",
+      "status": "skipped_existing",
+      "attempts": 0,
+      "duration_seconds": 0.002,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "index": 3,
+      "filename": "aya_triste.png",
+      "size": "1024x1024",
+      "status": "skipped_existing",
+      "attempts": 0,
+      "duration_seconds": 0.001,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "index": 4,
+      "filename": "aya_celebration.png",
+      "size": "1024x1024",
+      "status": "skipped_existing",
+      "attempts": 0,
+      "duration_seconds": 0.001,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "index": 5,
+      "filename": "illustration_accueil.png",
+      "size": "1536x1024",
+      "status": "skipped_existing",
+      "attempts": 0,
+      "duration_seconds": 0.001,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "index": 6,
+      "filename": "icones_modules.png",
+      "size": "1536x1024",
+      "status": "skipped_existing",
+      "attempts": 0,
+      "duration_seconds": 0.002,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "index": 7,
+      "filename": "banniere_niveaux.png",
+      "size": "1536x1024",
+      "status": "skipped_existing",
+      "attempts": 0,
+      "duration_seconds": 0.002,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "index": 8,
+      "filename": "fond_ecran_accueil.png",
+      "size": "1024x1536",
+      "status": "skipped_existing",
+      "attempts": 0,
+      "duration_seconds": 0.001,
+      "error_type": null,
+      "error_message": null
+    }
+  ],
+  "finished_at": "2026-04-23T06:03:56.199611+00:00",
+  "summary": {
+    "generated": 0,
+    "failed": 0,
+    "skipped_existing": 8,
+    "total": 8
+  }
+}
