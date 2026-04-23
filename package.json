@@ -1,0 +1,25 @@
+{
+  "name": "feedformula-ai",
+  "version": "1.0.0",
+  "description": "L'écosystème IA agricole le plus complet jamais créé pour l'Afrique",
+  "author": "Leonel TOGBE <leonel.togbe@feedformula.ai>",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run frontend\" \"npm run backend\"",
+    "frontend": "cd frontend && npm start",
+    "backend": "cd backend && uvicorn main:app --reload --port 8000",
+    "build": "cd frontend && npm run build",
+    "test": "echo \"Tests à configurer au Jour 7\""
+  },
+  "keywords": [
+    "agriculture",
+    "IA",
+    "Afrique",
+    "élevage",
+    "nutrition animale",
+    "multilingue",
+    "fon",
+    "yoruba"
+  ]
+}
