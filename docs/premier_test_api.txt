@@ -1,0 +1,87 @@
+TEST API FEEDFORMULA AI — NUTRICORE
+===================================
+
+Modèle: gpt-5.4
+Base URL: https://build.lewisnote.com/v1
+Temps de réponse: 18.91 secondes
+
+Message utilisateur:
+J'ai du maïs, du tourteau de soja et de la farine de poisson. J'ai 50 poulets de chair de 3 semaines au Bénin.
+
+Réponse API:
+------------
+━━━ FEEDFORMULA AI ━━━  
+[Langue détectée: fr]
+
+1) Besoin compris  
+Tu as 50 poulets de chair de 3 semaines au Bénin.  
+Tu disposes de maïs, de tourteau de soja et de farine de poisson.  
+Tu veux probablement une ration adaptée au stade croissance.  
+
+2) Recommandation principale  
+Je peux t’aider à formuler une ration, mais il manque encore une information critique:  
+**les autres ingrédients disponibles au minimum**, surtout:
+- source de calcium: **coquille d’huître ou calcaire**
+- source de phosphore: **DCP ou MCP**
+- **sel**
+- **prémix vitamines/minéraux**
+
+Sans cela, je ne dois pas te donner une ration finale complète.
+
+**Base provisoire non finale** pour poulets de chair 3 semaines (stade croissance), seulement comme orientation:
+- Maïs: base énergétique
+- Tourteau de soja: base protéique
+- Farine de poisson: correction protéines + lysine/méthionine
+
+Exemple de structure provisoire:
+- Maïs: **55 à 62%**
+- Tourteau de soja: **25 à 32%**
+- Farine de poisson: **5 à 8%**
+- Minéraux + vitamines + sel: **à compléter obligatoirement**
+
+3) Valeurs nutritionnelles estimées  
+Pour une formule croissance correcte visée:
+- Énergie: **2 950 à 3 100 kcal/kg**
+- Protéines: **20 à 22%**
+- Calcium: **0,9 à 1,0%**
+- Phosphore dispo: **0,40 à 0,45%**
+- Lysine: **1,05 à 1,20%**
+- Méthionine: **0,45 à 0,55%**
+
+4) Coût estimé  
+**Estimation impossible de façon fiable** sans:
+- prix local des ingrédients
+- liste complète des ingrédients disponibles
+
+Si tu m’envoies les prix en FCFA/kg, je te calcule:
+- FCFA/kg aliment
+- FCFA/jour pour les 50 sujets
+
+5) Alternatives locales  
+- Option A: ajouter **son de blé** ou **son de riz** si disponible pour ajuster coût et texture  
+- Option B: ajouter **coquille d’huître/calcaire + prémix + sel + DCP/MCP** pour rendre la ration complète et sûre
+
+6) Actions immédiates (24h)  
+- Vérifie si tu as **calcaire ou coquille d’huître**  
+- Vérifie si tu as **prémix + sel + DCP/MCP**  
+- Envoie-moi les **prix FCFA/kg** du maïs, soja et farine de poisson  
+- Dis-moi si tes poulets sont en **croissance 3–6 semaines** confirmée
+
+7) Sécurité / vigilance  
+Ne donne pas une ration faite seulement de maïs + soja + farine de poisson sur plusieurs jours sans minéraux/vitamines.  
+Risque:
+- déséquilibre calcium/phosphore
+- croissance moins bonne
+- fragilité osseuse
+- baisse de performance
+
+Fais aussi une transition alimentaire progressive sur **3 à 5 jours** si tu changes d’aliment.
+
+8) Prochaine étape  
+Réponds juste à ces **4 points**:
+1. As-tu **calcaire/coquille d’huître** ?  
+2. As-tu **DCP ou MCP** ?  
+3. As-tu **sel et prémix** ?  
+4. Quels sont les **prix en FCFA/kg** de chaque ingrédient ?
+
+━━━ Aya t’accompagne pas à pas 🌽 ━━━
