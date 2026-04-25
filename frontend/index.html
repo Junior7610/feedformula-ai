@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            name="description"
+            content="FeedFormula AI - Nutrition animale intelligente pour les éleveurs africains."
+        />
+        <title>FeedFormula AI — Accueil</title>
+        <link rel="stylesheet" href="./style.css" />
+    </head>
+    <body>
+        <!-- Conteneur principal de l'application -->
+        <div class="app-shell" id="appShell">
+            <!-- Bandeau mode hors ligne -->
+            <div
+                class="offline-banner"
+                id="offlineBanner"
+                aria-live="polite"
+                hidden
+            >
+                ⚠️ Mode hors ligne actif — certaines fonctions sont limitées.
+            </div>
+
+            <!-- En-tête principal -->
+            <header class="app-header" role="banner">
+                <div class="header-left">
+                    <div class="logo-wrap" aria-hidden="true">
+                        <span class="logo-icon">🌽</span>
+                    </div>
+                    <div class="brand-text">
+                        <h1>FeedFormula AI</h1>
+                        <p class="brand-subtitle">Aya t’accompagne pas à pas</p>
+                    </div>
+                </div>
+
+                <div
+                    class="header-right"
+                    aria-label="Niveau utilisateur actuel"
+                >
+                    <span class="level-badge">Niveau 4</span>
+                </div>
+            </header>
+
+            <!-- Barre de progression de niveau (toujours visible) -->
+            <section class="xp-sticky" aria-label="Progression du niveau">
+                <div class="xp-row">
+                    <span class="xp-label">Progression</span>
+                    <span class="xp-value" id="xpValue">68%</span>
+                </div>
+                <div
+                    class="xp-track"
+                    role="progressbar"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    aria-valuenow="68"
+                    aria-label="Progression niveau"
+                >
+                    <div class="xp-fill" id="xpFill" style="width: 68%"></div>
+                </div>
+            </section>
+
+            <!-- Contenu principal -->
+            <main class="main-content" role="main">
+                <!-- Carte défi quotidien -->
+                <section
+                    class="card card-challenge"
+                    aria-labelledby="challengeTitle"
+                >
+                    <div class="challenge-head">
+                        <h2 id="challengeTitle">Défi du jour</h2>
+                        <span class="challenge-tag">+40 pts</span>
+                    </div>
+                    <p class="challenge-text">
+                        Formuler une ration croissance pour volaille avec 3
+                        ingrédients locaux.
+                    </p>
+                    <div class="challenge-timer" aria-live="polite">
+                        <span>⏳ Temps restant :</span>
+                        <strong id="countdown">23:59:59</strong>
+                    </div>
+                </section>
+
+                <!-- Zone d’entrée principale (priorité absolue au micro) -->
+                <section class="card card-input" aria-labelledby="inputTitle">
+                    <h2 id="inputTitle">Parle ou écris ta demande</h2>
+
+                    <!-- Bouton microphone central -->
+                    <div class="mic-zone">
+                        <button
+                            type="button"
+                            id="btnMic"
+                            class="btn-mic"
+                            aria-label="Démarrer la saisie vocale"
+                            title="Parler à Aya"
+                        >
+                            🎤
+                        </button>
+                        <p class="mic-help">
+                            Appuie pour parler à Aya (recommandé)
+                        </p>
+                    </div>
+
+                    <!-- Zone de saisie texte alternative -->
+                    <div class="field-group">
+                        <label for="texteDemande"
+                            >Ou saisis ton message :</label
+                        >
+                        <textarea
+                            id="texteDemande"
+                            name="texteDemande"
+                            rows="4"
+                            placeholder="Ex: J'ai du maïs, du tourteau de soja et 50 poulets de chair de 3 semaines."
+                        ></textarea>
+                    </div>
+
+                    <!-- Sélecteur espèce animale -->
+                    <div class="field-group">
+                        <label for="espece">Espèce animale</label>
+                        <select id="espece" name="espece" required>
+                            <option value="">Choisir une espèce</option>
+                            <option value="poulet_chair">
+                                🐔 Poulet de chair
+                            </option>
+                            <option value="pondeuse">🐓 Poule pondeuse</option>
+                            <option value="pintade">🪶 Pintade</option>
+                            <option value="vache_laitiere">
+                                🐄 Vache laitière
+                            </option>
+                            <option value="zebu">🐂 Zébu</option>
+                            <option value="mouton">🐑 Mouton</option>
+                            <option value="chevre">🐐 Chèvre</option>
+                            <option value="porc">🐖 Porc</option>
+                            <option value="tilapia">🐟 Tilapia</option>
+                            <option value="lapin">🐇 Lapin</option>
+                        </select>
+                    </div>
+
+                    <!-- Sélecteur stade de production -->
+                    <div class="field-group">
+                        <label for="stade">Stade de production</label>
+                        <select id="stade" name="stade" required>
+                            <option value="">Choisir un stade</option>
+                            <option value="demarrage">Démarrage</option>
+                            <option value="croissance">Croissance</option>
+                            <option value="finition">Finition</option>
+                            <option value="ponte">Ponte</option>
+                            <option value="lactation">Lactation</option>
+                            <option value="entretien">Entretien</option>
+                            <option value="reproduction">Reproduction</option>
+                            <option value="grossissement">Grossissement</option>
+                        </select>
+                    </div>
+
+                    <!-- Bouton principal de génération -->
+                    <button type="button" id="btnGenerer" class="btn-generate">
+                        Générer ma ration
+                    </button>
+                </section>
+
+                <!-- Zone de chargement -->
+                <section
+                    class="card card-loading"
+                    id="loadingZone"
+                    hidden
+                    aria-live="polite"
+                >
+                    <div class="spinner-corn" aria-hidden="true">🌽</div>
+                    <p>Aya analyse tes données…</p>
+                </section>
+
+                <!-- Zone de résultat (cachée au départ) -->
+                <section
+                    class="card card-result hidden"
+                    id="resultatZone"
+                    aria-labelledby="resultatTitle"
+                >
+                    <h2 id="resultatTitle">Résultat de formulation</h2>
+                    <p class="result-summary">
+                        Ta ration personnalisée apparaîtra ici avec le coût, les
+                        valeurs nutritionnelles et les actions immédiates.
+                    </p>
+                    <div class="result-content" id="resultContent"></div>
+                </section>
+
+                <!-- Carte gamification -->
+                <section
+                    class="card card-gamification"
+                    aria-labelledby="gamiTitle"
+                >
+                    <h2 id="gamiTitle">Gamification</h2>
+                    <div class="gami-grid">
+                        <article class="gami-item">
+                            <h3>Points</h3>
+                            <p><strong>1 245</strong> pts</p>
+                        </article>
+                        <article class="gami-item">
+                            <h3>Série</h3>
+                            <p><strong>7</strong> jours 🔥</p>
+                        </article>
+                        <article class="gami-item">
+                            <h3>Trophées</h3>
+                            <p><strong>12</strong> débloqués 🏆</p>
+                        </article>
+                    </div>
+                </section>
+            </main>
+
+            <!-- Navigation basse mobile -->
+            <nav class="bottom-nav" aria-label="Navigation principale">
+                <a href="#" class="nav-item active" aria-current="page">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-text">Accueil</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-icon">🧩</span>
+                    <span class="nav-text">Modules</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-icon">🏅</span>
+                    <span class="nav-text">Classement</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-icon">👤</span>
+                    <span class="nav-text">Profil</span>
+                </a>
+            </nav>
+
+            <!-- Footer -->
+            <footer class="app-footer">
+                <p>
+                    © 2026 FeedFormula AI — Conçu pour les éleveurs africains.
+                </p>
+            </footer>
+        </div>
+
+        <!-- Couche animation célébration -->
+        <div
+            id="celebrationLayer"
+            class="celebration-layer"
+            aria-hidden="true"
+        ></div>
+
+        <!-- jsPDF (CDN) pour export PDF -->
+        <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+        <!-- Script frontend principal (sans inline script) -->
+        <script src="./script.js"></script>
+    </body>
+</html>
