@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">FeedFormula AI — logo minimaliste chaîne de production animale</title>
+  <desc id="desc">Logo minimal représentant alimentation, élevage et distribution dans une boucle continue.</desc>
+  <defs>
+    <style>
+      .bg{fill:#fff}
+      .g{stroke:#1B5E20;fill:none;stroke-width:18;stroke-linecap:round;stroke-linejoin:round}
+      .o{stroke:#F9A825;fill:none;stroke-width:14;stroke-linecap:round;stroke-linejoin:round}
+      .f{fill:#1B5E20}
+    </style>
+  </defs>
+  <rect class="bg" x="0" y="0" width="512" height="512" rx="96"/>
+  <circle class="g" cx="256" cy="256" r="170"/>
+  <path class="o" d="M256 72c62 0 119 31 152 82"/>
+  <path class="o" d="M102 338c-13-25-20-53-20-82 0-21 4-41 11-60"/>
+  <path class="g" d="M408 154l-8 30 30-8"/>
+  <path class="g" d="M104 338l26 16-2-31"/>
+  <g transform="translate(256 98)">
+    <path class="g" d="M0 42C0 22 14 8 34 8C31 30 18 43 0 42Z"/>
+    <path class="g" d="M0 42C0 22-14 8-34 8C-31 30-18 43 0 42Z"/>
+    <path class="o" d="M0 40V8"/>
+  </g>
+  <g transform="translate(352 300)">
+    <circle class="g" cx="0" cy="0" r="34"/>
+    <path class="g" d="M-18-24l-16-14M18-24l16-14"/>
+    <circle class="f" cx="-10" cy="-2" r="3"/>
+    <circle class="f" cx="10" cy="-2" r="3"/>
+    <path class="o" d="M-10 14c6 5 14 5 20 0"/>
+  </g>
+  <g transform="translate(160 300)">
+    <rect class="g" x="-34" y="-26" width="68" height="52" rx="6"/>
+    <path class="g" d="M-34-6h68M0-26v52"/>
+    <path class="o" d="M-12-18h24"/>
+  </g>
+  <circle cx="256" cy="256" r="10" class="f"/>
+</svg>

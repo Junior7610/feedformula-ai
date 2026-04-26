@@ -18,6 +18,7 @@ from __future__ import annotations
 import io
 import json
 import os
+import re
 import time
 import unicodedata
 from pathlib import Path
@@ -25,6 +26,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+
 from pydantic import BaseModel, Field, field_validator
 
 try:
@@ -185,6 +187,13 @@ def _load_system_prompt() -> str:
             detail="System prompt introuvable ou vide (prompts/system_prompt_principal.txt).",
         )
     return prompt
+
+
+def _as_sse_event(payload: Dict[str, Any]) -> str:
+    """
+    Formate une charge utile JSON en événement SSE.
+    """
+    return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
 
 
 def _load_langues_supportees() -> List[Dict[str, Any]]:
@@ -369,40 +378,78 @@ def _construire_prompt_narratif(
     nombre_animaux: int,
 ) -> List[Dict[str, str]]:
     """
-    Construit les messages pour l'appel GPT-5.4 afin de générer la narration finale.
+    Construit des messages concis pour réduire la latence de génération.
     """
-    prompt_system_principal = _load_system_prompt()
-    prompt_langue = get_prompt_pour_langue(langue)
+    langue_norm = (langue or "fr").strip().lower()
+    prompt_langue = get_prompt_pour_langue(langue_norm)
 
-    user_payload = {
-        "langue": langue,
+    # Prompt système compact pour limiter les tokens tout en gardant la qualité.
+    prompt_system_concis = (
+        "Tu es Aya de FeedFormula AI. "
+        "Réponds dans la langue détectée, en style terrain clair, phrases courtes, "
+        "sans texte inutile. Respecte exactement le format demandé, avec les séparateurs."
+    )
+
+    # Données minimales utiles à la narration.
+    user_payload_compact = {
+        "langue": langue_norm,
         "espece": espece,
         "stade": stade,
         "nombre_animaux": nombre_animaux,
         "ingredients_disponibles": ingredients,
-        "resultat_optimisation": ration_calculee,
-        "recommandations": recommandations,
-        "consigne": (
-            "Rédige la réponse finale au format FeedFormula avec séparateurs ━━━, "
-            "en restant prudente sur les hypothèses. Inclure coût/kg, coût 7 jours, "
-            "actions immédiates et vigilance."
-        ),
+        "composition": ration_calculee.get("composition", {}),
+        "valeur_nutritive": ration_calculee.get("valeur_nutritive", {}),
+        "cout_fcfa_kg": ration_calculee.get("cout_fcfa_kg", 0),
+        "cout_7_jours": ration_calculee.get("cout_total_7_jours", 0),
+        "respect_besoins": ration_calculee.get("respect_besoins", {}),
+        "recommandations": recommandations[:3],
     }
 
+    format_strict = (
+        "Utilise EXACTEMENT ce format:\n"
+        "🌾 RATION FEEDFORMULA AI\n"
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        "📋 Espèce : [nom complet]\n"
+        "📅 Stade : [stade précis]\n"
+        "🔢 Nombre : [nombre] animaux\n"
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        "📦 COMPOSITION (pour 100 kg)\n"
+        "- [Ingrédient] .... [X] kg ([X]%)\n"
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        "🔬 VALEUR NUTRITIVE\n"
+        "- Énergie : [X] kcal/kg\n"
+        "- Protéines : [X]%\n"
+        "- Calcium : [X]%\n"
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        "💰 COÛT\n"
+        "- Par kg : [X] FCFA\n"
+        "- 7 jours : [X] FCFA\n"
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        "📈 PERFORMANCES ATTENDUES\n"
+        "[Description]\n"
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        "⚠️ POINTS D'ATTENTION\n"
+        "[Carences et corrections]\n"
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        "💡 CONSEILS PRATIQUES\n"
+        "- [Conseil 1]\n"
+        "- [Conseil 2]\n"
+        "- [Conseil 3]\n"
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        "🌽 Aya t'accompagne pas à pas !"
+    )
+
     return [
-        {
-            "role": "system",
-            "content": prompt_system_principal,
-        },
-        {
-            "role": "system",
-            "content": prompt_langue,
-        },
+        {"role": "system", "content": prompt_system_concis},
+        {"role": "system", "content": prompt_langue},
         {
             "role": "user",
             "content": (
-                "Génère la réponse finale pour l'éleveur à partir des données suivantes (JSON):\n"
-                + json.dumps(user_payload, ensure_ascii=False, indent=2)
+                format_strict
+                + "\n\nDonnées de calcul (JSON compact):\n"
+                + json.dumps(
+                    user_payload_compact, ensure_ascii=False, separators=(",", ":")
+                )
             ),
         },
     ]
@@ -424,6 +471,10 @@ class GenererRationRequest(BaseModel):
     nombre_animaux: int = Field(default=1, ge=1, le=200000)
     langue: str = Field(default="fr", min_length=2, max_length=8)
     objectif: str = Field(default="equilibre")
+    stream: bool = Field(
+        default=False,
+        description="Option SSE désactivée temporairement: la réponse est toujours renvoyée en JSON classique.",
+    )
 
     @field_validator("ingredients_disponibles")
     @classmethod
@@ -516,8 +567,8 @@ def langues() -> Dict[str, Any]:
         raise HTTPException(status_code=500, detail=f"Erreur interne /langues: {exc}")
 
 
-@app.post("/generer-ration", response_model=GenererRationResponse)
-def generer_ration(payload: GenererRationRequest) -> Dict[str, Any]:
+@app.post("/generer-ration")
+def generer_ration(payload: GenererRationRequest) -> Any:
     """
     Génère une ration complète.
 
@@ -580,10 +631,15 @@ def generer_ration(payload: GenererRationRequest) -> Dict[str, Any]:
                 nombre_animaux=int(payload.nombre_animaux),
             )
 
+            # Streaming SSE désactivé temporairement pour compatibilité frontend:
+            # on force une réponse JSON classique.
+
+            # Mode non-stream: réponse JSON classique optimisée.
             chat = client.chat.completions.create(
                 model=AFRI_CHAT_MODEL,
                 messages=messages,
-                temperature=0.2,
+                temperature=0.1,
+                max_tokens=700,
             )
             texte_ration = _extract_chat_text(chat)
 

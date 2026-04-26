@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">FeedFormula AI - logo minimal monochrome</title>
+  <desc id="desc">Logo tres minimaliste representant alimentation, elevage et distribution dans une boucle.</desc>
+  <defs>
+    <style>
+      .bg{fill:#fff}
+      .g{stroke:#1B5E20;fill:none;stroke-width:16;stroke-linecap:round;stroke-linejoin:round}
+      .f{fill:#1B5E20}
+    </style>
+  </defs>
+  <rect class="bg" x="0" y="0" width="512" height="512" rx="96"/>
+  <circle class="g" cx="256" cy="256" r="170"/>
+  <path class="g" d="M408 154l-8 30 30-8"/>
+  <path class="g" d="M104 338l26 16-2-31"/>
+  <g transform="translate(256 106)">
+    <path class="g" d="M0 36C0 19 13 8 30 8C27 26 16 37 0 36Z"/>
+    <path class="g" d="M0 36C0 19-13 8-30 8C-27 26-16 37 0 36Z"/>
+  </g>
+  <g transform="translate(350 304)">
+    <circle class="g" cx="0" cy="0" r="30"/>
+    <path class="g" d="M-14-20l-14-12M14-20l14-12"/>
+    <circle class="f" cx="-9" cy="-2" r="3"/>
+    <circle class="f" cx="9" cy="-2" r="3"/>
+  </g>
+  <g transform="translate(162 304)">
+    <rect class="g" x="-30" y="-22" width="60" height="44" rx="5"/>
+    <path class="g" d="M-30-4h60M0-22v44"/>
+  </g>
+  <circle cx="256" cy="256" r="8" class="f"/>
+</svg>

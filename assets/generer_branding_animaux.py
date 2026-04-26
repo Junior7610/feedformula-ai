@@ -23,7 +23,7 @@ import sys
 import traceback
 import urllib.request
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from openai import OpenAI
 
@@ -33,6 +33,13 @@ except Exception:
 
     def load_dotenv(*args: Any, **kwargs: Any) -> bool:
         return False
+
+
+try:
+    from PIL import Image, ImageOps
+except Exception:
+    Image = None
+    ImageOps = None
 
 
 BASE_URL = "https://build.lewisnote.com/v1"
@@ -134,12 +141,32 @@ def _save_png(raw: bytes, output_path: Path) -> None:
     output_path.write_bytes(raw)
 
 
+def _postprocess_exact_size(
+    output_path: Path, exact_size: Optional[Tuple[int, int]]
+) -> None:
+    if not exact_size:
+        return
+
+    if Image is None or ImageOps is None:
+        print(
+            f"⚠️ Pillow non installé: redimensionnement exact ignoré pour {output_path.name} ({exact_size[0]}x{exact_size[1]})."
+        )
+        return
+
+    target_w, target_h = exact_size
+    with Image.open(output_path) as image:
+        image = image.convert("RGBA")
+        fitted = ImageOps.fit(image, (target_w, target_h), method=Image.LANCZOS)
+        fitted.save(output_path, format="PNG")
+
+
 def generate_one_image(
     client: OpenAI,
     output_path: Path,
     prompt: str,
     sizes: List[str],
     api_key: Optional[str] = None,
+    exact_size: Optional[Tuple[int, int]] = None,
 ) -> bool:
     """
     Génère une image avec fallback de tailles.
@@ -158,7 +185,11 @@ def generate_one_image(
 
             raw = _extract_image_bytes(response, api_key=api_key)
             _save_png(raw, output_path)
-            print(f"✅ Généré: {output_path.name} (size={size})")
+            _postprocess_exact_size(output_path, exact_size)
+            exact_info = (
+                f", exact={exact_size[0]}x{exact_size[1]}" if exact_size else ""
+            )
+            print(f"✅ Généré: {output_path.name} (size={size}{exact_info})")
             return True
 
         except Exception as exc:
@@ -278,6 +309,136 @@ def main() -> int:
             ),
             "sizes": ["1536x1024", "1024x1024"],
         },
+
+        {
+            "filename": "aya_etats_complets.png",
+            "prompt": (
+                "Planche de personnage Aya en 8 états complets. Grille 4x2, fond blanc propre, "
+                "chaque état dans sa case avec son nom en dessous en français lisible. "
+                "Style cartoon africain moderne cohérent avec FeedFormula AI. "
+                "Les 8 états obligatoires : "
+                "1 Joie connexion, bras levés, grand sourire. "
+                "2 Tristesse 2 jours sans app, larme, tête baissée. "
+                "3 Célébration level up, confetti, pose de victoire. "
+                "4 Inquiétude série en danger, front plissé. "
+                "5 Fierté trophée, médaille, poitrine bombée. "
+                "6 Enseignement FarmAcademy, tableau et pointeur. "
+                "7 Urgence alerte santé, casque médical et signal urgence. "
+                "8 Sommeil nuit maintenance, bonnet de nuit et zzz. "
+                "Illustration nette, lisible en miniature."
+            ),
+            "sizes": ["1536x1024", "1024x1024"],
+        },
+        {
+            "filename": "progression_niveaux.png",
+            "prompt": (
+                "Illustration africaine moderne, colorée et inspirante. "
+                "Parcours de progression de éleveur en 10 étapes le long de un chemin ascendant "
+                "comme une montagne africaine. "
+                "Étapes visibles avec personnages africains : "
+                "1 Semence enfant qui plante une graine. "
+                "2 Pousse adolescent qui arrose. "
+                "3 Tige jeune adulte qui observe sa culture. "
+                "4 Floraison adulte avec ses premiers animaux. "
+                "5 Feuille Or éleveur avec smartphone. "
+                "6 Récolte éleveur prospère avec troupeau. "
+                "7 Propriétaire chef de exploitation moderne. "
+                "8 Maître Éleveur formateur qui enseigne. "
+                "9 Champion reçoit un trophée national. "
+                "10 Légende Afrique sur une scène internationale. "
+                "Composer en panorama 21:9 avec lisibilité de chaque niveau."
+            ),
+            "sizes": ["1536x1024", "1024x1024"],
+        },
+        {
+            "filename": "splash_screen.png",
+            "prompt": (
+                "Écran de démarrage splash screen pour application FeedFormula AI. "
+                "Format portrait 9:16 haute résolution. "
+                "Fond dégradé vertical du vert foncé #1B5E20 en bas vers or #F9A825 en haut. "
+                "Au centre, logo FeedFormula AI en grand en blanc. "
+                "En dessous, mascotte Aya grande souriante entourée de silhouettes d animaux africains. "
+                "Tout en bas, barre de chargement dorée style animé. "
+                "Style premium, propre, mobile first."
+            ),
+            "sizes": ["1024x1536", "1024x1024"],
+        },
+        {
+            "filename": "carte_modules.png",
+            "prompt": (
+                "Infographie des 8 modules de FeedFormula AI. "
+                "Style : carte mentale africaine moderne, format carré haute résolution. "
+                "FeedFormula AI au centre avec le logo. "
+                "Les 8 modules rayonnent autour avec leur icône (inspirée de icones_modules.png), "
+                "leur nom, une courte description de 5 mots max et une couleur distinctive pour chaque module. "
+                "Modules à inclure exactement : "
+                "1. 🌾 NutriCore — Formulation de rations. "
+                "2. 🏥 VetScan — Santé & Diagnostic IA. "
+                "3. 🔄 ReproTrack — Gestion reproduction. "
+                "4. 🛰️ PastureMap — Pâturages satellite. "
+                "5. 📊 FarmManager — Registre vocal & Finance. "
+                "6. 🎓 FarmAcademy — Formation continue. "
+                "7. 📡 FarmCast — Contenu vidéo automatique. "
+                "8. 🤝 FarmCommunity — Réseau & Marketplace. "
+                "Design clair, lisible sur mobile, premium."
+            ),
+            "sizes": ["1024x1024", "1536x1024"],
+        },
+        {
+            "filename": "notification_templates/notif_serie_danger.png",
+            "prompt": (
+                "Template de visuel de notification push. "
+                "Format final 400x200px, fond vert foncé #1B5E20. "
+                "Aya inquiète avec flamme qui vacille. "
+                "Texte exact : \"Ta série est en danger ! 🔥\"."
+            ),
+            "sizes": ["1536x1024", "1024x1024"],
+            "exact_size": (400, 200),
+        },
+        {
+            "filename": "notification_templates/notif_defi_quotidien.png",
+            "prompt": (
+                "Template de visuel de notification push. "
+                "Format final 400x200px. "
+                "Aya énergique avec chronomètre. "
+                "Texte exact : \"Défi du jour disponible ! ⚡\"."
+            ),
+            "sizes": ["1536x1024", "1024x1024"],
+            "exact_size": (400, 200),
+        },
+        {
+            "filename": "notification_templates/notif_prix_marche.png",
+            "prompt": (
+                "Template de visuel de notification push. "
+                "Format final 400x200px. "
+                "Graphique de prix avec flèches. "
+                "Texte exact : \"Prix du marché mis à jour 📊\"."
+            ),
+            "sizes": ["1536x1024", "1024x1024"],
+            "exact_size": (400, 200),
+        },
+        {
+            "filename": "notification_templates/notif_level_up.png",
+            "prompt": (
+                "Template de visuel de notification push. "
+                "Format final 400x200px. "
+                "Aya en mode célébration maximale. "
+                "Texte exact : \"Tu as monté de niveau ! 🎉\"."
+            ),
+            "sizes": ["1536x1024", "1024x1024"],
+            "exact_size": (400, 200),
+        },
+        {
+            "filename": "notification_templates/notif_retour.png",
+            "prompt": (
+                "Template de visuel de notification push. "
+                "Format final 400x200px. "
+                "Aya triste qui tend les bras. "
+                "Texte exact : \"Aya s'ennuie sans toi... 🌿\"."
+            ),
+            "sizes": ["1536x1024", "1024x1024"],
+            "exact_size": (400, 200),
+        },
     ]
 
     print("🚀 Génération des visuels branding (API Afri / GPT Image 2)...")
@@ -295,6 +456,7 @@ def main() -> int:
                 prompt=job["prompt"],
                 sizes=job["sizes"],
                 api_key=api_key,
+                exact_size=job.get("exact_size"),
             )
             if ok:
                 success_count += 1
