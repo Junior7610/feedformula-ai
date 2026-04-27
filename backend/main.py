@@ -60,10 +60,16 @@ try:
     # Mode package: python -m backend.main
     from .langue_detector import detecter_langue, get_prompt_pour_langue
     from .nutrition_engine import NutritionEngine
+    from .database import init_db
+    from .auth import install_auth_middleware, router as auth_router
+    from .gamification_api import router as gamification_router
 except Exception:
     # Mode script: python backend/main.py
     from langue_detector import detecter_langue, get_prompt_pour_langue
     from nutrition_engine import NutritionEngine
+    from database import init_db
+    from auth import install_auth_middleware, router as auth_router
+    from gamification_api import router as gamification_router
 
 
 # -----------------------------------------------------------------------------
@@ -518,6 +524,9 @@ app = FastAPI(
     description="API backend NutriCore (ration + narration IA + langues + transcription).",
 )
 
+# Initialisation base de données au démarrage.
+init_db()
+
 # CORS permissif en phase de dev (index.html local + serveurs locaux).
 # En production, remplacez par une liste explicite d'origines.
 app.add_middleware(
@@ -533,6 +542,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Middleware d'authentification JWT (non bloquant).
+install_auth_middleware(app)
+
+# Routes modules Auth et Gamification.
+app.include_router(auth_router)
+app.include_router(gamification_router)
 
 
 # -----------------------------------------------------------------------------

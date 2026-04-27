@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FeedFormula AI — Profil</title>
+  <meta name="description" content="Profil utilisateur gamifié FeedFormula AI" />
+  <style>
+    :root {
+      --ff-green: #1d7f49;
+      --ff-green-2: #2aa763;
+      --ff-yellow: #f4c542;
+      --ff-bg: #f6fbf8;
+      --ff-text: #123027;
+      --ff-muted: #5d786e;
+      --ff-card: #ffffff;
+      --ff-gray: #d8e2dc;
+      --ff-danger: #d9534f;
+      --ff-shadow: 0 8px 24px rgba(17, 63, 45, 0.08);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ff-text);
+      background: linear-gradient(180deg, #f2fbf6 0%, var(--ff-bg) 45%, #eef7f1 100%);
+      line-height: 1.35;
+    }
+
+    .app {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 14px 14px 80px;
+    }
+
+    .card {
+      background: var(--ff-card);
+      border-radius: var(--radius);
+      box-shadow: var(--ff-shadow);
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      margin: 0 0 10px;
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--ff-green);
+      letter-spacing: 0.2px;
+    }
+
+    /* En-tête profil */
+    .profile-head {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .avatar-wrap {
+      position: relative;
+      width: 68px;
+      height: 68px;
+      flex: 0 0 auto;
+    }
+
+    .avatar {
+      width: 100%;
+      height: 100%;
+      border-radius: 999px;
+      object-fit: cover;
+      border: 3px solid #daf3e5;
+      background: #eaf7ef;
+      display: block;
+    }
+
+    .avatar-fallback {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: linear-gradient(145deg, var(--ff-green), var(--ff-green-2));
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: 1px;
+      border: 3px solid #daf3e5;
+    }
+
+    .identity {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .identity h1 {
+      margin: 0;
+      font-size: 1.05rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .identity p {
+      margin: 4px 0 0;
+      color: var(--ff-muted);
+      font-size: 0.88rem;
+    }
+
+    .level-badge {
+      margin-top: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(135deg, #1b6d40, #2baa64);
+      border-radius: 999px;
+      padding: 6px 10px;
+    }
+
+    .xp-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 0.78rem;
+      color: var(--ff-muted);
+      font-weight: 600;
+    }
+
+    .xp-bar {
+      margin-top: 7px;
+      height: 10px;
+      border-radius: 999px;
+      background: #e7efe9;
+      overflow: hidden;
+    }
+
+    .xp-fill {
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--ff-yellow), #ffd875, #f4c542);
+      transition: width 500ms ease;
+    }
+
+    /* Statistiques */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .stat-item {
+      background: #f7fcf9;
+      border: 1px solid #e3efe8;
+      border-radius: 12px;
+      padding: 10px;
+    }
+
+    .stat-label {
+      margin: 0;
+      font-size: 0.76rem;
+      color: var(--ff-muted);
+      font-weight: 700;
+    }
+
+    .stat-value {
+      margin: 6px 0 0;
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--ff-green);
+    }
+
+    /* Série */
+    .streak-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: #fff9ee;
+      border: 1px solid #fde5b3;
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    .streak-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-weight: 700;
+    }
+
+    .flame {
+      font-size: 1.4rem;
+      display: inline-block;
+      transform-origin: 50% 80%;
+      animation: flamePulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes flamePulse {
+      0%, 100% { transform: scale(1) rotate(-2deg); }
+      50% { transform: scale(1.12) rotate(2deg); }
+    }
+
+    .streak-info {
+      font-size: 0.8rem;
+      color: var(--ff-muted);
+      text-align: right;
+    }
+
+    /* Trophées */
+    .trophy-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .trophy {
+      border-radius: 12px;
+      padding: 10px 6px;
+      text-align: center;
+      border: 1px solid #e5ece8;
+      background: #f6fbf8;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .trophy .icon {
+      font-size: 1.25rem;
+      line-height: 1;
+    }
+
+    .trophy .name {
+      font-size: 0.68rem;
+      font-weight: 700;
+    }
+
+    .trophy.locked {
+      filter: grayscale(100%);
+      opacity: 0.5;
+      background: #f0f2f1;
+    }
+
+    .trophy.unlocked {
+      border-color: #d7f0e2;
+      background: linear-gradient(180deg, #f6fff9 0%, #ecfbf2 100%);
+    }
+
+    /* Classement */
+    .rank-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    .rank-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f7fcf9;
+      border: 1px solid #e2efe7;
+      border-radius: 10px;
+      padding: 9px 10px;
+      font-size: 0.88rem;
+    }
+
+    .rank-item strong {
+      color: var(--ff-green);
+    }
+
+    /* Historique */
+    .history-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    .history-item {
+      border: 1px solid #e3efe8;
+      border-radius: 10px;
+      padding: 10px;
+      background: #fbfefc;
+    }
+
+    .history-item-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 4px;
+      font-size: 0.86rem;
+    }
+
+    .history-meta {
+      color: var(--ff-muted);
+      font-size: 0.77rem;
+    }
+
+    .empty-note {
+      color: var(--ff-muted);
+      font-size: 0.85rem;
+      margin: 0;
+    }
+
+    /* Desktop léger */
+    @media (min-width: 640px) {
+      .app { padding-top: 20px; }
+      .card { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <!-- Carte principale profil -->
+    <section class="card" aria-label="Profil utilisateur">
+      <div class="profile-head">
+        <!-- Photo profil + fallback initiales -->
+        <div class="avatar-wrap">
+          <img
+            id="profilePhoto"
+            class="avatar"
+            src=""
+            alt="Photo de profil"
+          />
+          <div id="avatarFallback" class="avatar-fallback" aria-hidden="true">--</div>
+        </div>
+
+        <div class="identity">
+          <h1 id="userName">Aya K.</h1>
+          <p id="userRegion">Département : Atlantique • Commune : Abomey-Calavi</p>
+          <div class="level-badge">
+            <span>🏅</span>
+            <span id="levelName">Niveau 6 — Maître ration</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progression vers niveau suivant -->
+      <div class="xp-meta">
+        <span id="xpCurrent">1 920 pts</span>
+        <span id="xpNext">Prochain niveau : 2 800 pts</span>
+      </div>
+      <div class="xp-bar" role="progressbar" aria-label="Progression niveau">
+        <div id="xpFill" class="xp-fill"></div>
+      </div>
+    </section>
+
+    <!-- Statistiques utilisateur -->
+    <section class="card" aria-label="Statistiques utilisateur">
+      <h2 class="section-title">Statistiques</h2>
+      <div class="stats-grid">
+        <article class="stat-item">
+          <p class="stat-label">Rations générées</p>
+          <p class="stat-value" id="statRations">128</p>
+        </article>
+        <article class="stat-item">
+          <p class="stat-label">Économies FCFA</p>
+          <p class="stat-value" id="statSavings">154 300</p>
+        </article>
+        <article class="stat-item">
+          <p class="stat-label">Animaux diagnostiqués</p>
+          <p class="stat-value" id="statAnimals">67</p>
+        </article>
+        <article class="stat-item">
+          <p class="stat-label">Jours d'utilisation</p>
+          <p class="stat-value" id="statDays">94</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Série actuelle -->
+    <section class="card" aria-label="Série actuelle">
+      <h2 class="section-title">Série de régularité</h2>
+      <div class="streak-row">
+        <div class="streak-left">
+          <span class="flame" aria-hidden="true">🔥</span>
+          <span id="streakValue">12 jours</span>
+        </div>
+        <div class="streak-info">
+          <div>Meilleure série : <strong id="bestStreak">20</strong></div>
+          <div>Graines secours : <strong id="rescueSeeds">2</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Grille trophées -->
+    <section class="card" aria-label="Trophées utilisateur">
+      <h2 class="section-title">Trophées</h2>
+      <div id="trophyGrid" class="trophy-grid">
+        <!-- Trophées injectés via JS -->
+      </div>
+    </section>
+
+    <!-- Classement -->
+    <section class="card" aria-label="Classement actuel">
+      <h2 class="section-title">Classement actuel</h2>
+      <ul class="rank-list">
+        <li class="rank-item"><span>Ma commune</span><strong id="rankCommune">#4</strong></li>
+        <li class="rank-item"><span>Mon département</span><strong id="rankDepartement">#19</strong></li>
+        <li class="rank-item"><span>National</span><strong id="rankNational">#132</strong></li>
+      </ul>
+    </section>
+
+    <!-- Historique des 5 dernières rations -->
+    <section class="card" aria-label="Historique des dernières rations">
+      <h2 class="section-title">5 dernières rations</h2>
+      <ul id="historyList" class="history-list"></ul>
+      <p id="historyEmpty" class="empty-note" hidden>Aucune ration récente.</p>
+    </section>
+  </main>
+
+  <script>
+    // ------------------------------------------------------------------
+    // Données de démonstration (à remplacer par données API backend)
+    // ------------------------------------------------------------------
+    const profileData = {
+      prenom: "Aya Kouassi",
+      region: "Atlantique",
+      commune: "Abomey-Calavi",
+      photoUrl: "", // si vide => fallback initiales
+      pointsTotal: 1920,
+      nextLevelPoints: 2800,
+      levelLabel: "Niveau 6 — Maître ration",
+      stats: {
+        rations: 128,
+        savingsFcfa: 154300,
+        diagnosedAnimals: 67,
+        daysUsed: 94
+      },
+      streak: {
+        current: 12,
+        best: 20,
+        rescueSeeds: 2
+      },
+      classement: {
+        commune: 4,
+        departement: 19,
+        national: 132
+      },
+      trophies: [
+        { name: "Bienvenue", icon: "🌱", unlocked: true },
+        { name: "Ration x10", icon: "🥣", unlocked: true },
+        { name: "Série 7j", icon: "🔥", unlocked: true },
+        { name: "Éleveur éco", icon: "💰", unlocked: true },
+        { name: "Radar marché", icon: "📈", unlocked: false },
+        { name: "Leader local", icon: "🏅", unlocked: false },
+        { name: "Pont des langues", icon: "🗣️", unlocked: false },
+        { name: "Légende Aya", icon: "👑", unlocked: false }
+      ],
+      lastRations: [
+        { espece: "Poulet de chair", coutKg: 345, date: "2026-04-26", objectif: "Équilibre" },
+        { espece: "Porc", coutKg: 412, date: "2026-04-24", objectif: "Coût minimum" },
+        { espece: "Pondeuse", coutKg: 331, date: "2026-04-23", objectif: "Économique" },
+        { espece: "Poisson (tilapia)", coutKg: 505, date: "2026-04-21", objectif: "Croissance" },
+        { espece: "Poulet local", coutKg: 298, date: "2026-04-19", objectif: "Autonomie locale" }
+      ]
+    };
+
+    // ------------------------------------------------------------------
+    // Helpers
+    // ------------------------------------------------------------------
+    function formatNumberFr(value) {
+      return new Intl.NumberFormat("fr-FR").format(Number(value || 0));
+    }
+
+    function formatDateFr(isoDate) {
+      const d = new Date(isoDate);
+      return new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "short", year: "numeric" }).format(d);
+    }
+
+    function initialsFromName(name) {
+      const safe = String(name || "").trim();
+      if (!safe) return "??";
+      const parts = safe.split(/\s+/).slice(0, 2);
+      return parts.map(p => p.charAt(0).toUpperCase()).join("");
+    }
+
+    // ------------------------------------------------------------------
+    // Rendu principal
+    // ------------------------------------------------------------------
+    function renderProfile(data) {
+      // Identité
+      document.getElementById("userName").textContent = data.prenom;
+      document.getElementById("userRegion").textContent =
+        `Département : ${data.region} • Commune : ${data.commune}`;
+      document.getElementById("levelName").textContent = data.levelLabel;
+
+      // Photo + fallback initiales
+      const photo = document.getElementById("profilePhoto");
+      const fallback = document.getElementById("avatarFallback");
+      const initials = initialsFromName(data.prenom);
+      fallback.textContent = initials;
+
+      if (data.photoUrl) {
+        photo.src = data.photoUrl;
+        photo.addEventListener("error", () => {
+          photo.style.display = "none";
+          fallback.style.display = "flex";
+        }, { once: true });
+      } else {
+        photo.style.display = "none";
+        fallback.style.display = "flex";
+      }
+
+      // Progression niveau
+      const points = Number(data.pointsTotal || 0);
+      const next = Math.max(points + 1, Number(data.nextLevelPoints || points + 1));
+      const base = Math.max(0, Math.floor(next * 0.68)); // base visuelle simple (MVP)
+      const span = Math.max(1, next - base);
+      const pct = Math.max(0, Math.min(100, ((points - base) / span) * 100));
+      document.getElementById("xpCurrent").textContent = `${formatNumberFr(points)} pts`;
+      document.getElementById("xpNext").textContent = `Prochain niveau : ${formatNumberFr(next)} pts`;
+      document.getElementById("xpFill").style.width = `${pct.toFixed(1)}%`;
+
+      // Statistiques
+      document.getElementById("statRations").textContent = formatNumberFr(data.stats.rations);
+      document.getElementById("statSavings").textContent = `${formatNumberFr(data.stats.savingsFcfa)} FCFA`;
+      document.getElementById("statAnimals").textContent = formatNumberFr(data.stats.diagnosedAnimals);
+      document.getElementById("statDays").textContent = formatNumberFr(data.stats.daysUsed);
+
+      // Série
+      document.getElementById("streakValue").textContent = `${formatNumberFr(data.streak.current)} jours`;
+      document.getElementById("bestStreak").textContent = formatNumberFr(data.streak.best);
+      document.getElementById("rescueSeeds").textContent = formatNumberFr(data.streak.rescueSeeds);
+
+      // Classement
+      document.getElementById("rankCommune").textContent = `#${formatNumberFr(data.classement.commune)}`;
+      document.getElementById("rankDepartement").textContent = `#${formatNumberFr(data.classement.departement)}`;
+      document.getElementById("rankNational").textContent = `#${formatNumberFr(data.classement.national)}`;
+
+      // Trophées
+      const trophyGrid = document.getElementById("trophyGrid");
+      trophyGrid.innerHTML = "";
+      data.trophies.forEach(t => {
+        const node = document.createElement("article");
+        node.className = `trophy ${t.unlocked ? "unlocked" : "locked"}`;
+        node.setAttribute("title", t.name);
+        node.innerHTML = `
+          <div class="icon">${t.icon}</div>
+          <div class="name">${t.name}</div>
+        `;
+        trophyGrid.appendChild(node);
+      });
+
+      // Historique rations (5 dernières)
+      const list = document.getElementById("historyList");
+      const empty = document.getElementById("historyEmpty");
+      list.innerHTML = "";
+
+      if (!Array.isArray(data.lastRations) || data.lastRations.length === 0) {
+        empty.hidden = false;
+        return;
+      }
+
+      empty.hidden = true;
+      data.lastRations.slice(0, 5).forEach(item => {
+        const li = document.createElement("li");
+        li.className = "history-item";
+        li.innerHTML = `
+          <div class="history-item-top">
+            <strong>${item.espece}</strong>
+            <span>${formatNumberFr(item.coutKg)} FCFA/kg</span>
+          </div>
+          <div class="history-meta">
+            ${item.objectif} • ${formatDateFr(item.date)}
+          </div>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    // Initialisation
+    renderProfile(profileData);
+  </script>
+</body>
+</html>

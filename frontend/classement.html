@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FeedFormula AI — Classement</title>
+  <style>
+    /* =========================================================================
+       FEEDFORMULA AI - CLASSEMENT TEMPS RÉEL (MOBILE-FIRST)
+       Couleurs principales :
+       - Vert primaire : #1f9d55
+       - Vert foncé    : #146c43
+       - Jaune accent  : #f4b400
+       - Fond doux     : #f5faf7
+       ========================================================================= */
+
+    :root {
+      --ff-green: #1f9d55;
+      --ff-green-dark: #146c43;
+      --ff-green-soft: #dff4e8;
+      --ff-gold: #f4b400;
+      --ff-silver: #b7c2d0;
+      --ff-bronze: #c7773f;
+      --ff-bg: #f5faf7;
+      --ff-card: #ffffff;
+      --ff-text: #123126;
+      --ff-muted: #5e7a6f;
+      --ff-border: #d9e9df;
+      --up: #00a86b;
+      --down: #c0392b;
+      --shadow: 0 8px 18px rgba(17, 66, 43, 0.08);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--ff-bg);
+      color: var(--ff-text);
+      line-height: 1.35;
+    }
+
+    .page {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 14px 12px 90px;
+    }
+
+    /* En-tête */
+    .header {
+      background: linear-gradient(135deg, var(--ff-green), var(--ff-green-dark));
+      color: white;
+      border-radius: 18px;
+      padding: 14px 14px 16px;
+      box-shadow: var(--shadow);
+      margin-bottom: 12px;
+    }
+
+    .header h1 {
+      margin: 0 0 4px;
+      font-size: 1.15rem;
+    }
+
+    .header p {
+      margin: 0;
+      opacity: 0.92;
+      font-size: 0.9rem;
+    }
+
+    /* Bloc saison + compte à rebours */
+    .season {
+      margin-top: 10px;
+      display: grid;
+      gap: 8px;
+      grid-template-columns: 1fr;
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      border-radius: 12px;
+      padding: 10px;
+    }
+
+    .countdown {
+      display: flex;
+      gap: 8px;
+      justify-content: space-between;
+    }
+
+    .timer-box {
+      flex: 1;
+      text-align: center;
+      background: rgba(255,255,255,0.18);
+      border-radius: 10px;
+      padding: 6px 4px;
+    }
+
+    .timer-box strong {
+      display: block;
+      font-size: 1rem;
+      line-height: 1.1;
+    }
+
+    .timer-box span {
+      font-size: 0.72rem;
+      opacity: 0.95;
+    }
+
+    /* Onglets classement */
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .tab {
+      border: 1px solid var(--ff-border);
+      background: var(--ff-card);
+      color: var(--ff-text);
+      border-radius: 12px;
+      padding: 10px 8px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab.active {
+      background: var(--ff-green);
+      border-color: var(--ff-green);
+      color: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    /* Podium Top 3 */
+    .podium-card {
+      background: var(--ff-card);
+      border: 1px solid var(--ff-border);
+      border-radius: var(--radius);
+      padding: 12px;
+      box-shadow: var(--shadow);
+      margin-bottom: 12px;
+    }
+
+    .podium-title {
+      margin: 0 0 10px;
+      font-size: 0.95rem;
+      color: var(--ff-green-dark);
+    }
+
+    .podium {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr 1fr;
+      align-items: end;
+      gap: 8px;
+      min-height: 160px;
+    }
+
+    .podium-item {
+      text-align: center;
+      border-radius: 12px 12px 8px 8px;
+      padding: 8px 6px;
+      color: #fff;
+    }
+
+    .podium-item .name {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .podium-item .meta {
+      display: block;
+      font-size: 0.72rem;
+      opacity: 0.95;
+    }
+
+    .rank-1 { background: linear-gradient(180deg, #f7c948, #e8a700); min-height: 124px; }
+    .rank-2 { background: linear-gradient(180deg, #d2d8df, #9faab7); min-height: 98px; }
+    .rank-3 { background: linear-gradient(180deg, #d39a6b, #b66e39); min-height: 84px; }
+
+    .medal {
+      font-size: 1.1rem;
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    /* Zone montée / descente */
+    .zone-indicator {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      font-size: 0.82rem;
+    }
+
+    .pill {
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-weight: 700;
+      border: 1px solid transparent;
+    }
+
+    .pill.up {
+      color: var(--up);
+      background: #eafaf3;
+      border-color: #bcefd7;
+    }
+
+    .pill.down {
+      color: var(--down);
+      background: #fdecea;
+      border-color: #f2c8c4;
+    }
+
+    /* Liste du classement */
+    .list-card {
+      background: var(--ff-card);
+      border: 1px solid var(--ff-border);
+      border-radius: var(--radius);
+      padding: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 42px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 8px;
+      border-radius: 10px;
+    }
+
+    .row + .row {
+      border-top: 1px dashed #e6efe9;
+    }
+
+    .rank {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #edf6f0;
+      color: var(--ff-green-dark);
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+
+    .user {
+      min-width: 0;
+    }
+
+    .user .name {
+      font-weight: 800;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user .sub {
+      color: var(--ff-muted);
+      font-size: 0.74rem;
+      margin-top: 1px;
+    }
+
+    .score {
+      text-align: right;
+    }
+
+    .score .pts {
+      font-weight: 900;
+      font-size: 0.9rem;
+      color: var(--ff-green-dark);
+    }
+
+    .score .lvl {
+      color: var(--ff-muted);
+      font-size: 0.74rem;
+    }
+
+    /* Utilisateur actuel mis en évidence en vert */
+    .row.current-user {
+      background: #e9f8ef;
+      border: 1px solid #b8e8c9;
+    }
+
+    .row.current-user .rank {
+      background: var(--ff-green);
+      color: white;
+    }
+
+    /* CTA bas de page */
+    .sticky-cta {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(245, 250, 247, 0.94);
+      backdrop-filter: blur(6px);
+      border-top: 1px solid #d9e9df;
+      padding: 10px 12px;
+    }
+
+    .btn-boost {
+      width: min(980px, calc(100% - 0px));
+      margin: 0 auto;
+      display: block;
+      border: none;
+      background: linear-gradient(135deg, var(--ff-green), var(--ff-green-dark));
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.95rem;
+      border-radius: 12px;
+      padding: 12px 14px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+    }
+
+    .btn-boost:active { transform: translateY(1px); }
+
+    @media (min-width: 720px) {
+      .tabs { grid-template-columns: repeat(4, 1fr); }
+      .header h1 { font-size: 1.35rem; }
+      .row { grid-template-columns: 52px 1fr auto; }
+      .rank { width: 36px; height: 36px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="header" aria-label="En-tête classement">
+      <h1>🏅 Classement FeedFormula AI</h1>
+      <p>Mis à jour en temps réel — progresse chaque jour avec NutriCore.</p>
+
+      <!-- Compte à rebours avant fin de saison -->
+      <div class="season" aria-label="Fin de saison">
+        <div><strong>Saison en cours :</strong> Récolte IA #3</div>
+        <div class="countdown" id="countdown" aria-live="polite">
+          <div class="timer-box"><strong id="dd">00</strong><span>jours</span></div>
+          <div class="timer-box"><strong id="hh">00</strong><span>heures</span></div>
+          <div class="timer-box"><strong id="mm">00</strong><span>minutes</span></div>
+          <div class="timer-box"><strong id="ss">00</strong><span>secondes</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Onglets de portée du classement -->
+    <nav class="tabs" aria-label="Portée du classement">
+      <button class="tab active" data-scope="commune">Ma Commune</button>
+      <button class="tab" data-scope="departement">Mon Département</button>
+      <button class="tab" data-scope="national">National</button>
+      <button class="tab" data-scope="continental">Continental</button>
+    </nav>
+
+    <!-- Podium top 3 -->
+    <section class="podium-card" aria-label="Podium top 3">
+      <h2 class="podium-title">Top 3 🔥</h2>
+      <div class="podium" id="podium"></div>
+
+      <!-- Indicateur montée/descente de ligue -->
+      <div class="zone-indicator" aria-label="Zone de ligue">
+        <span class="pill up" id="upZone">⬆ Zone montée</span>
+        <span class="pill down" id="downZone">⬇ Zone descente</span>
+        <span id="userZoneText">Tu es actuellement en <strong>zone montée</strong>.</span>
+      </div>
+    </section>
+
+    <!-- Liste des autres joueurs -->
+    <section class="list-card" aria-label="Liste du classement">
+      <div id="rankingList"></div>
+    </section>
+  </main>
+
+  <!-- Bouton d'action principal -->
+  <div class="sticky-cta">
+    <button class="btn-boost" id="btnNutriCore">🚀 Améliorer mon rang (lancer NutriCore)</button>
+  </div>
+
+  <script>
+    /* =========================================================================
+       Données mockées "temps réel" (MVP front).
+       En production, remplacer par des appels API.
+       ========================================================================= */
+
+    const CURRENT_USER_ID = "u7";
+
+    const datasets = {
+      commune: [
+        { id: "u1", nom: "Awa", points: 4890, niveau: 8 },
+        { id: "u2", nom: "Koffi", points: 4610, niveau: 8 },
+        { id: "u3", nom: "Mariam", points: 4280, niveau: 7 },
+        { id: "u7", nom: "Toi", points: 3975, niveau: 7 },
+        { id: "u8", nom: "Aziz", points: 3890, niveau: 7 },
+        { id: "u9", nom: "Nina", points: 3650, niveau: 6 },
+        { id: "u10", nom: "Sami", points: 3440, niveau: 6 },
+      ],
+      departement: [
+        { id: "u1", nom: "Awa", points: 6020, niveau: 9 },
+        { id: "u4", nom: "Rachid", points: 5940, niveau: 9 },
+        { id: "u2", nom: "Koffi", points: 5610, niveau: 9 },
+        { id: "u6", nom: "Fatou", points: 5490, niveau: 8 },
+        { id: "u3", nom: "Mariam", points: 5210, niveau: 8 },
+        { id: "u7", nom: "Toi", points: 4975, niveau: 8 },
+        { id: "u11", nom: "Moussa", points: 4700, niveau: 8 },
+      ],
+      national: [
+        { id: "u12", nom: "Eliane", points: 8520, niveau: 10 },
+        { id: "u13", nom: "Jean", points: 8130, niveau: 10 },
+        { id: "u14", nom: "Binta", points: 7840, niveau: 10 },
+        { id: "u1", nom: "Awa", points: 7420, niveau: 9 },
+        { id: "u2", nom: "Koffi", points: 7210, niveau: 9 },
+        { id: "u7", nom: "Toi", points: 6975, niveau: 9 },
+        { id: "u15", nom: "Dayo", points: 6755, niveau: 9 },
+      ],
+      continental: [
+        { id: "u20", nom: "Nadia", points: 12020, niveau: 10 },
+        { id: "u21", nom: "Kemi", points: 11840, niveau: 10 },
+        { id: "u22", nom: "Seydou", points: 11510, niveau: 10 },
+        { id: "u23", nom: "Chidi", points: 11130, niveau: 10 },
+        { id: "u12", nom: "Eliane", points: 10890, niveau: 10 },
+        { id: "u7", nom: "Toi", points: 10675, niveau: 10 },
+        { id: "u24", nom: "Amina", points: 10410, niveau: 10 },
+      ],
+    };
+
+    let currentScope = "commune";
+
+    function formatPoints(n) {
+      return new Intl.NumberFormat("fr-FR").format(n) + " pts";
+    }
+
+    /* -------------------------------
+       Rend le podium top 3
+       ------------------------------- */
+    function renderPodium(data) {
+      const podiumEl = document.getElementById("podium");
+      const top3 = data.slice(0, 3);
+
+      const slots = [
+        { rank: 2, css: "rank-2", medal: "🥈" },
+        { rank: 1, css: "rank-1", medal: "🥇" },
+        { rank: 3, css: "rank-3", medal: "🥉" },
+      ];
+
+      podiumEl.innerHTML = slots.map(slot => {
+        const p = top3.find((x, i) => i + 1 === slot.rank);
+        if (!p) return `<div></div>`;
+        return `
+          <article class="podium-item ${slot.css}" aria-label="Rang ${slot.rank}">
+            <span class="medal">${slot.medal}</span>
+            <span class="name">${p.nom}</span>
+            <span class="meta">${formatPoints(p.points)} · Niv ${p.niveau}</span>
+          </article>
+        `;
+      }).join("");
+    }
+
+    /* -------------------------------
+       Rend la liste complète
+       ------------------------------- */
+    function renderList(data) {
+      const listEl = document.getElementById("rankingList");
+      listEl.innerHTML = data.map((user, index) => {
+        const rang = index + 1;
+        const currentClass = user.id === CURRENT_USER_ID ? "current-user" : "";
+        return `
+          <article class="row ${currentClass}">
+            <div class="rank">${rang}</div>
+            <div class="user">
+              <div class="name">${user.nom}</div>
+              <div class="sub">Rang #${rang} · ${scopeLabel(currentScope)}</div>
+            </div>
+            <div class="score">
+              <div class="pts">${formatPoints(user.points)}</div>
+              <div class="lvl">Niveau ${user.niveau}</div>
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      updateLeagueZone(data);
+    }
+
+    function scopeLabel(scope) {
+      if (scope === "commune") return "Commune";
+      if (scope === "departement") return "Département";
+      if (scope === "national") return "National";
+      return "Continental";
+    }
+
+    /* -------------------------------
+       Indicateur montée / descente
+       Règle simple:
+       - top 30% => montée
+       - bas 20% => descente
+       ------------------------------- */
+    function updateLeagueZone(data) {
+      const idx = data.findIndex(u => u.id === CURRENT_USER_ID);
+      const userRank = idx + 1;
+      const total = data.length;
+      const upThreshold = Math.ceil(total * 0.3);
+      const downThreshold = Math.ceil(total * 0.8);
+
+      const upEl = document.getElementById("upZone");
+      const downEl = document.getElementById("downZone");
+      const txtEl = document.getElementById("userZoneText");
+
+      upEl.style.opacity = "0.45";
+      downEl.style.opacity = "0.45";
+
+      if (userRank <= upThreshold) {
+        upEl.style.opacity = "1";
+        txtEl.innerHTML = "Tu es actuellement en <strong>zone montée</strong>.";
+      } else if (userRank >= downThreshold) {
+        downEl.style.opacity = "1";
+        txtEl.innerHTML = "Attention : tu es en <strong>zone descente</strong>.";
+      } else {
+        txtEl.innerHTML = "Tu es en <strong>zone stable</strong>. Continue pour monter.";
+      }
+    }
+
+    /* -------------------------------
+       Simule mises à jour temps réel
+       (petites variations toutes les 6s)
+       ------------------------------- */
+    function tickRealtime() {
+      Object.values(datasets).forEach(list => {
+        list.forEach(u => {
+          const delta = Math.floor(Math.random() * 6); // 0..5
+          u.points += delta;
+        });
+        list.sort((a, b) => b.points - a.points);
+      });
+      renderCurrentScope();
+    }
+
+    /* -------------------------------
+       Gestion onglets
+       ------------------------------- */
+    function bindTabs() {
+      const tabs = document.querySelectorAll(".tab");
+      tabs.forEach(tab => {
+        tab.addEventListener("click", () => {
+          tabs.forEach(t => t.classList.remove("active"));
+          tab.classList.add("active");
+          currentScope = tab.dataset.scope;
+          renderCurrentScope();
+        });
+      });
+    }
+
+    function renderCurrentScope() {
+      const data = datasets[currentScope].slice().sort((a, b) => b.points - a.points);
+      renderPodium(data);
+      renderList(data);
+    }
+
+    /* -------------------------------
+       Compte à rebours fin de saison
+       ------------------------------- */
+    const seasonEnd = new Date();
+    seasonEnd.setDate(seasonEnd.getDate() + 12); // Exemple: fin dans 12 jours
+    seasonEnd.setHours(23, 59, 59, 0);
+
+    function updateCountdown() {
+      const now = new Date();
+      const diff = Math.max(0, seasonEnd - now);
+
+      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const m = Math.floor((diff / (1000 * 60)) % 60);
+      const s = Math.floor((diff / 1000) % 60);
+
+      document.getElementById("dd").textContent = String(d).padStart(2, "0");
+      document.getElementById("hh").textContent = String(h).padStart(2, "0");
+      document.getElementById("mm").textContent = String(m).padStart(2, "0");
+      document.getElementById("ss").textContent = String(s).padStart(2, "0");
+    }
+
+    /* -------------------------------
+       CTA: "Améliorer mon rang"
+       Lance NutriCore (navigation)
+       ------------------------------- */
+    document.getElementById("btnNutriCore").addEventListener("click", () => {
+      // En production: router applicatif + tracking analytics
+      window.location.href = "./index.html#nutricore";
+    });
+
+    // Initialisation
+    bindTabs();
+    renderCurrentScope();
+    updateCountdown();
+
+    // Rafraîchissement périodique
+    setInterval(updateCountdown, 1000);
+    setInterval(tickRealtime, 6000);
+  </script>
+</body>
+</html>

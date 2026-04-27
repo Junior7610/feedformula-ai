@@ -68,6 +68,15 @@ class GamificationEngine:
         {"niveau": 10, "nom": "Légende Aya", "seuil_points": 7500},
     ]
 
+    # Définition des ligues (ordre croissant).
+    LIGUES: List[Dict[str, Any]] = [
+        {"code": "bronze", "nom": "Bronze", "min_points": 0, "icone": "🥉"},
+        {"code": "argent", "nom": "Argent", "min_points": 1200, "icone": "🥈"},
+        {"code": "or", "nom": "Or", "min_points": 2800, "icone": "🥇"},
+        {"code": "platine", "nom": "Platine", "min_points": 5500, "icone": "🏆"},
+        {"code": "diamant", "nom": "Diamant", "min_points": 7500, "icone": "💎"},
+    ]
+
     # Liste de 30 trophées avec conditions.
     # Types de condition supportés:
     # - points_total
@@ -308,6 +317,11 @@ class GamificationEngine:
         self.bonus_serie_multiple_7 = 10
         self.bonus_heure_creuse_offline = 3
 
+        # Paramètres anti-abus (MVP configurable).
+        self.max_points_par_action = 500
+        self.seuil_actions_24h_suspect = 120
+        self.malus_repetition_pct = 0.30
+
     # ---------------------------------------------------------------------
     # Méthodes utilitaires internes
     # ---------------------------------------------------------------------
@@ -366,7 +380,7 @@ class GamificationEngine:
 
     def calculer_points(self, action: str, contexte: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
-        Calcule les points pour une action donnée.
+        Calcule les points pour une action donnée avec garde-fous anti-abus.
 
         Paramètres:
         - action: nom technique de l'action (ex: "generation_ration")
@@ -376,17 +390,25 @@ class GamificationEngine:
           - "serie_actuelle": int
           - "offline_mode": bool
           - "multiplicateur_evenement": float
+          - "nb_actions_24h": int (anti-abus)
+          - "cooldown_actif": bool (anti-abus)
 
         Règles bonus:
         - langue locale africaine (hors fr/en): +5 points
         - série multiple de 7 jours: +10 points
         - mode offline: +3 points
 
+        Règles anti-abus:
+        - cooldown actif => points = 0
+        - volume d'actions 24h trop élevé => malus de répétition
+        - cap max par action pour éviter les explosions de score
+
         Retour:
         {
           "action": ...,
           "points_base": ...,
           "bonus": [...],
+          "penalites": [...],
           "points_total": ...
         }
         """
@@ -398,6 +420,19 @@ class GamificationEngine:
         points_base = self.ACTIONS_POINTS[action]
         points_total = points_base
         bonus_details: List[Dict[str, Any]] = []
+        penalites: List[Dict[str, Any]] = []
+
+        # Blocage immédiat si cooldown anti-spam actif.
+        if bool(contexte.get("cooldown_actif", False)):
+            penalites.append({"type": "cooldown_actif", "points": -points_base})
+            return {
+                "action": action,
+                "points_base": points_base,
+                "bonus": bonus_details,
+                "penalites": penalites,
+                "multiplicateur": 1.0,
+                "points_total": 0,
+            }
 
         # Bonus langue locale.
         code_langue = str(contexte.get("code_langue", "")).lower().strip()
@@ -436,12 +471,40 @@ class GamificationEngine:
         if multiplicateur <= 0:
             multiplicateur = 1.0
 
+        # Anti-abus: malus si usage anormalement élevé sur 24h.
+        try:
+            nb_actions_24h = int(contexte.get("nb_actions_24h", 0))
+        except (TypeError, ValueError):
+            nb_actions_24h = 0
+
+        if nb_actions_24h >= self.seuil_actions_24h_suspect:
+            reduction = int(round(points_total * self.malus_repetition_pct))
+            points_total = max(1, points_total - reduction)
+            penalites.append(
+                {
+                    "type": "malus_repetition_24h",
+                    "points": -reduction,
+                    "nb_actions_24h": nb_actions_24h,
+                }
+            )
+
         points_total = int(round(points_total * multiplicateur))
+
+        # Cap de sécurité pour éviter les débordements de score.
+        if points_total > self.max_points_par_action:
+            penalites.append(
+                {
+                    "type": "cap_points_action",
+                    "points": -(points_total - self.max_points_par_action),
+                }
+            )
+            points_total = self.max_points_par_action
 
         return {
             "action": action,
             "points_base": points_base,
             "bonus": bonus_details,
+            "penalites": penalites,
             "multiplicateur": multiplicateur,
             "points_total": max(0, points_total),
         }
@@ -495,6 +558,103 @@ class GamificationEngine:
             "progression_pct": round(progression_pct, 2),
             "points_dans_niveau": points_dans_niveau,
             "points_restant_pour_suivant": points_restant,
+        }
+
+    def determiner_ligue(self, points_total: int) -> Dict[str, Any]:
+        """
+        Détermine la ligue actuelle d'un utilisateur selon son total de points.
+        """
+        try:
+            points = int(points_total)
+        except (TypeError, ValueError):
+            points = 0
+
+        points = max(0, points)
+
+        ligue_actuelle = self.LIGUES[0]
+        prochaine_ligue: Optional[Dict[str, Any]] = None
+
+        for idx, ligue in enumerate(self.LIGUES):
+            if points >= int(ligue["min_points"]):
+                ligue_actuelle = ligue
+                prochaine_ligue = self.LIGUES[idx + 1] if idx + 1 < len(self.LIGUES) else None
+            else:
+                break
+
+        points_restant = 0
+        if prochaine_ligue is not None:
+            points_restant = max(0, int(prochaine_ligue["min_points"]) - points)
+
+        return {
+            "ligue_actuelle": ligue_actuelle,
+            "prochaine_ligue": prochaine_ligue,
+            "points_restant_pour_monter": points_restant,
+        }
+
+    def calculer_compte_a_rebours_saison(
+        self,
+        date_fin_saison: Union[str, date, datetime],
+        now: Optional[datetime] = None,
+    ) -> Dict[str, Any]:
+        """
+        Calcule le compte à rebours avant la fin de saison.
+
+        Retour:
+        {
+          "terminee": bool,
+          "secondes_restantes": int,
+          "jours": int,
+          "heures": int,
+          "minutes": int,
+          "secondes": int
+        }
+        """
+        dt_fin: Optional[datetime] = None
+
+        if isinstance(date_fin_saison, datetime):
+            dt_fin = date_fin_saison
+        elif isinstance(date_fin_saison, date):
+            dt_fin = datetime.combine(date_fin_saison, datetime.max.time())
+        elif isinstance(date_fin_saison, str):
+            txt = date_fin_saison.strip()
+            try:
+                dt_fin = datetime.fromisoformat(txt)
+            except ValueError:
+                try:
+                    dt_fin = datetime.strptime(txt, "%Y-%m-%d")
+                    dt_fin = datetime.combine(dt_fin.date(), datetime.max.time())
+                except ValueError:
+                    dt_fin = None
+
+        if dt_fin is None:
+            raise ValueError("date_fin_saison invalide (format attendu: ISO ou YYYY-MM-DD).")
+
+        ref = now or datetime.now()
+        delta = dt_fin - ref
+        total_seconds = int(delta.total_seconds())
+
+        if total_seconds <= 0:
+            return {
+                "terminee": True,
+                "secondes_restantes": 0,
+                "jours": 0,
+                "heures": 0,
+                "minutes": 0,
+                "secondes": 0,
+            }
+
+        jours = total_seconds // 86400
+        heures = (total_seconds % 86400) // 3600
+        minutes = (total_seconds % 3600) // 60
+        secondes = total_seconds % 60
+
+        return {
+            "terminee": False,
+            "secondes_restantes": total_seconds,
+            "jours": jours,
+            "heures": heures,
+            "minutes": minutes,
+            "secondes": secondes,
         }
 
     def verifier_trophees(self, user_stats: Dict[str, Any]) -> List[Dict[str, Any]]:
