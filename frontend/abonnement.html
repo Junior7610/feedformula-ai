@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            name="description"
+            content="FeedFormula AI - Abonnements Mobile Money, offres Free à Gold et paiement sécurisé."
+        />
+        <title>FeedFormula AI - Abonnement</title>
+        <link rel="stylesheet" href="./style.css" />
+        <script
+            defer
+            src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+        ></script>
+        <script
+            defer
+            src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"
+        ></script>
+        <script defer src="./api.js"></script>
+        <script defer src="./script.js"></script>
+        <script defer src="./api_bindings.js"></script>
+    </head>
+
+    <body data-page="abonnement">
+        <header class="app-header app-header--sticky" role="banner">
+            <a
+                class="app-header__back"
+                href="./profil.html"
+                aria-label="Retour"
+            >
+                ←
+            </a>
+
+            <div class="app-header__title-wrap">
+                <h1>💳 Abonnements</h1>
+                <span class="badge-star">Paiement Mobile Money</span>
+            </div>
+
+            <a
+                href="./profil.html"
+                class="app-header__avatar"
+                aria-label="Ouvrir le profil"
+            >
+                <img src="../assets/aya_joie.png" alt="Avatar utilisateur" />
+            </a>
+        </header>
+
+        <main class="app-main app-main--with-nav">
+            <section class="hero-block card-shell">
+                <p class="eyebrow">Choisissez votre formule</p>
+                <h1>5 offres pour accompagner votre élevage</h1>
+                <p>
+                    Activez un abonnement en quelques clics via FedaPay et
+                    débloquez plus de fonctionnalités, plus de limites et plus
+                    de suivi.
+                </p>
+            </section>
+
+            <section class="card-shell" aria-label="Comparaison des offres">
+                <div class="section-title-row">
+                    <h2>Comparatif des plans</h2>
+                </div>
+
+                <div id="subscriptionOffers" class="subscription-grid">
+                    <article class="subscription-card">
+                        <h3>Free</h3>
+                        <p class="subscription-card__price">0 FCFA</p>
+                        <ul>
+                            <li>Rations limitées</li>
+                            <li>Accès de base à VetScan</li>
+                            <li>Historique restreint</li>
+                        </ul>
+                        <button
+                            class="primary-action"
+                            type="button"
+                            data-plan="free"
+                        >
+                            S'abonner
+                        </button>
+                    </article>
+
+                    <article
+                        class="subscription-card subscription-card--featured"
+                    >
+                        <span class="subscription-badge">Recommandé</span>
+                        <h3>Starter</h3>
+                        <p class="subscription-card__price">2 500 FCFA</p>
+                        <ul>
+                            <li>Rations complètes</li>
+                            <li>Synthèse audio</li>
+                            <li>Gamification de base</li>
+                        </ul>
+                        <button
+                            class="primary-action"
+                            type="button"
+                            data-plan="starter"
+                        >
+                            S'abonner
+                        </button>
+                    </article>
+
+                    <article class="subscription-card">
+                        <h3>Basic</h3>
+                        <p class="subscription-card__price">5 000 FCFA</p>
+                        <ul>
+                            <li>Accès enrichi aux modules</li>
+                            <li>Conseils avancés</li>
+                            <li>Suivi des performances</li>
+                        </ul>
+                        <button
+                            class="primary-action"
+                            type="button"
+                            data-plan="basic"
+                        >
+                            S'abonner
+                        </button>
+                    </article>
+
+                    <article class="subscription-card">
+                        <h3>Premium</h3>
+                        <p class="subscription-card__price">10 000 FCFA</p>
+                        <ul>
+                            <li>Priorité sur les analyses</li>
+                            <li>FarmAcademy avancée</li>
+                            <li>Classement enrichi</li>
+                        </ul>
+                        <button
+                            class="primary-action"
+                            type="button"
+                            data-plan="premium"
+                        >
+                            S'abonner
+                        </button>
+                    </article>
+
+                    <article class="subscription-card">
+                        <h3>Gold</h3>
+                        <p class="subscription-card__price">20 000 FCFA</p>
+                        <ul>
+                            <li>Toutes les fonctionnalités</li>
+                            <li>Support prioritaire</li>
+                            <li>Avantages exclusifs</li>
+                        </ul>
+                        <button
+                            class="primary-action"
+                            type="button"
+                            data-plan="gold"
+                        >
+                            S'abonner
+                        </button>
+                    </article>
+                </div>
+            </section>
+
+            <section class="card-shell" aria-label="Tableau de comparaison">
+                <div class="section-title-row">
+                    <h2>Tableau de comparaison</h2>
+                </div>
+
+                <div class="comparison-table-wrap">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Fonctionnalité</th>
+                                <th>Free</th>
+                                <th>Starter</th>
+                                <th>Basic</th>
+                                <th>Premium</th>
+                                <th>Gold</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Génération de ration</td>
+                                <td>Limitée</td>
+                                <td>Oui</td>
+                                <td>Oui</td>
+                                <td>Oui</td>
+                                <td>Oui</td>
+                            </tr>
+                            <tr>
+                                <td>Audio synthèse</td>
+                                <td>Non</td>
+                                <td>Oui</td>
+                                <td>Oui</td>
+                                <td>Oui</td>
+                                <td>Oui</td>
+                            </tr>
+                            <tr>
+                                <td>VetScan photo</td>
+                                <td>Base</td>
+                                <td>Oui</td>
+                                <td>Oui</td>
+                                <td>Oui</td>
+                                <td>Oui</td>
+                            </tr>
+                            <tr>
+                                <td>FarmAcademy</td>
+                                <td>1 module</td>
+                                <td>3 modules</td>
+                                <td>Complet</td>
+                                <td>Avancé</td>
+                                <td>Complet + bonus</td>
+                            </tr>
+                            <tr>
+                                <td>Classement / trophées</td>
+                                <td>Base</td>
+                                <td>Oui</td>
+                                <td>Oui</td>
+                                <td>Oui</td>
+                                <td>Oui</td>
+                            </tr>
+                            <tr>
+                                <td>Support prioritaire</td>
+                                <td>Non</td>
+                                <td>Non</td>
+                                <td>Non</td>
+                                <td>Oui</td>
+                                <td>Oui</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="card-shell" aria-label="Paiement">
+                <div class="section-title-row">
+                    <h2>Paiement sécurisé</h2>
+                </div>
+
+                <div class="payment-box">
+                    <p id="paymentSummary">
+                        Sélectionne une offre pour obtenir ton lien de paiement
+                        FedaPay.
+                    </p>
+
+                    <div class="payment-form">
+                        <label for="paymentPhone">Téléphone Mobile Money</label>
+                        <input
+                            id="paymentPhone"
+                            type="tel"
+                            class="text-input text-input--single"
+                            placeholder="Ex : 229XXXXXXXX"
+                            autocomplete="tel"
+                        />
+
+                        <label for="paymentUserId"
+                            >Identifiant utilisateur</label
+                        >
+                        <input
+                            id="paymentUserId"
+                            type="text"
+                            class="text-input text-input--single"
+                            placeholder="ID utilisateur"
+                            autocomplete="off"
+                        />
+
+                        <input
+                            id="selectedPlan"
+                            type="hidden"
+                            value="starter"
+                        />
+
+                        <button
+                            id="subscribeButton"
+                            class="primary-action"
+                            type="button"
+                        >
+                            Générer le lien de paiement
+                        </button>
+                    </div>
+
+                    <div id="paymentLinkZone" class="payment-link-zone" hidden>
+                        <a
+                            id="paymentLink"
+                            class="primary-action primary-action--link"
+                            href="#"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Ouvrir le lien FedaPay
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <section id="paymentSuccess" class="card-shell" hidden>
+                <div class="section-title-row">
+                    <h2>Succès de paiement</h2>
+                </div>
+
+                <p>
+                    Votre abonnement a été activé avec succès. Vous pouvez
+                    retourner à votre profil ou continuer dans l'application.
+                </p>
+
+                <a
+                    href="./profil.html"
+                    class="primary-action primary-action--link"
+                >
+                    Retour au profil
+                </a>
+            </section>
+        </main>
+
+        <nav class="bottom-nav" aria-label="Navigation principale">
+            <a class="bottom-nav__item" href="./index.html">
+                🏠<span>Accueil</span>
+            </a>
+            <a class="bottom-nav__item" href="./modules.html">
+                📦<span>Modules</span>
+            </a>
+            <a class="bottom-nav__item" href="./classement.html">
+                🏆<span>Classement</span>
+            </a>
+            <a class="bottom-nav__item is-active" href="./abonnement.html">
+                💳<span>Abonnement</span>
+            </a>
+        </nav>
+
+        <script>
+            (function () {
+                const plans = {
+                    free: { label: "Free", price: "0 FCFA" },
+                    starter: { label: "Starter", price: "2 500 FCFA" },
+                    basic: { label: "Basic", price: "5 000 FCFA" },
+                    premium: { label: "Premium", price: "10 000 FCFA" },
+                    gold: { label: "Gold", price: "20 000 FCFA" },
+                };
+
+                const planButtons = document.querySelectorAll("[data-plan]");
+                const selectedPlanInput =
+                    document.getElementById("selectedPlan");
+                const paymentSummary =
+                    document.getElementById("paymentSummary");
+                const subscribeButton =
+                    document.getElementById("subscribeButton");
+                const paymentPhone = document.getElementById("paymentPhone");
+                const paymentUserId = document.getElementById("paymentUserId");
+                const paymentLinkZone =
+                    document.getElementById("paymentLinkZone");
+                const paymentLink = document.getElementById("paymentLink");
+                const paymentSuccess =
+                    document.getElementById("paymentSuccess");
+
+                function setPlan(plan) {
+                    const data = plans[plan] || plans.starter;
+                    selectedPlanInput.value = plan;
+                    paymentSummary.textContent = `Offre sélectionnée : ${data.label} — ${data.price}.`;
+                    planButtons.forEach((btn) => {
+                        btn.classList.toggle(
+                            "is-active",
+                            btn.dataset.plan === plan,
+                        );
+                    });
+                }
+
+                planButtons.forEach((btn) => {
+                    btn.addEventListener("click", () =>
+                        setPlan(btn.dataset.plan || "starter"),
+                    );
+                });
+
+                async function createPayment() {
+                    const api = window.FeedFormulaAPI;
+                    const userId = (paymentUserId.value || "").trim();
+                    const telephone = (paymentPhone.value || "").trim();
+                    const abonnement = (
+                        selectedPlanInput.value || "starter"
+                    ).trim();
+
+                    if (!api || !api.paiement) {
+                        paymentSummary.textContent =
+                            "API de paiement indisponible. Vérifie le chargement du backend.";
+                        return;
+                    }
+
+                    if (!userId || !telephone) {
+                        paymentSummary.textContent =
+                            "Merci de renseigner votre identifiant utilisateur et votre téléphone.";
+                        return;
+                    }
+
+                    subscribeButton.disabled = true;
+                    subscribeButton.textContent = "Création du lien...";
+
+                    try {
+                        const result = await api.paiement.creer({
+                            user_id: userId,
+                            abonnement: abonnement,
+                            telephone: telephone,
+                        });
+
+                        paymentSummary.textContent = `Lien prêt pour l'offre ${result.abonnement?.label || abonnement}.`;
+
+                        if (paymentLink) {
+                            paymentLink.href = result.lien_paiement || "#";
+                        }
+
+                        if (paymentLinkZone) {
+                            paymentLinkZone.hidden = false;
+                        }
+
+                        if (paymentSuccess) {
+                            paymentSuccess.hidden = false;
+                        }
+                    } catch (error) {
+                        paymentSummary.textContent =
+                            error?.message ||
+                            "Impossible de créer la transaction de paiement.";
+                    } finally {
+                        subscribeButton.disabled = false;
+                        subscribeButton.textContent =
+                            "Générer le lien de paiement";
+                    }
+                }
+
+                subscribeButton?.addEventListener("click", createPayment);
+                setPlan("starter");
+            })();
+        </script>
+    </body>
+</html>

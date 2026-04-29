@@ -1,119 +1,193 @@
 <!doctype html>
 <html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FeedFormula AI - VetScan</title>
-  <link rel="stylesheet" href="./style.css" />
-  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script defer src="./script.js"></script>
-</head>
-<body data-page="vetscan">
-  <!-- En-tête d'urgence médicale -->
-  <header class="app-header app-header--sticky app-header--danger" role="banner">
-    <a class="app-header__back" href="./index.html" aria-label="Retour">←</a>
-    <div class="app-header__title-wrap">
-      <h1>🩺 VetScan</h1>
-      <span class="badge-star badge-star--danger">+20 🌟 par diagnostic</span>
-    </div>
-    <a href="./profil.html" class="app-header__avatar" aria-label="Profil">
-      <img src="../assets/aya_joie.png" alt="Avatar utilisateur" />
-    </a>
-  </header>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>FeedFormula AI - VetScan</title>
+        <link rel="stylesheet" href="./style.css" />
+        <script
+            defer
+            src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+        ></script>
+        <script
+            defer
+            src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"
+        ></script>
+        <script defer src="./api.js"></script>
+        <script defer src="./script.js"></script>
+        <script defer src="./api_bindings.js"></script>
+    </head>
+    <body data-page="vetscan">
+        <!-- En-tête d'urgence médicale -->
+        <header
+            class="app-header app-header--sticky app-header--danger"
+            role="banner"
+        >
+            <a class="app-header__back" href="./index.html" aria-label="Retour"
+                >←</a
+            >
+            <div class="app-header__title-wrap">
+                <h1>🩺 VetScan</h1>
+                <span class="badge-star badge-star--danger"
+                    >+20 🌟 par diagnostic</span
+                >
+            </div>
+            <a
+                href="./profil.html"
+                class="app-header__avatar"
+                aria-label="Profil"
+            >
+                <img src="../assets/aya_joie.png" alt="Avatar utilisateur" />
+            </a>
+        </header>
 
-  <main class="app-main app-main--with-nav">
-    <!-- Zone photo -->
-    <section class="photo-zone card-shell card-shell--danger" aria-label="Diagnostic photo">
-      <div class="section-title-row">
-        <h2>Zone photo</h2>
-      </div>
+        <main class="app-main app-main--with-nav">
+            <!-- Zone photo -->
+            <section
+                class="photo-zone card-shell card-shell--danger"
+                aria-label="Diagnostic photo"
+            >
+                <div class="section-title-row">
+                    <h2>Zone photo</h2>
+                </div>
 
-      <input id="photoInput" type="file" accept="image/*" capture="environment" class="hidden-input" />
+                <input
+                    id="photoInput"
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    class="hidden-input"
+                />
 
-      <button id="photoButton" class="primary-action primary-action--danger" type="button">
-        📷 Photographier l'animal
-      </button>
+                <button
+                    id="photoButton"
+                    class="primary-action primary-action--danger"
+                    type="button"
+                >
+                    📷 Photographier l'animal
+                </button>
 
-      <div class="photo-preview-wrap">
-        <img id="photoPreview" class="photo-preview" alt="Prévisualisation de l'animal" />
-      </div>
+                <div class="photo-preview-wrap">
+                    <img
+                        id="photoPreview"
+                        class="photo-preview"
+                        alt="Prévisualisation de l'animal"
+                    />
+                </div>
 
-      <button id="analyzePhotoButton" class="secondary-action" type="button">
-        Analyser cette photo
-      </button>
-    </section>
+                <button
+                    id="analyzePhotoButton"
+                    class="secondary-action"
+                    type="button"
+                >
+                    Analyser cette photo
+                </button>
+            </section>
 
-    <!-- Zone symptômes -->
-    <section class="symptoms-zone card-shell" aria-label="Description des symptômes">
-      <div class="section-title-row">
-        <h2>Zone symptômes</h2>
-      </div>
+            <!-- Zone symptômes -->
+            <section
+                class="symptoms-zone card-shell"
+                aria-label="Description des symptômes"
+            >
+                <div class="section-title-row">
+                    <h2>Zone symptômes</h2>
+                </div>
 
-      <button id="vetscanMicButton" class="voice-button voice-button--small" type="button" aria-label="Décrire les symptômes à voix haute">
-        🎤
-      </button>
+                <button
+                    id="vetscanMicButton"
+                    class="voice-button voice-button--small"
+                    type="button"
+                    aria-label="Décrire les symptômes à voix haute"
+                >
+                    🎤
+                </button>
 
-      <textarea
-        id="symptomsInput"
-        class="text-input"
-        rows="4"
-        placeholder="Décrivez les symptômes..."
-      ></textarea>
+                <textarea
+                    id="symptomsInput"
+                    class="text-input"
+                    rows="4"
+                    placeholder="Décrivez les symptômes..."
+                ></textarea>
 
-      <select id="vetscanSpecies" class="select-input" aria-label="Sélectionner l'espèce animale">
-        <option value="">Choisir l'espèce</option>
-        <option value="poulet">Poulet</option>
-        <option value="vache">Vache</option>
-        <option value="chevre">Chèvre</option>
-        <option value="mouton">Mouton</option>
-        <option value="porc">Porc</option>
-        <option value="tilapia">Tilapia</option>
-      </select>
-    </section>
+                <select
+                    id="vetscanSpecies"
+                    class="select-input"
+                    aria-label="Sélectionner l'espèce animale"
+                >
+                    <option value="">Choisir l'espèce</option>
+                    <option value="poulet">Poulet</option>
+                    <option value="vache">Vache</option>
+                    <option value="chevre">Chèvre</option>
+                    <option value="mouton">Mouton</option>
+                    <option value="porc">Porc</option>
+                    <option value="tilapia">Tilapia</option>
+                </select>
+            </section>
 
-    <!-- Bouton de diagnostic -->
-    <section class="generate-zone card-shell">
-      <button id="diagnoseButton" class="primary-action primary-action--danger" type="button">
-        🔍 Diagnostiquer maintenant
-      </button>
-    </section>
+            <!-- Bouton de diagnostic -->
+            <section class="generate-zone card-shell">
+                <button
+                    id="diagnoseButton"
+                    class="primary-action primary-action--danger"
+                    type="button"
+                >
+                    🔍 Diagnostiquer maintenant
+                </button>
+            </section>
 
-    <!-- Résultat -->
-    <section id="vetscanResult" class="result-panel card-shell" hidden>
-      <div class="section-title-row">
-        <h2>Résultat</h2>
-        <strong id="confidenceScore" class="confidence-score">87%</strong>
-      </div>
+            <!-- Résultat -->
+            <section id="vetscanResult" class="result-panel card-shell" hidden>
+                <div class="section-title-row">
+                    <h2>Résultat</h2>
+                    <strong id="confidenceScore" class="confidence-score"
+                        >87%</strong
+                    >
+                </div>
 
-      <div id="diagnosisList" class="probability-list"></div>
+                <div id="diagnosisList" class="probability-list"></div>
 
-      <ol id="careProtocol" class="protocol-list"></ol>
+                <ol id="careProtocol" class="protocol-list"></ol>
 
-      <div id="decisionBanner" class="decision-banner decision-banner--ok">
-        ✅ Soins autonomes possibles
-      </div>
+                <div
+                    id="decisionBanner"
+                    class="decision-banner decision-banner--ok"
+                >
+                    ✅ Soins autonomes possibles
+                </div>
 
-      <button id="findVetButton" class="secondary-action secondary-action--danger" type="button" hidden>
-        📍 Trouver un vétérinaire
-      </button>
-    </section>
+                <button
+                    id="findVetButton"
+                    class="secondary-action secondary-action--danger"
+                    type="button"
+                    hidden
+                >
+                    📍 Trouver un vétérinaire
+                </button>
+            </section>
 
-    <!-- Historique -->
-    <section class="history-zone card-shell">
-      <div class="section-title-row">
-        <h2>Historique des 5 derniers diagnostics</h2>
-      </div>
-      <div id="diagnosisHistory" class="history-list"></div>
-    </section>
-  </main>
+            <!-- Historique -->
+            <section class="history-zone card-shell">
+                <div class="section-title-row">
+                    <h2>Historique des 5 derniers diagnostics</h2>
+                </div>
+                <div id="diagnosisHistory" class="history-list"></div>
+            </section>
+        </main>
 
-  <!-- Navigation inférieure fixe -->
-  <nav class="bottom-nav" aria-label="Navigation principale">
-    <a class="bottom-nav__item" href="./index.html">🏠<span>Accueil</span></a>
-    <a class="bottom-nav__item" href="./modules.html">📦<span>Modules</span></a>
-    <a class="bottom-nav__item" href="./classement.html">🏆<span>Classement</span></a>
-    <a class="bottom-nav__item" href="./profil.html">👤<span>Profil</span></a>
-  </nav>
-</body>
+        <!-- Navigation inférieure fixe -->
+        <nav class="bottom-nav" aria-label="Navigation principale">
+            <a class="bottom-nav__item" href="./index.html"
+                >🏠<span>Accueil</span></a
+            >
+            <a class="bottom-nav__item" href="./modules.html"
+                >📦<span>Modules</span></a
+            >
+            <a class="bottom-nav__item" href="./classement.html"
+                >🏆<span>Classement</span></a
+            >
+            <a class="bottom-nav__item" href="./profil.html"
+                >👤<span>Profil</span></a
+            >
+        </nav>
+    </body>
 </html>

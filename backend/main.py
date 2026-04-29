@@ -15,6 +15,7 @@ Ce fichier est volontairement commenté en français pour faciliter la maintenan
 
 from __future__ import annotations
 
+import hashlib
 import io
 import json
 import os
@@ -26,6 +27,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from pydantic import BaseModel, Field, field_validator
@@ -53,6 +55,11 @@ except Exception as exc:
         "Installez-le via: python -m pip install openai"
     ) from exc
 
+try:
+    import redis  # type: ignore
+except Exception:
+    redis = None
+
 
 # -----------------------------------------------------------------------------
 # Imports locaux (compatibles exécution directe et package)
@@ -68,6 +75,8 @@ try:
     from .audio_service import router as audio_router
     from .reprotrack_service import router as reprotrack_router
     from .farmcast_service import router as farmcast_router
+    from .academy_service import router as academy_router
+    from .paiement_service import router as paiement_router
     from .notification_service import router as notification_router
     from .scraper_prix import router as marche_router
 except Exception:
@@ -81,6 +90,8 @@ except Exception:
     from audio_service import router as audio_router
     from reprotrack_service import router as reprotrack_router
     from farmcast_service import router as farmcast_router
+    from academy_service import router as academy_router
+    from paiement_service import router as paiement_router
     from notification_service import router as notification_router
     from scraper_prix import router as marche_router
 
@@ -114,6 +125,80 @@ LANGUES_PATH = DATA_DIR / "langues_supportees.json"
 
 # Instance moteur nutrition (réutilisée entre requêtes).
 ENGINE = NutritionEngine(data_dir=DATA_DIR, nombre_animaux_par_defaut=1)
+
+# Cache ration : Redis si disponible, sinon mémoire locale.
+RATION_CACHE_TTL_SECONDS = int(os.getenv("RATION_CACHE_TTL_SECONDS", "3600"))
+RATION_CACHE_PREFIX = "feedformula:ration:"
+RATION_CACHE_MEMORY: Dict[str, Dict[str, Any]] = {}
+REDIS_CACHE_URL = (os.getenv("REDIS_URL") or os.getenv("REDIS_CACHE_URL") or "").strip()
+REDIS_CACHE_CLIENT: Any = None
+
+
+def _get_redis_cache_client() -> Any:
+    """Retourne un client Redis si la configuration est disponible."""
+    global REDIS_CACHE_CLIENT
+    if REDIS_CACHE_CLIENT is not None:
+        return REDIS_CACHE_CLIENT
+
+    if redis is None or not REDIS_CACHE_URL:
+        REDIS_CACHE_CLIENT = False
+        return None
+
+    try:
+        REDIS_CACHE_CLIENT = redis.from_url(REDIS_CACHE_URL, decode_responses=True)
+        REDIS_CACHE_CLIENT.ping()
+        return REDIS_CACHE_CLIENT
+    except Exception:
+        REDIS_CACHE_CLIENT = False
+        return None
+
+
+def _build_ration_cache_key(payload: Dict[str, Any]) -> str:
+    """Construit une clé de cache stable pour une requête ration."""
+    canonical = json.dumps(payload, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+    digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    return f"{RATION_CACHE_PREFIX}{digest}"
+
+
+def _ration_cache_get(cache_key: str) -> Optional[Dict[str, Any]]:
+    """Lit une ration depuis Redis ou le cache mémoire local."""
+    client = _get_redis_cache_client()
+    if client:
+        try:
+            cached_raw = client.get(cache_key)
+            if cached_raw:
+                return json.loads(cached_raw)
+        except Exception:
+            pass
+
+    entry = RATION_CACHE_MEMORY.get(cache_key)
+    if not entry:
+        return None
+
+    expires_at = float(entry.get("expires_at", 0))
+    if expires_at and expires_at < time.time():
+        RATION_CACHE_MEMORY.pop(cache_key, None)
+        return None
+
+    value = entry.get("value")
+    return value if isinstance(value, dict) else None
+
+
+def _ration_cache_set(cache_key: str, value: Dict[str, Any], ttl_seconds: int = RATION_CACHE_TTL_SECONDS) -> None:
+    """Stocke une ration dans Redis ou le cache mémoire local."""
+    client = _get_redis_cache_client()
+    serialized = json.dumps(value, ensure_ascii=False)
+
+    if client:
+        try:
+            client.setex(cache_key, max(60, int(ttl_seconds or RATION_CACHE_TTL_SECONDS)), serialized)
+        except Exception:
+            pass
+
+    RATION_CACHE_MEMORY[cache_key] = {
+        "value": value,
+        "expires_at": time.time() + max(60, int(ttl_seconds or RATION_CACHE_TTL_SECONDS)),
+    }
 
 
 # -----------------------------------------------------------------------------
@@ -536,6 +621,7 @@ app = FastAPI(
     version=APP_VERSION,
     description="API backend FeedFormula AI (ration, auth, santé, reproduction, audio, marché et contenu).",
 )
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
 
@@ -571,6 +657,8 @@ app.include_router(vetscan_router)
 app.include_router(audio_router)
 app.include_router(reprotrack_router)
 app.include_router(farmcast_router)
+app.include_router(academy_router)
+app.include_router(paiement_router)
 app.include_router(notification_router)
 app.include_router(marche_router)
 
@@ -593,6 +681,8 @@ def sante() -> Dict[str, Any]:
         "audio": "ok",
         "reprotrack": "ok",
         "farmcast": "ok",
+        "academy": "ok",
+        "paiement": "ok",
         "notifications": "ok",
         "marche": "ok",
         "frontend": "ok" if os.path.exists(frontend_path) else "absent",
@@ -640,6 +730,11 @@ def generer_ration(payload: GenererRationRequest) -> Any:
     4) Narration finale via API Afri GPT-5.4
     5) Retour JSON enrichi
     """
+    cache_key = _build_ration_cache_key(payload.model_dump(mode="json"))
+    ration_cachee = _ration_cache_get(cache_key)
+    if ration_cachee is not None:
+        return ration_cachee
+
     debut = time.perf_counter()
 
     try:
@@ -740,7 +835,7 @@ def generer_ration(payload: GenererRationRequest) -> Any:
         # Points gagnés (règle simple demandée).
         points_gagnes = 10
 
-        return {
+        result = {
             "ration": texte_ration,
             "composition": ration_calculee.get("composition", {}),
             "cout_fcfa_kg": float(ration_calculee.get("cout_fcfa_kg", 0.0)),
@@ -749,6 +844,8 @@ def generer_ration(payload: GenererRationRequest) -> Any:
             "points_gagnes": points_gagnes,
             "temps_generation_secondes": duree,
         }
+        _ration_cache_set(cache_key, result)
+        return result
 
     except HTTPException:
         # On propage les erreurs HTTP déjà mappées.
