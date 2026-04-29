@@ -4,913 +4,812 @@
 """
 Moteur de gamification FeedFormula AI.
 
-Ce module gère :
+Ce module centralise :
 - le calcul des points par action,
-- la détermination du niveau utilisateur,
-- la vérification des trophées,
-- le calcul des séries de connexion (streak),
-- la vérification des défis quotidiens.
+- la détermination des niveaux,
+- la gestion des trophées,
+- le calcul des séries de connexion,
+- la vérification des défis quotidiens,
+- la gestion des ligues,
+- la boutique virtuelle des Graines d'Or.
+
+Le tout est commenté en français pour faciliter la maintenance.
 """
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 
+# =============================================================================
+# Constantes officielles du système
+# =============================================================================
+
+ACTIONS_POINTS: Dict[str, int] = {
+    "connexion_jour": 5,
+    "serie_3_jours": 15,
+    "serie_7_jours": 50,
+    "serie_30_jours": 200,
+    "generer_ration": 10,
+    "generer_ration_langue_locale": 15,
+    "telecharger_pdf": 5,
+    "partager_whatsapp": 8,
+    "utiliser_ration_3_jours": 20,
+    "diagnostic_vetscan": 20,
+    "photo_suivi_guerison": 15,
+    "cas_resolu": 50,
+    "enregistrer_saillie": 10,
+    "alerte_mise_bas_reussie": 30,
+    "velage_reussi_documente": 40,
+    "enregistrement_vocal": 8,
+    "rapport_mensuel": 25,
+    "registre_30_jours": 100,
+    "completer_lecon": 20,
+    "quiz_100_pct": 30,
+    "certification_complete": 150,
+    "aider_eleveur": 25,
+    "recevoir_5_utile": 40,
+    "inviter_ami": 100,
+}
+
+# Alias de compatibilité avec le moteur déjà utilisé dans le backend.
+ACTIONS_POINTS["generation_ration"] = ACTIONS_POINTS["generer_ration"]
+ACTIONS_POINTS["generation_ration_equilibree"] = 35
+ACTIONS_POINTS["generation_ration_economique"] = 30
+ACTIONS_POINTS["scan_sante_vetscan"] = ACTIONS_POINTS["diagnostic_vetscan"]
+ACTIONS_POINTS["suivi_reproduction"] = 20
+ACTIONS_POINTS["analyse_paturage"] = 20
+ACTIONS_POINTS["creation_evenement_farmmanager"] = 15
+ACTIONS_POINTS["quiz_reussi_farmacademy"] = 18
+ACTIONS_POINTS["publication_farmcommunity"] = 12
+ACTIONS_POINTS["commentaire_utile_farmcommunity"] = 8
+ACTIONS_POINTS["partage_conseil_valide"] = 22
+ACTIONS_POINTS["ajout_animal"] = 10
+ACTIONS_POINTS["ajout_lot"] = 12
+ACTIONS_POINTS["ajout_prix_marche"] = 8
+ACTIONS_POINTS["declaration_performance"] = 10
+ACTIONS_POINTS["declaration_mortalite"] = 8
+ACTIONS_POINTS["declaration_ponte"] = 10
+ACTIONS_POINTS["declaration_lait"] = 10
+ACTIONS_POINTS["invitation_ami"] = ACTIONS_POINTS["inviter_ami"]
+ACTIONS_POINTS["profil_complet"] = 25
+ACTIONS_POINTS["defi_quotidien_complete"] = 30
+ACTIONS_POINTS["defi_hebdomadaire_complete"] = 70
+ACTIONS_POINTS["feedback_produit"] = 10
+ACTIONS_POINTS["signalement_fausse_info"] = 15
+ACTIONS_POINTS["contribution_traduction_locale"] = 20
+
+# 10 niveaux avec seuils exacts demandés.
+NIVEAUX: List[Dict[str, Any]] = [
+    {"niveau": 1, "nom": "Semence", "seuil_min": 0, "seuil_max": 100},
+    {"niveau": 2, "nom": "Pousse", "seuil_min": 101, "seuil_max": 300},
+    {"niveau": 3, "nom": "Tige", "seuil_min": 301, "seuil_max": 600},
+    {"niveau": 4, "nom": "Floraison", "seuil_min": 601, "seuil_max": 1000},
+    {"niveau": 5, "nom": "Feuille d Or", "seuil_min": 1001, "seuil_max": 2000},
+    {"niveau": 6, "nom": "Recolte", "seuil_min": 2001, "seuil_max": 3500},
+    {"niveau": 7, "nom": "Proprietaire", "seuil_min": 3501, "seuil_max": 5500},
+    {"niveau": 8, "nom": "Maitre Eleveur", "seuil_min": 5501, "seuil_max": 8000},
+    {"niveau": 9, "nom": "Champion", "seuil_min": 8001, "seuil_max": 12000},
+    {"niveau": 10, "nom": "Legende Afrique", "seuil_min": 12001, "seuil_max": None},
+]
+
+# 8 ligues demandées.
+LIGUES: List[Dict[str, Any]] = [
+    {"code": "argile", "nom": "Argile", "min_points": 0, "max_points": 200, "icone": "🟤"},
+    {"code": "herbe", "nom": "Herbe", "min_points": 201, "max_points": 500, "icone": "🌿"},
+    {"code": "ble", "nom": "Ble", "min_points": 501, "max_points": 1000, "icone": "🌾"},
+    {"code": "coton", "nom": "Coton", "min_points": 1001, "max_points": 2000, "icone": "🧶"},
+    {"code": "bronze", "nom": "Bronze", "min_points": 2001, "max_points": 3500, "icone": "🥉"},
+    {"code": "argent", "nom": "Argent", "min_points": 3501, "max_points": 6000, "icone": "🥈"},
+    {"code": "or", "nom": "Or", "min_points": 6001, "max_points": 10000, "icone": "🥇"},
+    {"code": "diamant", "nom": "Diamant", "min_points": 10001, "max_points": None, "icone": "💎"},
+]
+
+# 30 trophées complets avec conditions précises.
+TROPHEES: List[Dict[str, Any]] = [
+    {
+        "code": "premier_pas",
+        "nom": "Premier Pas",
+        "description": "Créer le compte et faire sa première connexion.",
+        "condition": {"type": "action_count", "action": "connexion_jour", "min": 1},
+    },
+    {
+        "code": "profil_carre",
+        "nom": "Profil Carré",
+        "description": "Compléter les informations de profil.",
+        "condition": {"type": "action_count", "action": "profil_complet", "min": 1},
+    },
+    {
+        "code": "premiere_ration",
+        "nom": "Ma Première Ration",
+        "description": "Générer une ration valide.",
+        "condition": {"type": "action_count", "action": "generer_ration", "min": 1},
+    },
+    {
+        "code": "nutrition_active",
+        "nom": "Nutrition Active",
+        "description": "Générer 10 rations.",
+        "condition": {"type": "action_count", "action": "generer_ration", "min": 10},
+    },
+    {
+        "code": "nutrition_expert",
+        "nom": "Nutrition Expert",
+        "description": "Générer 100 rations.",
+        "condition": {"type": "action_count", "action": "generer_ration", "min": 100},
+    },
+    {
+        "code": "oeil_de_lynx",
+        "nom": "Œil de Lynx",
+        "description": "Lancer un diagnostic VetScan.",
+        "condition": {"type": "action_count", "action": "diagnostic_vetscan", "min": 1},
+    },
+    {
+        "code": "sentinelle_sante",
+        "nom": "Sentinelle Santé",
+        "description": "Réaliser 20 diagnostics VetScan.",
+        "condition": {"type": "action_count", "action": "diagnostic_vetscan", "min": 20},
+    },
+    {
+        "code": "suivi_serieux",
+        "nom": "Suivi Sérieux",
+        "description": "Valider 10 suivis de 24h.",
+        "condition": {"type": "action_count", "action": "photo_suivi_guerison", "min": 10},
+    },
+    {
+        "code": "repro_depart",
+        "nom": "Repro Départ",
+        "description": "Enregistrer un événement reproduction.",
+        "condition": {"type": "action_count", "action": "enregistrer_saillie", "min": 1},
+    },
+    {
+        "code": "repro_pro",
+        "nom": "Repro Pro",
+        "description": "Enregistrer 50 événements reproduction.",
+        "condition": {"type": "action_count", "action": "enregistrer_saillie", "min": 50},
+    },
+    {
+        "code": "cartographe_vert",
+        "nom": "Cartographe Vert",
+        "description": "Consulter la carte pâturage 15 fois.",
+        "condition": {"type": "action_count", "action": "analyse_paturage", "min": 15},
+    },
+    {
+        "code": "paturage_intelligent",
+        "nom": "Pâturage Intelligent",
+        "description": "Appliquer 20 recommandations terrain.",
+        "condition": {"type": "action_count", "action": "analyse_paturage", "min": 20},
+    },
+    {
+        "code": "comptable_rural",
+        "nom": "Comptable Rural",
+        "description": "Effectuer 30 opérations finance.",
+        "condition": {"type": "action_count", "action": "rapport_mensuel", "min": 30},
+    },
+    {
+        "code": "tresorier_ferme",
+        "nom": "Trésorier Ferme",
+        "description": "Effectuer 200 opérations finance.",
+        "condition": {"type": "action_count", "action": "rapport_mensuel", "min": 200},
+    },
+    {
+        "code": "eleve_motive",
+        "nom": "Élève Motivé",
+        "description": "Terminer 5 leçons FarmAcademy.",
+        "condition": {"type": "action_count", "action": "completer_lecon", "min": 5},
+    },
+    {
+        "code": "forme_pour_gagner",
+        "nom": "Formé pour Gagner",
+        "description": "Terminer 30 leçons FarmAcademy.",
+        "condition": {"type": "action_count", "action": "completer_lecon", "min": 30},
+    },
+    {
+        "code": "quiz_master",
+        "nom": "Quiz Master",
+        "description": "Réussir 20 quiz à 100%.",
+        "condition": {"type": "action_count", "action": "quiz_100_pct", "min": 20},
+    },
+    {
+        "code": "voix_locale",
+        "nom": "Voix Locale",
+        "description": "Utiliser 50 saisies vocales.",
+        "condition": {"type": "action_count", "action": "enregistrement_vocal", "min": 50},
+    },
+    {
+        "code": "multi_langue",
+        "nom": "Multi-langue",
+        "description": "Utiliser 3 langues différentes.",
+        "condition": {"type": "langues_locales_distinctes", "min": 3},
+    },
+    {
+        "code": "reporter_marche",
+        "nom": "Reporter Marché",
+        "description": "Ajouter 30 prix de marché.",
+        "condition": {"type": "action_count", "action": "ajout_prix_marche", "min": 30},
+    },
+    {
+        "code": "communaute_solide",
+        "nom": "Communauté Solide",
+        "description": "Publier 50 réponses utiles validées.",
+        "condition": {"type": "action_count", "action": "recevoir_5_utile", "min": 5},
+    },
+    {
+        "code": "mentor_local",
+        "nom": "Mentor Local",
+        "description": "Recevoir 10 réactions utiles.",
+        "condition": {"type": "action_count", "action": "recevoir_5_utile", "min": 10},
+    },
+    {
+        "code": "protecteur_sanitaire",
+        "nom": "Protecteur Sanitaire",
+        "description": "Faire 10 signalements corrects.",
+        "condition": {"type": "action_count", "action": "signalement_fausse_info", "min": 10},
+    },
+    {
+        "code": "inviteur",
+        "nom": "Inviteur",
+        "description": "Inviter 3 amis.",
+        "condition": {"type": "action_count", "action": "inviter_ami", "min": 3},
+    },
+    {
+        "code": "ambassadeur",
+        "nom": "Ambassadeur",
+        "description": "Inviter 15 amis.",
+        "condition": {"type": "action_count", "action": "inviter_ami", "min": 15},
+    },
+    {
+        "code": "serie_7",
+        "nom": "Série 7",
+        "description": "Maintenir 7 jours de connexion.",
+        "condition": {"type": "serie_jours", "min": 7},
+    },
+    {
+        "code": "serie_30",
+        "nom": "Série 30",
+        "description": "Maintenir 30 jours de connexion.",
+        "condition": {"type": "serie_jours", "min": 30},
+    },
+    {
+        "code": "serie_90",
+        "nom": "Série 90",
+        "description": "Maintenir 90 jours de connexion.",
+        "condition": {"type": "serie_jours", "min": 90},
+    },
+    {
+        "code": "resilience",
+        "nom": "Résilience",
+        "description": "Revenir après 14 jours d'absence.",
+        "condition": {"type": "retour_apres_absence", "min_jours": 14},
+    },
+    {
+        "code": "legende_feedformula",
+        "nom": "Légende FeedFormula",
+        "description": "Atteindre le niveau 10.",
+        "condition": {"type": "niveau", "min": 10},
+    },
+]
+
+# Catalogue boutique demandé.
+BOUTIQUE_CATALOGUE: Dict[str, Dict[str, Any]] = {
+    "semaine_standard": {
+        "nom": "1 semaine Standard offerte",
+        "prix_graines_or": 50,
+        "description": "7 jours d'accès Standard",
+    },
+    "module_premium_24h": {
+        "nom": "Module Premium 24h",
+        "prix_graines_or": 30,
+        "description": "Accès à tous les modules 24h",
+    },
+    "theme_or": {
+        "nom": "Thème doré exclusif",
+        "prix_graines_or": 80,
+        "description": "Interface en couleurs dorées",
+    },
+    "badge_rare": {
+        "nom": "Badge Champion Précoce",
+        "prix_graines_or": 40,
+        "description": "Badge exclusif de profil",
+    },
+    "protection_serie": {
+        "nom": "Protection de série",
+        "prix_graines_or": 20,
+        "description": "+1 Graine de Secours",
+    },
+}
+
+# Alias de compatibilité pour le backend déjà en place.
+BOUTIQUE_CATALOGUE["boost_serie"] = BOUTIQUE_CATALOGUE["protection_serie"]
+
+
+# =============================================================================
+# Outils de date / normalisation
+# =============================================================================
+
+def _safe_int(value: Any, default: int = 0) -> int:
+    """Convertit en entier avec fallback."""
+    try:
+        return int(value)
+    except Exception:
+        return default
+
+
+def _safe_float(value: Any, default: float = 0.0) -> float:
+    """Convertit en float avec fallback."""
+    try:
+        return float(value)
+    except Exception:
+        return default
+
+
+def _to_date(value: Union[str, date, datetime, None]) -> Optional[date]:
+    """Convertit différentes entrées en date."""
+    if value is None:
+        return None
+    if isinstance(value, date) and not isinstance(value, datetime):
+        return value
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, str):
+        txt = value.strip()
+        if not txt:
+            return None
+        try:
+            return datetime.fromisoformat(txt).date()
+        except Exception:
+            try:
+                return datetime.strptime(txt, "%Y-%m-%d").date()
+            except Exception:
+                return None
+    return None
+
+
+def _jours_entre(a: Union[str, date, datetime, None], b: Union[str, date, datetime, None]) -> int:
+    """Retourne le nombre de jours entre deux dates."""
+    da = _to_date(a)
+    db = _to_date(b)
+    if da is None or db is None:
+        return 0
+    return abs((db - da).days)
+
+
+# =============================================================================
+# Classes de service
+# =============================================================================
+
 class GamificationEngine:
     """
     Moteur principal de gamification.
-    Toutes les règles sont centralisées ici pour faciliter la maintenance.
     """
 
-    # Dictionnaire des actions et des points de base.
-    ACTIONS_POINTS: Dict[str, int] = {
-        "connexion_jour": 10,
-        "generation_ration": 25,
-        "generation_ration_equilibree": 35,
-        "generation_ration_economique": 30,
-        "scan_sante_vetscan": 30,
-        "suivi_reproduction": 20,
-        "analyse_paturage": 20,
-        "creation_evenement_farmmanager": 15,
-        "quiz_reussi_farmacademy": 18,
-        "publication_farmcommunity": 12,
-        "commentaire_utile_farmcommunity": 8,
-        "partage_conseil_valide": 22,
-        "ajout_animal": 10,
-        "ajout_lot": 12,
-        "ajout_prix_marche": 8,
-        "declaration_performance": 10,
-        "declaration_mortalite": 8,
-        "declaration_ponte": 10,
-        "declaration_lait": 10,
-        "invitation_ami": 20,
-        "profil_complet": 25,
-        "defi_quotidien_complete": 30,
-        "defi_hebdomadaire_complete": 70,
-        "feedback_produit": 10,
-        "signalement_fausse_info": 15,
-        "contribution_traduction_locale": 20,
-    }
-
-    # Liste des 10 niveaux (seuil minimum inclusif).
-    NIVEAUX: List[Dict[str, Any]] = [
-        {"niveau": 1, "nom": "Graine", "seuil_points": 0},
-        {"niveau": 2, "nom": "Jeune pousse", "seuil_points": 150},
-        {"niveau": 3, "nom": "Cultivateur", "seuil_points": 350},
-        {"niveau": 4, "nom": "Éleveur actif", "seuil_points": 700},
-        {"niveau": 5, "nom": "Éleveur confirmé", "seuil_points": 1200},
-        {"niveau": 6, "nom": "Maître ration", "seuil_points": 1900},
-        {"niveau": 7, "nom": "Sentinelle santé", "seuil_points": 2800},
-        {"niveau": 8, "nom": "Leader local", "seuil_points": 4000},
-        {"niveau": 9, "nom": "Champion FeedFormula", "seuil_points": 5500},
-        {"niveau": 10, "nom": "Légende Aya", "seuil_points": 7500},
-    ]
-
-    # Définition des ligues (ordre croissant).
-    LIGUES: List[Dict[str, Any]] = [
-        {"code": "bronze", "nom": "Bronze", "min_points": 0, "icone": "🥉"},
-        {"code": "argent", "nom": "Argent", "min_points": 1200, "icone": "🥈"},
-        {"code": "or", "nom": "Or", "min_points": 2800, "icone": "🥇"},
-        {"code": "platine", "nom": "Platine", "min_points": 5500, "icone": "🏆"},
-        {"code": "diamant", "nom": "Diamant", "min_points": 7500, "icone": "💎"},
-    ]
-
-    # Liste de 30 trophées avec conditions.
-    # Types de condition supportés:
-    # - points_total
-    # - action_count
-    # - serie_jours
-    # - langues_locales_distinctes
-    # - modules_distincts
-    # - especes_distinctes
-    # - ratio_succes
-    TROPHEES: List[Dict[str, Any]] = [
-        # 1-5: onboarding
-        {
-            "id": "t01_bienvenue",
-            "nom": "Bienvenue à la ferme",
-            "description": "Effectuer la première connexion.",
-            "condition": {"type": "action_count", "action": "connexion_jour", "min": 1},
-        },
-        {
-            "id": "t02_premier_animal",
-            "nom": "Premier troupeau",
-            "description": "Ajouter au moins 1 animal.",
-            "condition": {"type": "action_count", "action": "ajout_animal", "min": 1},
-        },
-        {
-            "id": "t03_profil_propre",
-            "nom": "Profil propre",
-            "description": "Compléter le profil utilisateur.",
-            "condition": {"type": "action_count", "action": "profil_complet", "min": 1},
-        },
-        {
-            "id": "t04_premiere_ration",
-            "nom": "Première ration",
-            "description": "Générer une première ration.",
-            "condition": {"type": "action_count", "action": "generation_ration", "min": 1},
-        },
-        {
-            "id": "t05_feedback_citoyen",
-            "nom": "Voix de terrain",
-            "description": "Envoyer un feedback produit.",
-            "condition": {"type": "action_count", "action": "feedback_produit", "min": 1},
-        },
-        # 6-12: activité ration
-        {
-            "id": "t06_ration_10",
-            "nom": "Rationneur régulier",
-            "description": "Générer 10 rations.",
-            "condition": {"type": "action_count", "action": "generation_ration", "min": 10},
-        },
-        {
-            "id": "t07_ration_50",
-            "nom": "Architecte de rations",
-            "description": "Générer 50 rations.",
-            "condition": {"type": "action_count", "action": "generation_ration", "min": 50},
-        },
-        {
-            "id": "t08_ration_equilibree_10",
-            "nom": "Équilibre maîtrisé",
-            "description": "Générer 10 rations équilibrées.",
-            "condition": {
-                "type": "action_count",
-                "action": "generation_ration_equilibree",
-                "min": 10,
-            },
-        },
-        {
-            "id": "t09_ration_eco_10",
-            "nom": "Éleveur économe",
-            "description": "Générer 10 rations économiques.",
-            "condition": {
-                "type": "action_count",
-                "action": "generation_ration_economique",
-                "min": 10,
-            },
-        },
-        {
-            "id": "t10_prix_marche_25",
-            "nom": "Radar marché",
-            "description": "Ajouter 25 prix de marché.",
-            "condition": {"type": "action_count", "action": "ajout_prix_marche", "min": 25},
-        },
-        {
-            "id": "t11_multi_especes",
-            "nom": "Poly-éleveur",
-            "description": "Suivre au moins 4 espèces différentes.",
-            "condition": {"type": "especes_distinctes", "min": 4},
-        },
-        {
-            "id": "t12_donnees_terrain_50",
-            "nom": "Data fermier",
-            "description": "Soumettre 50 événements terrain.",
-            "condition": {
-                "type": "action_count",
-                "action": "creation_evenement_farmmanager",
-                "min": 50,
-            },
-        },
-        # 13-18: santé/repro/pasture
-        {
-            "id": "t13_sentinelle_sante",
-            "nom": "Sentinelle santé",
-            "description": "Faire 15 scans VetScan.",
-            "condition": {"type": "action_count", "action": "scan_sante_vetscan", "min": 15},
-        },
-        {
-            "id": "t14_repro_strategique",
-            "nom": "Stratège reproduction",
-            "description": "Réaliser 20 suivis ReproTrack.",
-            "condition": {"type": "action_count", "action": "suivi_reproduction", "min": 20},
-        },
-        {
-            "id": "t15_paturage_sage",
-            "nom": "Gardien des pâturages",
-            "description": "Réaliser 20 analyses PastureMap.",
-            "condition": {"type": "action_count", "action": "analyse_paturage", "min": 20},
-        },
-        {
-            "id": "t16_signalement_utile",
-            "nom": "Vigilant communautaire",
-            "description": "Signaler 5 fausses informations utiles.",
-            "condition": {"type": "action_count", "action": "signalement_fausse_info", "min": 5},
-        },
-        {
-            "id": "t17_langue_locale_1",
-            "nom": "Fierté locale",
-            "description": "Utiliser au moins 1 langue locale.",
-            "condition": {"type": "langues_locales_distinctes", "min": 1},
-        },
-        {
-            "id": "t18_langue_locale_3",
-            "nom": "Pont des langues",
-            "description": "Utiliser au moins 3 langues locales.",
-            "condition": {"type": "langues_locales_distinctes", "min": 3},
-        },
-        # 19-24: séries
-        {
-            "id": "t19_serie_3",
-            "nom": "Présence continue",
-            "description": "Atteindre une série de 3 jours.",
-            "condition": {"type": "serie_jours", "min": 3},
-        },
-        {
-            "id": "t20_serie_7",
-            "nom": "Rythme de croisière",
-            "description": "Atteindre une série de 7 jours.",
-            "condition": {"type": "serie_jours", "min": 7},
-        },
-        {
-            "id": "t21_serie_14",
-            "nom": "Discipline d’éleveur",
-            "description": "Atteindre une série de 14 jours.",
-            "condition": {"type": "serie_jours", "min": 14},
-        },
-        {
-            "id": "t22_serie_30",
-            "nom": "Saison complète",
-            "description": "Atteindre une série de 30 jours.",
-            "condition": {"type": "serie_jours", "min": 30},
-        },
-        {
-            "id": "t23_points_1000",
-            "nom": "Cap 1000",
-            "description": "Atteindre 1000 points.",
-            "condition": {"type": "points_total", "min": 1000},
-        },
-        {
-            "id": "t24_points_5000",
-            "nom": "Cap 5000",
-            "description": "Atteindre 5000 points.",
-            "condition": {"type": "points_total", "min": 5000},
-        },
-        # 25-30: maîtrise
-        {
-            "id": "t25_points_10000",
-            "nom": "Cap 10000",
-            "description": "Atteindre 10000 points.",
-            "condition": {"type": "points_total", "min": 10000},
-        },
-        {
-            "id": "t26_defis_10",
-            "nom": "Chasseur de défis",
-            "description": "Compléter 10 défis quotidiens.",
-            "condition": {"type": "action_count", "action": "defi_quotidien_complete", "min": 10},
-        },
-        {
-            "id": "t27_defis_50",
-            "nom": "Champion des défis",
-            "description": "Compléter 50 défis quotidiens.",
-            "condition": {"type": "action_count", "action": "defi_quotidien_complete", "min": 50},
-        },
-        {
-            "id": "t28_modules_5",
-            "nom": "Explorateur de modules",
-            "description": "Utiliser au moins 5 modules différents.",
-            "condition": {"type": "modules_distincts", "min": 5},
-        },
-        {
-            "id": "t29_inviteur_10",
-            "nom": "Ambassadeur Aya",
-            "description": "Inviter 10 éleveurs.",
-            "condition": {"type": "action_count", "action": "invitation_ami", "min": 10},
-        },
-        {
-            "id": "t30_precision_90",
-            "nom": "Précision experte",
-            "description": "Atteindre 90% de succès sur les quiz.",
-            "condition": {"type": "ratio_succes", "champ": "quiz_taux_reussite_pct", "min": 90},
-        },
-    ]
-
-    # Défis quotidiens par défaut.
-    DEFIS_QUOTIDIENS: List[Dict[str, Any]] = [
-        {
-            "id": "d1_connexion",
-            "nom": "Présence du jour",
-            "action": "connexion_jour",
-            "objectif": 1,
-            "bonus_points": 10,
-        },
-        {
-            "id": "d2_ration",
-            "nom": "Une ration utile",
-            "action": "generation_ration",
-            "objectif": 1,
-            "bonus_points": 20,
-        },
-        {
-            "id": "d3_communautaire",
-            "nom": "Coup de main communautaire",
-            "action": "commentaire_utile_farmcommunity",
-            "objectif": 1,
-            "bonus_points": 12,
-        },
-    ]
+    ACTIONS_POINTS = ACTIONS_POINTS
+    NIVEAUX = NIVEAUX
+    TROPHEES = TROPHEES
+    LIGUES = LIGUES
+    BOUTIQUE_CATALOGUE = BOUTIQUE_CATALOGUE
 
     def __init__(self) -> None:
-        """Initialise le moteur et ses bonus globaux."""
-        self.bonus_langue_locale = 5
-        self.bonus_serie_multiple_7 = 10
-        self.bonus_heure_creuse_offline = 3
-
-        # Paramètres anti-abus (MVP configurable).
-        self.max_points_par_action = 500
-        self.seuil_actions_24h_suspect = 120
-        self.malus_repetition_pct = 0.30
+        self._boutique_cache = dict(BOUTIQUE_CATALOGUE)
 
     # ---------------------------------------------------------------------
-    # Méthodes utilitaires internes
+    # Points
     # ---------------------------------------------------------------------
-
-    def _normaliser_date(self, valeur: Union[str, date, datetime]) -> Optional[date]:
-        """
-        Convertit une valeur en date Python.
-        Accepte: str ISO (YYYY-MM-DD), date, datetime.
-        Retourne None si la conversion est impossible.
-        """
-        if valeur is None:
-            return None
-
-        if isinstance(valeur, datetime):
-            return valeur.date()
-
-        if isinstance(valeur, date):
-            return valeur
-
-        if isinstance(valeur, str):
-            texte = valeur.strip()
-            if not texte:
-                return None
-            # Essai ISO simple.
-            try:
-                return datetime.fromisoformat(texte).date()
-            except ValueError:
-                pass
-            # Essai format JJ/MM/AAAA.
-            try:
-                return datetime.strptime(texte, "%d/%m/%Y").date()
-            except ValueError:
-                return None
-
-        return None
-
-    def _get_actions_count(self, user_stats: Dict[str, Any]) -> Dict[str, int]:
-        """
-        Récupère le dictionnaire des compteurs d'actions en forçant des entiers >= 0.
-        """
-        actions = user_stats.get("actions_count", {})
-        if not isinstance(actions, dict):
-            return {}
-
-        propres: Dict[str, int] = {}
-        for cle, val in actions.items():
-            try:
-                propres[str(cle)] = max(0, int(val))
-            except (ValueError, TypeError):
-                propres[str(cle)] = 0
-        return propres
-
-    # ---------------------------------------------------------------------
-    # API publique
-    # ---------------------------------------------------------------------
-
     def calculer_points(self, action: str, contexte: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
-        Calcule les points pour une action donnée avec garde-fous anti-abus.
-
-        Paramètres:
-        - action: nom technique de l'action (ex: "generation_ration")
-        - contexte: données optionnelles pour bonus/malus
-          Exemples de clés:
-          - "code_langue": "fon", "fr", "en", ...
-          - "serie_actuelle": int
-          - "offline_mode": bool
-          - "multiplicateur_evenement": float
-          - "nb_actions_24h": int (anti-abus)
-          - "cooldown_actif": bool (anti-abus)
-
-        Règles bonus:
-        - langue locale africaine (hors fr/en): +5 points
-        - série multiple de 7 jours: +10 points
-        - mode offline: +3 points
-
-        Règles anti-abus:
-        - cooldown actif => points = 0
-        - volume d'actions 24h trop élevé => malus de répétition
-        - cap max par action pour éviter les explosions de score
+        Calcule les points accordés pour une action donnée.
 
         Retour:
-        {
-          "action": ...,
-          "points_base": ...,
-          "bonus": [...],
-          "penalites": [...],
-          "points_total": ...
-        }
+            {
+              "action": "...",
+              "points_base": 10,
+              "bonus": 5,
+              "points_totaux": 15,
+              "details": {...}
+            }
         """
+        action_norm = (action or "").strip().lower()
         contexte = contexte or {}
 
-        if action not in self.ACTIONS_POINTS:
-            raise ValueError(f"Action inconnue: '{action}'.")
+        if not action_norm:
+            raise ValueError("L'action ne peut pas être vide.")
 
-        points_base = self.ACTIONS_POINTS[action]
-        points_total = points_base
-        bonus_details: List[Dict[str, Any]] = []
-        penalites: List[Dict[str, Any]] = []
+        if action_norm not in self.ACTIONS_POINTS:
+            # Tolérance: si l'action n'est pas connue, on donne un petit bonus.
+            points_base = 5
+        else:
+            points_base = int(self.ACTIONS_POINTS[action_norm])
 
-        # Blocage immédiat si cooldown anti-spam actif.
-        if bool(contexte.get("cooldown_actif", False)):
-            penalites.append({"type": "cooldown_actif", "points": -points_base})
-            return {
-                "action": action,
-                "points_base": points_base,
-                "bonus": bonus_details,
-                "penalites": penalites,
-                "multiplicateur": 1.0,
-                "points_total": 0,
-            }
+        bonus = 0
 
-        # Bonus langue locale.
-        code_langue = str(contexte.get("code_langue", "")).lower().strip()
-        if code_langue and code_langue not in {"fr", "en"}:
-            points_total += self.bonus_langue_locale
-            bonus_details.append(
-                {"type": "langue_locale", "points": self.bonus_langue_locale}
-            )
+        # Bonus langue locale
+        if contexte.get("langue_locale") is True or contexte.get("code_langue") in {"fon", "yor", "den", "sw", "ha", "ig", "fr"}:
+            if action_norm in {"generer_ration", "generation_ration", "enregistrement_vocal"}:
+                bonus += 5
 
-        # Bonus série.
-        try:
-            serie_actuelle = int(contexte.get("serie_actuelle", 0))
-        except (TypeError, ValueError):
-            serie_actuelle = 0
+        # Bonus de série
+        serie = _safe_int(contexte.get("serie_actuelle", 0), 0)
+        if serie >= 7:
+            bonus += 5
+        if serie >= 30:
+            bonus += 15
 
-        if serie_actuelle > 0 and serie_actuelle % 7 == 0:
-            points_total += self.bonus_serie_multiple_7
-            bonus_details.append(
-                {"type": "serie_multiple_7", "points": self.bonus_serie_multiple_7}
-            )
+        # Bonus de qualité
+        if contexte.get("qualite") == "excellent":
+            bonus += 5
+        if contexte.get("qualite") == "parfait":
+            bonus += 10
 
-        # Bonus mode offline (encourage l'usage même sans réseau).
-        if bool(contexte.get("offline_mode", False)):
-            points_total += self.bonus_heure_creuse_offline
-            bonus_details.append(
-                {"type": "offline_mode", "points": self.bonus_heure_creuse_offline}
-            )
+        # Bonus défi quotidien
+        if contexte.get("defi_quotidien") is True:
+            bonus += 5
 
-        # Multiplicateur événement (si campagne spéciale).
-        multiplicateur = contexte.get("multiplicateur_evenement", 1.0)
-        try:
-            multiplicateur = float(multiplicateur)
-        except (TypeError, ValueError):
-            multiplicateur = 1.0
-
-        if multiplicateur <= 0:
-            multiplicateur = 1.0
-
-        # Anti-abus: malus si usage anormalement élevé sur 24h.
-        try:
-            nb_actions_24h = int(contexte.get("nb_actions_24h", 0))
-        except (TypeError, ValueError):
-            nb_actions_24h = 0
-
-        if nb_actions_24h >= self.seuil_actions_24h_suspect:
-            reduction = int(round(points_total * self.malus_repetition_pct))
-            points_total = max(1, points_total - reduction)
-            penalites.append(
-                {
-                    "type": "malus_repetition_24h",
-                    "points": -reduction,
-                    "nb_actions_24h": nb_actions_24h,
-                }
-            )
-
-        points_total = int(round(points_total * multiplicateur))
-
-        # Cap de sécurité pour éviter les débordements de score.
-        if points_total > self.max_points_par_action:
-            penalites.append(
-                {
-                    "type": "cap_points_action",
-                    "points": -(points_total - self.max_points_par_action),
-                }
-            )
-            points_total = self.max_points_par_action
+        # Plafond raisonnable par action
+        points_totaux = max(0, min(points_base + bonus, 250))
 
         return {
-            "action": action,
+            "action": action_norm,
             "points_base": points_base,
-            "bonus": bonus_details,
-            "penalites": penalites,
-            "multiplicateur": multiplicateur,
-            "points_total": max(0, points_total),
+            "bonus": bonus,
+            "points_totaux": points_totaux,
+            "details": {
+                "langue_locale": bool(contexte.get("langue_locale")),
+                "serie_actuelle": serie,
+                "qualite": contexte.get("qualite"),
+                "defi_quotidien": bool(contexte.get("defi_quotidien")),
+            },
         }
 
+    # ---------------------------------------------------------------------
+    # Niveaux
+    # ---------------------------------------------------------------------
     def determiner_niveau(self, points_total: int) -> Dict[str, Any]:
         """
-        Détermine le niveau actuel et le prochain niveau.
-
-        Retour:
-        {
-          "niveau_actuel": {...},
-          "prochain_niveau": {... | None},
-          "progression_pct": float,
-          "points_dans_niveau": int,
-          "points_restant_pour_suivant": int
-        }
+        Détermine le niveau d'un utilisateur à partir de ses points totaux.
         """
-        try:
-            points_total = int(points_total)
-        except (TypeError, ValueError):
-            points_total = 0
+        pts = max(0, _safe_int(points_total, 0))
+        niveau = NIVEAUX[0]
+        prochain = None
 
-        points_total = max(0, points_total)
-
-        niveau_actuel = self.NIVEAUX[0]
-        prochain_niveau = None
-
-        for idx, niveau in enumerate(self.NIVEAUX):
-            if points_total >= niveau["seuil_points"]:
-                niveau_actuel = niveau
-                prochain_niveau = self.NIVEAUX[idx + 1] if idx + 1 < len(self.NIVEAUX) else None
-            else:
+        for idx, n in enumerate(NIVEAUX):
+            seuil_min = int(n["seuil_min"])
+            seuil_max = n["seuil_max"]
+            if pts >= seuil_min and (seuil_max is None or pts <= seuil_max):
+                niveau = n
+                prochain = NIVEAUX[idx + 1] if idx + 1 < len(NIVEAUX) else None
                 break
 
-        if prochain_niveau is None:
-            # Niveau max atteint.
-            progression_pct = 100.0
-            points_dans_niveau = points_total - niveau_actuel["seuil_points"]
+        if prochain is None and pts >= NIVEAUX[-1]["seuil_min"]:
+            niveau = NIVEAUX[-1]
+
+        seuil_min = int(niveau["seuil_min"])
+        seuil_max = niveau["seuil_max"]
+        if seuil_max is None:
+            progression = 100
             points_restant = 0
         else:
-            debut = niveau_actuel["seuil_points"]
-            fin = prochain_niveau["seuil_points"]
-            span = max(1, fin - debut)
-            points_dans_niveau = max(0, points_total - debut)
-            progression_pct = min(100.0, (points_dans_niveau / span) * 100.0)
-            points_restant = max(0, fin - points_total)
+            span = max(1, int(seuil_max) - seuil_min)
+            progression = int(max(0, min(100, ((pts - seuil_min) / span) * 100)))
+            points_restant = max(0, int(seuil_max) - pts)
 
         return {
-            "niveau_actuel": niveau_actuel,
-            "prochain_niveau": prochain_niveau,
-            "progression_pct": round(progression_pct, 2),
-            "points_dans_niveau": points_dans_niveau,
-            "points_restant_pour_suivant": points_restant,
+            "niveau": int(niveau["niveau"]),
+            "nom": niveau["nom"],
+            "seuil_min": seuil_min,
+            "seuil_max": seuil_max,
+            "progression_pct": progression,
+            "points_restant_pour_niveau_suivant": points_restant,
+            "prochain_niveau": prochain,
         }
 
-    def determiner_ligue(self, points_total: int) -> Dict[str, Any]:
+    # Compatibilité avec le backend déjà branché
+    def get_niveau(self, points_total: int) -> Dict[str, Any]:
+        return self.determiner_niveau(points_total)
+
+    # ---------------------------------------------------------------------
+    # Ligues
+    # ---------------------------------------------------------------------
+    def get_ligue_actuelle(self, points_saison: int) -> Dict[str, Any]:
         """
-        Détermine la ligue actuelle d'un utilisateur selon son total de points.
+        Retourne la ligue actuelle selon les points de saison.
         """
-        try:
-            points = int(points_total)
-        except (TypeError, ValueError):
-            points = 0
-
-        points = max(0, points)
-
-        ligue_actuelle = self.LIGUES[0]
-        prochaine_ligue: Optional[Dict[str, Any]] = None
-
-        for idx, ligue in enumerate(self.LIGUES):
-            if points >= int(ligue["min_points"]):
-                ligue_actuelle = ligue
-                prochaine_ligue = self.LIGUES[idx + 1] if idx + 1 < len(self.LIGUES) else None
-            else:
-                break
-
-        points_restant = 0
-        if prochaine_ligue is not None:
-            points_restant = max(0, int(prochaine_ligue["min_points"]) - points)
-
+        pts = max(0, _safe_int(points_saison, 0))
+        ligue = LIGUES[0]
+        for item in LIGUES:
+            min_pts = int(item["min_points"])
+            max_pts = item["max_points"]
+            if pts >= min_pts and (max_pts is None or pts <= max_pts):
+                ligue = item
         return {
-            "ligue_actuelle": ligue_actuelle,
-            "prochaine_ligue": prochaine_ligue,
+            "code": ligue["code"],
+            "nom": ligue["nom"],
+            "icone": ligue["icone"],
+            "min_points": ligue["min_points"],
+            "max_points": ligue["max_points"],
+        }
+
+    # Alias demandé par l'existant backend
+    def determiner_ligue(self, points_total: int) -> Dict[str, Any]:
+        ligue = self.get_ligue_actuelle(points_total)
+        max_pts = ligue["max_points"]
+        points_restant = 0 if max_pts is None else max(0, int(max_pts) - max(0, int(points_total)))
+        return {
+            "ligue_actuelle": ligue,
             "points_restant_pour_monter": points_restant,
         }
 
-    def calculer_compte_a_rebours_saison(
-        self,
-        date_fin_saison: Union[str, date, datetime],
-        now: Optional[datetime] = None,
-    ) -> Dict[str, Any]:
-        """
-        Calcule le compte à rebours avant la fin de saison.
-
-        Retour:
-        {
-          "terminee": bool,
-          "secondes_restantes": int,
-          "jours": int,
-          "heures": int,
-          "minutes": int,
-          "secondes": int
-        }
-        """
-        dt_fin: Optional[datetime] = None
-
-        if isinstance(date_fin_saison, datetime):
-            dt_fin = date_fin_saison
-        elif isinstance(date_fin_saison, date):
-            dt_fin = datetime.combine(date_fin_saison, datetime.max.time())
-        elif isinstance(date_fin_saison, str):
-            txt = date_fin_saison.strip()
-            try:
-                dt_fin = datetime.fromisoformat(txt)
-            except ValueError:
-                try:
-                    dt_fin = datetime.strptime(txt, "%Y-%m-%d")
-                    dt_fin = datetime.combine(dt_fin.date(), datetime.max.time())
-                except ValueError:
-                    dt_fin = None
-
-        if dt_fin is None:
-            raise ValueError("date_fin_saison invalide (format attendu: ISO ou YYYY-MM-DD).")
-
-        ref = now or datetime.now()
-        delta = dt_fin - ref
-        total_seconds = int(delta.total_seconds())
-
-        if total_seconds <= 0:
-            return {
-                "terminee": True,
-                "secondes_restantes": 0,
-                "jours": 0,
-                "heures": 0,
-                "minutes": 0,
-                "secondes": 0,
-            }
-
-        jours = total_seconds // 86400
-        heures = (total_seconds % 86400) // 3600
-        minutes = (total_seconds % 3600) // 60
-        secondes = total_seconds % 60
-
-        return {
-            "terminee": False,
-            "secondes_restantes": total_seconds,
-            "jours": jours,
-            "heures": heures,
-            "minutes": minutes,
-            "secondes": secondes,
-        }
-
-    def verifier_trophees(self, user_stats: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """
-        Vérifie les nouveaux trophées débloqués pour un utilisateur.
-
-        user_stats (attendu) peut contenir:
-        - points_total: int
-        - actions_count: dict
-        - serie_actuelle: int
-        - langues_locales_utilisees: list[str]
-        - modules_utilises: list[str]
-        - especes_suivies: list[str]
-        - quiz_taux_reussite_pct: float
-        - trophees_deja_obtenus: list[str]
-
-        Retour:
-        - Liste des trophées nouvellement débloqués.
-        """
-        if not isinstance(user_stats, dict):
-            raise ValueError("user_stats doit être un dictionnaire.")
-
-        points_total = max(0, int(user_stats.get("points_total", 0) or 0))
-        actions_count = self._get_actions_count(user_stats)
-        serie_actuelle = max(0, int(user_stats.get("serie_actuelle", 0) or 0))
-
-        langues_locales = user_stats.get("langues_locales_utilisees", [])
-        if not isinstance(langues_locales, list):
-            langues_locales = []
-
-        modules_utilises = user_stats.get("modules_utilises", [])
-        if not isinstance(modules_utilises, list):
-            modules_utilises = []
-
-        especes_suivies = user_stats.get("especes_suivies", [])
-        if not isinstance(especes_suivies, list):
-            especes_suivies = []
-
-        deja = set(user_stats.get("trophees_deja_obtenus", []) or [])
-
-        nouveaux: List[Dict[str, Any]] = []
-
-        for troph in self.TROPHEES:
-            troph_id = troph["id"]
-            if troph_id in deja:
-                continue
-
-            cond = troph.get("condition", {})
-            cond_type = cond.get("type")
-
-            debloque = False
-
-            if cond_type == "points_total":
-                debloque = points_total >= int(cond.get("min", 0))
-
-            elif cond_type == "action_count":
-                action = str(cond.get("action", ""))
-                mini = int(cond.get("min", 0))
-                debloque = actions_count.get(action, 0) >= mini
-
-            elif cond_type == "serie_jours":
-                debloque = serie_actuelle >= int(cond.get("min", 0))
-
-            elif cond_type == "langues_locales_distinctes":
-                # Langues locales = toutes sauf fr/en.
-                distinctes = {str(x).lower().strip() for x in langues_locales if str(x).strip()}
-                locales = {c for c in distinctes if c not in {"fr", "en"}}
-                debloque = len(locales) >= int(cond.get("min", 0))
-
-            elif cond_type == "modules_distincts":
-                distincts = {str(x).strip().lower() for x in modules_utilises if str(x).strip()}
-                debloque = len(distincts) >= int(cond.get("min", 0))
-
-            elif cond_type == "especes_distinctes":
-                distinctes = {str(x).strip().lower() for x in especes_suivies if str(x).strip()}
-                debloque = len(distinctes) >= int(cond.get("min", 0))
-
-            elif cond_type == "ratio_succes":
-                champ = str(cond.get("champ", "")).strip()
-                mini = float(cond.get("min", 0))
-                valeur = float(user_stats.get(champ, 0) or 0)
-                debloque = valeur >= mini
-
-            if debloque:
-                nouveaux.append(troph)
-
-        return nouveaux
-
+    # ---------------------------------------------------------------------
+    # Séries
+    # ---------------------------------------------------------------------
     def calculer_serie(
         self,
         derniere_connexion: Union[str, date, datetime, None],
-        connexions_historique: Union[List[Union[str, date, datetime]], Dict[str, Any], None],
+        historique: Optional[List[Union[str, date, datetime]]] = None,
     ) -> Dict[str, Any]:
         """
-        Calcule la série de connexion actuelle.
+        Calcule la série de connexion à partir de la dernière connexion et d'un historique.
 
-        Gère la protection "Graines de Secours":
-        - Si un seul jour est manqué entre deux connexions, et que des graines
-          sont disponibles, la série peut être maintenue.
-
-        Paramètres:
-        - derniere_connexion: dernière date de connexion connue
-        - connexions_historique:
-            * soit une liste de dates
-            * soit un dict {"dates": [...], "graines_secours": int}
-
-        Retour:
-        {
-          "serie_actuelle": int,
-          "derniere_date_comptee": "YYYY-MM-DD" | None,
-          "protection_utilisee": bool,
-          "graines_restantes": int
-        }
+        historique : liste de dates/ISO strings de connexions.
         """
-        # Extraction des dates et des graines.
-        graines = 0
-        dates_brutes: List[Any] = []
+        hist = historique or []
+        dates_hist = []
+        for item in hist:
+            d = _to_date(item)
+            if d is not None:
+                dates_hist.append(d)
+        dates_hist = sorted(set(dates_hist))
 
-        if isinstance(connexions_historique, dict):
-            dates_brutes = connexions_historique.get("dates", []) or []
-            try:
-                graines = int(connexions_historique.get("graines_secours", 0) or 0)
-            except (TypeError, ValueError):
-                graines = 0
-        elif isinstance(connexions_historique, list):
-            dates_brutes = connexions_historique
-        else:
-            dates_brutes = []
+        today = date.today()
+        last = _to_date(derniere_connexion)
 
-        # Ajouter la dernière connexion si fournie.
-        if derniere_connexion is not None:
-            dates_brutes.append(derniere_connexion)
+        if last is None and dates_hist:
+            last = dates_hist[-1]
 
-        dates_norm = [self._normaliser_date(v) for v in dates_brutes]
-        dates_uniques = sorted({d for d in dates_norm if d is not None})
-
-        if not dates_uniques:
+        if last is None:
             return {
                 "serie_actuelle": 0,
-                "derniere_date_comptee": None,
-                "protection_utilisee": False,
-                "graines_restantes": max(0, graines),
+                "meilleure_serie": 0,
+                "est_en_danger": False,
+                "jours_depuis_derniere_connexion": None,
             }
 
-        aujourd_hui = date.today()
-        protection_utilisee = False
+        jours_depuis = (today - last).days
 
-        # Série calculée depuis la date la plus récente vers le passé.
-        serie = 1
-        idx = len(dates_uniques) - 1
-        curseur = dates_uniques[idx]
-
-        # Si la dernière connexion date de plus de 1 jour, la série peut déjà être cassée.
-        # On autorise une protection si écart = 2 jours et graines disponibles.
-        ecart_avec_aujourdhui = (aujourd_hui - curseur).days
-        if ecart_avec_aujourdhui > 1:
-            if ecart_avec_aujourdhui == 2 and graines > 0:
-                graines -= 1
-                protection_utilisee = True
-            else:
-                # Série nulle (ou 1 historique mais inactive aujourd'hui).
-                return {
-                    "serie_actuelle": 0,
-                    "derniere_date_comptee": curseur.isoformat(),
-                    "protection_utilisee": False,
-                    "graines_restantes": max(0, graines),
-                }
-
-        # Remonter l'historique pour compter les jours consécutifs.
-        while idx > 0:
-            actuelle = dates_uniques[idx]
-            precedente = dates_uniques[idx - 1]
-            diff = (actuelle - precedente).days
-
-            if diff == 1:
-                serie += 1
-            elif diff == 2 and graines > 0:
-                # Un jour manqué, protégé par une graine.
-                graines -= 1
-                protection_utilisee = True
-                serie += 1
-            else:
+        # Série actuelle = nombre de jours consécutifs jusqu'à aujourd'hui
+        serie_actuelle = 0
+        curseur = today
+        set_hist = set(dates_hist)
+        while curseur in set_hist or curseur == last:
+            serie_actuelle += 1
+            curseur -= timedelta(days=1)
+            if serie_actuelle > 365:
                 break
-            idx -= 1
+
+        # Meilleure série = plus longue séquence consécutive dans l'historique
+        meilleure = 0
+        courant = 0
+        precedent = None
+        for d in dates_hist:
+            if precedent is None or (d - precedent).days == 1:
+                courant += 1
+            elif d == precedent:
+                pass
+            else:
+                meilleure = max(meilleure, courant)
+                courant = 1
+            precedent = d
+        meilleure = max(meilleure, courant, serie_actuelle)
+
+        est_en_danger = jours_depuis >= 1
+        urgence = jours_depuis >= 7
 
         return {
-            "serie_actuelle": max(0, serie),
-            "derniere_date_comptee": curseur.isoformat(),
-            "protection_utilisee": protection_utilisee,
-            "graines_restantes": max(0, graines),
+            "serie_actuelle": serie_actuelle,
+            "meilleure_serie": meilleure,
+            "jours_depuis_derniere_connexion": jours_depuis,
+            "est_en_danger": est_en_danger,
+            "urgence_serie": urgence,
         }
 
+    # ---------------------------------------------------------------------
+    # Trophées
+    # ---------------------------------------------------------------------
+    def verifier_trophees(self, user_stats: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """
+        Vérifie les trophées débloqués pour un utilisateur.
+        """
+        stats = user_stats or {}
+        deja = set(stats.get("trophees_deja_obtenus", []) or [])
+        actions = stats.get("actions_count", {}) or {}
+
+        points_total = _safe_int(stats.get("points_total", 0), 0)
+        serie_actuelle = _safe_int(stats.get("serie_actuelle", 0), 0)
+        langues = stats.get("langues_locales_utilisees", []) or []
+        modules = stats.get("modules_utilises", []) or []
+        especes = stats.get("especes_suivies", []) or []
+        quiz_taux = _safe_float(stats.get("quiz_taux_reussite_pct", 0.0), 0.0)
+
+        nouveaux: List[Dict[str, Any]] = []
+
+        def _ajouter(trophee: Dict[str, Any]) -> None:
+            if trophee["id"] not in deja and trophee["id"] not in {x["id"] for x in nouveaux}:
+                nouveaux.append(trophee)
+
+        for troph in self.TROPHEES:
+            code = troph["code"]
+            cond = troph["condition"]
+            typ = cond.get("type")
+
+            ok = False
+            if typ == "points_total":
+                ok = points_total >= _safe_int(cond.get("min", 0), 0)
+            elif typ == "action_count":
+                action = cond.get("action", "")
+                ok = _safe_int(actions.get(action, 0), 0) >= _safe_int(cond.get("min", 0), 0)
+            elif typ == "serie_jours":
+                ok = serie_actuelle >= _safe_int(cond.get("min", 0), 0)
+            elif typ == "langues_locales_distinctes":
+                ok = len(set(langues)) >= _safe_int(cond.get("min", 0), 0)
+            elif typ == "modules_distincts":
+                ok = len(set(modules)) >= _safe_int(cond.get("min", 0), 0)
+            elif typ == "especes_distinctes":
+                ok = len(set(especes)) >= _safe_int(cond.get("min", 0), 0)
+            elif typ == "ratio_succes":
+                ok = quiz_taux >= _safe_float(cond.get("min", 0), 0.0)
+            elif typ == "retour_apres_absence":
+                jours_absence = _safe_int(stats.get("jours_depuis_derniere_connexion", 0), 0)
+                ok = jours_absence >= _safe_int(cond.get("min_jours", 0), 0)
+            elif typ == "niveau":
+                ok = self.determiner_niveau(points_total)["niveau"] >= _safe_int(cond.get("min", 0), 0)
+
+            if ok:
+                _ajouter(
+                    {
+                        "id": code,
+                        "nom": troph["nom"],
+                        "description": troph["description"],
+                        "condition": cond,
+                    }
+                )
+
+        return nouveaux
+
+    # ---------------------------------------------------------------------
+    # Défis quotidiens
+    # ---------------------------------------------------------------------
     def verifier_defis_quotidiens(self, actions_jour: Dict[str, int]) -> Dict[str, Any]:
         """
         Vérifie les défis quotidiens complétés.
-
-        Paramètre:
-        - actions_jour: dict {action: nombre_realise}
-
-        Retour:
-        {
-          "defis": [
-            {
-              "id": ...,
-              "nom": ...,
-              "action": ...,
-              "objectif": ...,
-              "realise": ...,
-              "complete": bool,
-              "bonus_points": ...
-            }, ...
-          ],
-          "tous_completes": bool,
-          "bonus_total": int
-        }
         """
-        if not isinstance(actions_jour, dict):
-            raise ValueError("actions_jour doit être un dictionnaire {action: quantité}.")
+        actions = actions_jour or {}
+        defi_connexion = actions.get("connexion_jour", 0) >= 1
+        defi_ration = actions.get("generer_ration", 0) >= 1 or actions.get("generation_ration", 0) >= 1
+        defi_formation = actions.get("completer_lecon", 0) >= 1 or actions.get("quiz_100_pct", 0) >= 1
+        defi_repro = actions.get("enregistrer_saillie", 0) >= 1
+        defi_sante = actions.get("diagnostic_vetscan", 0) >= 1 or actions.get("scan_sante_vetscan", 0) >= 1
 
-        # Nettoyage des valeurs.
-        actions_clean: Dict[str, int] = {}
-        for a, v in actions_jour.items():
-            try:
-                actions_clean[str(a)] = max(0, int(v))
-            except (TypeError, ValueError):
-                actions_clean[str(a)] = 0
+        resultats = {
+            "defi_connexion": defi_connexion,
+            "defi_ration": defi_ration,
+            "defi_formation": defi_formation,
+            "defi_repro": defi_repro,
+            "defi_sante": defi_sante,
+        }
+        nb = sum(1 for v in resultats.values() if v)
+        return {
+            "completed_count": nb,
+            "defis": resultats,
+            "points_bonus": nb * 10,
+        }
 
-        statut_defis: List[Dict[str, Any]] = []
-        bonus_total = 0
-        tous_completes = True
+    # ---------------------------------------------------------------------
+    # Boutique / Graines d'Or
+    # ---------------------------------------------------------------------
+    def get_boutique_items(self) -> Dict[str, Dict[str, Any]]:
+        """Retourne le catalogue de la boutique virtuelle."""
+        return dict(self._boutique_cache)
 
-        for defi in self.DEFIS_QUOTIDIENS:
-            action = defi["action"]
-            objectif = int(defi["objectif"])
-            realise = actions_clean.get(action, 0)
-            complete = realise >= objectif
+    def depenser_graines_or(self, user: Any, montant: int, item: str) -> Dict[str, Any]:
+        """
+        Dépense des Graines d'Or pour un item donné.
 
-            if not complete:
-                tous_completes = False
+        user peut être un objet ORM ou un dictionnaire avec les attributs attendus.
+        """
+        if user is None:
+            raise ValueError("Utilisateur invalide.")
+
+        prix = _safe_int(montant, 0)
+        if prix <= 0:
+            raise ValueError("Le montant doit être positif.")
+
+        solde = _safe_int(getattr(user, "graines_or", None), _safe_int(user.get("graines_or", 0), 0) if isinstance(user, dict) else 0)
+        if solde < prix:
+            raise ValueError("Solde insuffisant en Graines d'Or.")
+
+        nouveau_solde = solde - prix
+
+        if isinstance(user, dict):
+            user["graines_or"] = nouveau_solde
+        else:
+            setattr(user, "graines_or", nouveau_solde)
+
+        # Récompenses accessoires selon l'item
+        if item == "protection_serie":
+            if isinstance(user, dict):
+                user["graines_secours"] = _safe_int(user.get("graines_secours", 0), 0) + 1
             else:
-                bonus_total += int(defi.get("bonus_points", 0))
-
-            statut_defis.append(
-                {
-                    "id": defi["id"],
-                    "nom": defi["nom"],
-                    "action": action,
-                    "objectif": objectif,
-                    "realise": realise,
-                    "complete": complete,
-                    "bonus_points": int(defi.get("bonus_points", 0)),
-                }
-            )
+                setattr(user, "graines_secours", _safe_int(getattr(user, "graines_secours", 0), 0) + 1)
 
         return {
-            "defis": statut_defis,
-            "tous_completes": tous_completes,
-            "bonus_total": bonus_total,
+            "ok": True,
+            "item": item,
+            "cout": prix,
+            "solde_restant": nouveau_solde,
         }
+
+    # ---------------------------------------------------------------------
+    # Règles métier avancées
+    # ---------------------------------------------------------------------
+    def calculer_bonus_langue_locale(self, code_langue: str) -> int:
+        """Retourne un bonus spécifique pour les langues locales."""
+        code = (code_langue or "").strip().lower()
+        if code in {"fon", "yor", "den", "sw", "ha", "ig"}:
+            return 5
+        return 0
+
+    def calculer_bonus_contexte(self, contexte: Optional[Dict[str, Any]] = None) -> int:
+        """Calcule un bonus additionnel basé sur le contexte d'utilisation."""
+        contexte = contexte or {}
+        bonus = 0
+        if contexte.get("mode_offline"):
+            bonus += 2
+        if contexte.get("qualite") == "excellent":
+            bonus += 5
+        if contexte.get("premiere_action"):
+            bonus += 3
+        return bonus
+
+
+# =============================================================================
+# Fonctions utilitaires publiques
+# =============================================================================
+
+def obtenir_trophes_couleur() -> List[Dict[str, Any]]:
+    """Retourne les trophées avec un indicateur coloré pour l'interface."""
+    return [
+        {
+            **t,
+            "couleur": "color" if i < 5 else "grise",
+        }
+        for i, t in enumerate(TROPHEES)
+    ]
+
+
+def obtenir_ligues() -> List[Dict[str, Any]]:
+    """Retourne la liste des ligues configurées."""
+    return list(LIGUES)
+
+
+def obtenir_niveaux() -> List[Dict[str, Any]]:
+    """Retourne la liste des niveaux configurés."""
+    return list(NIVEAUX)
+
+
+def obtenir_catalogue_boutique() -> Dict[str, Dict[str, Any]]:
+    """Retourne le catalogue boutique."""
+    return dict(BOUTIQUE_CATALOGUE)
+
+
+__all__ = [
+    "ACTIONS_POINTS",
+    "NIVEAUX",
+    "LIGUES",
+    "TROPHEES",
+    "BOUTIQUE_CATALOGUE",
+    "GamificationEngine",
+    "obtenir_trophes_couleur",
+    "obtenir_ligues",
+    "obtenir_niveaux",
+    "obtenir_catalogue_boutique",
+]
