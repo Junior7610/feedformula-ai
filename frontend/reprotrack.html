@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FeedFormula AI - ReproTrack</title>
+  <link rel="stylesheet" href="./style.css" />
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script defer src="./script.js"></script>
+</head>
+<body data-page="reprotrack">
+  <!-- En-tête rose/mauve dédié au suivi reproduction -->
+  <header class="app-header app-header--sticky app-header--repro" role="banner">
+    <a class="app-header__back" href="./index.html" aria-label="Retour">←</a>
+    <div class="app-header__title-wrap">
+      <h1>🩷 ReproTrack</h1>
+      <span class="badge-star">+10 🌟</span>
+    </div>
+    <a href="./profil.html" class="app-header__avatar" aria-label="Ouvrir le profil">
+      <img src="../assets/aya_joie.png" alt="Avatar utilisateur" />
+    </a>
+  </header>
+
+  <main class="app-main app-main--with-nav">
+    <!-- Calendrier du mois en cours -->
+    <section class="calendar-zone card-shell" aria-label="Calendrier de reproduction">
+      <div class="section-title-row">
+        <h2>Calendrier du mois</h2>
+        <strong id="calendarMonthLabel"></strong>
+      </div>
+
+      <div id="reproCalendar" class="calendar-grid"></div>
+
+      <div class="calendar-legend" aria-label="Légende du calendrier">
+        <span><i class="legend-dot legend-dot--heat"></i>Chaleurs</span>
+        <span><i class="legend-dot legend-dot--insemination"></i>Insémination</span>
+        <span><i class="legend-dot legend-dot--birth"></i>Mises-bas</span>
+      </div>
+    </section>
+
+    <!-- Enregistrement rapide d'un événement -->
+    <section class="card-shell" aria-label="Enregistrer un événement reproductif">
+      <div class="section-title-row">
+        <h2>Événements</h2>
+      </div>
+
+      <div class="event-toolbar">
+        <select id="eventType" class="select-input" aria-label="Type d'événement">
+          <option value="saillie">Saillie</option>
+          <option value="insemination">Insémination</option>
+          <option value="mise-bas">Mise-bas</option>
+          <option value="chaleur">Chaleur observée</option>
+        </select>
+
+        <input
+          id="eventAnimal"
+          class="text-input text-input--single"
+          type="text"
+          placeholder="Nom ou numéro animal"
+          autocomplete="off"
+        />
+
+        <button id="saveEventButton" class="primary-action" type="button">
+          Enregistrer un événement
+        </button>
+      </div>
+    </section>
+
+    <!-- Liste des animaux suivis -->
+    <section class="card-shell" aria-label="Animaux suivis">
+      <div class="section-title-row">
+        <h2>Animaux suivis</h2>
+      </div>
+
+      <div id="trackedAnimals" class="tracked-list"></div>
+    </section>
+
+    <!-- Tableau de bord fertilité -->
+    <section class="card-shell" aria-label="Tableau de bord fertilité">
+      <div class="section-title-row">
+        <h2>Tableau de bord fertilité</h2>
+      </div>
+
+      <div class="result-grid result-grid--3">
+        <div class="result-card">
+          <span>Taux gestation global</span>
+          <strong id="fertilityRate">--%</strong>
+        </div>
+
+        <div class="result-card">
+          <span>Intervalle vêlage-vêlage moyen</span>
+          <strong id="calvingInterval">-- jours</strong>
+        </div>
+
+        <div class="result-card">
+          <span>Mises-bas ce mois</span>
+          <strong id="birthsThisMonth">--</strong>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Navigation basse commune -->
+  <nav class="bottom-nav" aria-label="Navigation principale">
+    <a class="bottom-nav__item" href="./index.html">🏠<span>Accueil</span></a>
+    <a class="bottom-nav__item" href="./modules.html">📦<span>Modules</span></a>
+    <a class="bottom-nav__item" href="./classement.html">🏆<span>Classement</span></a>
+    <a class="bottom-nav__item" href="./profil.html">👤<span>Profil</span></a>
+  </nav>
+</body>
+</html>

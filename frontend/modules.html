@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FeedFormula AI - Nos Services</title>
+  <link rel="stylesheet" href="./style.css" />
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script defer src="./script.js"></script>
+</head>
+<body data-page="modules">
+  <!-- En-tête partagé -->
+  <header class="app-header app-header--sticky" role="banner">
+    <a class="app-header__brand" href="./index.html" aria-label="Accueil FeedFormula AI">
+      <img src="../assets/logo_feedformula_minimal.png" alt="Logo" class="app-header__brand-logo" />
+      <span>FeedFormula AI</span>
+    </a>
+    <a href="./profil.html" class="app-header__avatar" aria-label="Ouvrir le profil">
+      <img src="../assets/aya_joie.png" alt="Avatar utilisateur" />
+    </a>
+  </header>
+
+  <main class="app-main app-main--with-nav">
+    <!-- Bandeau d’introduction -->
+    <section class="hero-block card-shell">
+      <p class="eyebrow">Nos Services</p>
+      <h1>8 modules pour élever plus sereinement</h1>
+      <p>Accédez à des outils pratiques, rapides et pensés pour votre ferme.</p>
+    </section>
+
+    <!-- Filtre des modules -->
+    <section class="filter-bar card-shell" aria-label="Filtre des modules">
+      <button class="filter-pill is-active" data-filter="all" type="button">Tous</button>
+      <button class="filter-pill" data-filter="sante" type="button">Santé</button>
+      <button class="filter-pill" data-filter="finance" type="button">Finance</button>
+      <button class="filter-pill" data-filter="formation" type="button">Formation</button>
+    </section>
+
+    <!-- Grille des cartes -->
+    <section id="modulesGrid" class="module-grid" aria-label="Liste des modules">
+      <article class="module-card" data-category="sante finance">
+        <div class="module-card__emoji">🌾</div>
+        <h2>NutriCore</h2>
+        <p>Calculez une ration rentable et équilibrée.</p>
+        <span class="status-badge status-badge--ok">Disponible</span>
+        <strong>+10 🌟</strong>
+        <a href="./nutricore.html" class="module-card__cta">Accéder →</a>
+      </article>
+
+      <article class="module-card" data-category="sante">

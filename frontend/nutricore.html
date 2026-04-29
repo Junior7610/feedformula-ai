@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="FeedFormula AI - NutriCore, calcul intelligent de rations animales avec historique." />
+  <title>FeedFormula AI - NutriCore</title>
+  <link rel="stylesheet" href="./style.css" />
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script defer src="./script.js"></script>
+</head>
+<body data-page="nutricore">
+  <!-- En-tête dédié NutriCore -->
+  <header class="app-header app-header--sticky" role="banner">
+    <a class="app-header__back" href="./index.html" aria-label="Retour à l'accueil">←</a>
+
+    <div class="app-header__title-wrap">
+      <h1>🌾 NutriCore</h1>
+      <span class="badge-star">+10 🌟 par ration</span>
+    </div>
+
+    <a href="./profil.html" class="app-header__avatar" aria-label="Ouvrir le profil">
+      <img src="../assets/aya_joie.png" alt="Avatar utilisateur" />
+    </a>
+  </header>
+
+  <main class="app-main app-main--with-nav">
+    <!-- Court texte d'introduction -->
+    <section class="card-shell nutri-intro">
+      <p>
+        Construisez une ration rentable, équilbrée et adaptée à vos animaux.
+        L'historique des 5 dernières rations reste disponible plus bas.
+      </p>
+    </section>
+
+    <!-- Sélection espèce -->
+    <section class="species-zone card-shell" aria-label="Sélection de l'espèce">
+      <div class="section-title-row">
+        <h2>Choisissez l'espèce</h2>
+      </div>
+
+      <div id="speciesGrid" class="species-grid">
+        <button class="species-card" data-species="poulet-chair" type="button">🐔<span>Poulet chair</span></button>
+        <button class="species-card" data-species="poule-pondeuse" type="button">🥚<span>Poule pondeuse</span></button>
+        <button class="species-card" data-species="pintade" type="button">🦜<span>Pintade</span></button>
+        <button class="species-card" data-species="vache-laitiere" type="button">🐄<span>Vache laitière</span></button>
+        <button class="species-card" data-species="mouton" type="button">🐑<span>Mouton</span></button>
+        <button class="species-card" data-species="chevre" type="button">🐐<span>Chèvre</span></button>
+        <button class="species-card" data-species="porc" type="button">🐷<span>Porc</span></button>
+        <button class="species-card" data-species="tilapia" type="button">🐟<span>Tilapia</span></button>
+      </div>
+    </section>
+
+    <!-- Stade physiologique -->
+    <section id="stageSection" class="stage-zone card-shell" hidden>
+      <div class="section-title-row">
+        <h2>Stade physiologique</h2>
+      </div>
+      <div id="stageSelector" class="stage-selector"></div>
+    </section>
+
+    <!-- Ingrédients -->
+    <section class="ingredient-zone card-shell" aria-label="Ingrédients de la ration">
+      <div class="section-title-row">
+        <h2>Ingrédients</h2>
+      </div>
+
+      <input
+        id="ingredientInput"
+        class="text-input text-input--single"
+        type="text"
+        placeholder="Tapez un ingrédient, par exemple maïs"
+        autocomplete="off"
+      />
+
+      <div id="ingredientSuggestions" class="suggestions-box" aria-label="Suggestions d'ingrédients"></div>
+      <div id="ingredientTags" class="tag-zone" aria-label="Ingrédients ajoutés"></div>
+    </section>
+
+    <!-- Nombre d'animaux -->
+    <section class="slider-zone card-shell" aria-label="Nombre d'animaux">
+      <div class="section-title-row">
+        <h2>Nombre d'animaux</h2>
+        <strong id="animalCountValue">50</strong>
+      </div>
+
+      <input
+        id="animalCountSlider"
+        class="range-slider"
+        type="range"
+        min="1"
+        max="5000"
+        value="50"
+      />
+    </section>
+
+    <!-- Objectif -->
+    <section class="objective-zone card-shell" aria-label="Objectif de la ration">
+      <div class="section-title-row">
+        <h2>Objectif</h2>
+      </div>
+
+      <div class="objective-group" role="radiogroup" aria-label="Choix de l'objectif">
+        <button class="objective-option is-active" data-objective="equilibre" type="button">⚖️ Équilibre</button>
+        <button class="objective-option" data-objective="economique" type="button">💰 Économique</button>
+        <button class="objective-option" data-objective="proteines" type="button">💪 Riche protéines</button>
+      </div>
+    </section>
+
+    <!-- Action principale -->
+    <section class="generate-zone card-shell">
+      <button id="generateButton" class="primary-action" type="button">🌾 Générer ma ration</button>
+      <p class="action-star">+10 🌟</p>
+    </section>
+
+    <!-- Résultat -->
+    <section id="resultSection" class="result-panel card-shell" hidden>
+      <div class="section-title-row">
+        <h2>Votre ration</h2>
+        <button id="saveHistoryButton" class="chip-button" type="button">Sauvegarder</button>
+      </div>
+
+      <div class="result-panel__content">
+        <div id="rationText" class="ration-text"></div>
+
+        <div class="result-grid">
+          <div class="result-card">
+            <span>Coût estimé</span>
+            <strong id="rationCost">-- FCFA</strong>
+          </div>
+          <div class="result-card">
+            <span>Volume total</span>
+            <strong id="rationVolume">-- kg</strong>
+          </div>
+          <div class="result-card">
+            <span>Protéines</span>
+            <strong id="rationProtein">--%</strong>
+          </div>
+        </div>
+
+        <div class="chart-wrap">
+          <canvas id="compositionChart" width="300" height="300" aria-label="Graphique de composition"></canvas>
+        </div>
+
+        <div id="rationSteps" class="ration-steps"></div>
+
+        <div class="action-row">
+          <button id="speakButton" class="secondary-action" type="button">🔊 Écouter</button>
+          <button id="pdfButton" class="secondary-action" type="button">📄 PDF</button>
+          <button id="whatsappButton" class="secondary-action" type="button">📱 WhatsApp</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Historique -->
+    <section class="history-zone card-shell">
+      <div class="section-title-row">
+        <h2>Historique des 5 dernières rations</h2>
+      </div>
+      <div id="rationHistory" class="history-list"></div>
+    </section>
+  </main>
+
+  <!-- Mascotte Aya -->
+  <aside class="aya-widget" aria-live="polite">
+    <img src="../assets/aya_joie.png" alt="Aya" class="aya-widget__image" />
+    <div id="ayaBubble" class="aya-widget__bubble">
+      NutriCore vous aide à préparer une ration plus rentable.
+    </div>
+  </aside>
+
+  <!-- Navigation basse -->
+  <nav class="bottom-nav" aria-label="Navigation principale">
+    <a class="bottom-nav__item" href="./index.html">🏠<span>Accueil</span></a>
+    <a class="bottom-nav__item" href="./modules.html">📦<span>Modules</span></a>
+    <a class="bottom-nav__item" href="./classement.html">🏆<span>Classement</span></a>
+    <a class="bottom-nav__item" href="./profil.html">👤<span>Profil</span></a>
+  </nav>
+</body>
+</html>

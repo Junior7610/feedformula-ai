@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FeedFormula AI - FarmAcademy</title>
+  <link rel="stylesheet" href="./style.css" />
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script defer src="./script.js"></script>
+</head>
+<body data-page="farmacademy">
+  <header class="app-header app-header--sticky app-header--academy" role="banner">
+    <a class="app-header__back" href="./index.html" aria-label="Retour">←</a>
+    <div class="app-header__title-wrap">
+      <h1>📘 FarmAcademy</h1>
+      <span class="badge-star badge-star--academy">+20 🌟 par leçon</span>
+    </div>
+    <a href="./profil.html" class="app-header__avatar" aria-label="Profil">
+      <img src="../assets/aya_joie.png" alt="Avatar" />
+    </a>
+  </header>
+
+  <main class="app-main app-main--with-nav">
+    <section class="academy-zone card-shell">
+      <div class="section-title-row">
+        <h2>Catalogue des formations</h2>
+      </div>
+      <div id="academyCatalog" class="academy-grid"></div>
+    </section>
+
+    <section class="lesson-zone card-shell">
+      <div class="section-title-row">
+        <h2>Vue leçon</h2>
+        <span id="lessonProgress">0 / 0</span>
+      </div>
+
+      <article id="lessonView" class="lesson-view">
+        <h3 id="lessonTitle">Sélectionnez une formation</h3>
+        <div id="lessonContent"></div>
+        <div id="lessonQuiz" class="quiz-zone"></div>
+
+        <div class="action-row">
+          <button id="prevLessonButton" class="secondary-action" type="button">Précédent</button>
+          <button id="nextLessonButton" class="secondary-action" type="button">Suivant</button>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <nav class="bottom-nav" aria-label="Navigation principale">
+    <a class="bottom-nav__item" href="./index.html">🏠<span>Accueil</span></a>
+    <a class="bottom-nav__item" href="./modules.html">📦<span>Modules</span></a>
+    <a class="bottom-nav__item" href="./classement.html">🏆<span>Classement</span></a>
+    <a class="bottom-nav__item" href="./profil.html">👤<span>Profil</span></a>
+  </nav>
+</body>
+</html>
