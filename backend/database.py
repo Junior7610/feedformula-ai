@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Any, Dict, Generator, List, Optional
 
 from sqlalchemy import (
+    Boolean,
     Column,
     Date,
     DateTime,
@@ -117,6 +118,7 @@ class User(Base):
     prenom = Column(String(120), nullable=False)
     langue_preferee = Column(String(20), nullable=False, default="fr")
     espece_principale = Column(String(80), nullable=True)
+    departement = Column(String(120), nullable=False, default="")
     date_inscription = Column(DateTime, nullable=False, default=datetime.utcnow)
     derniere_connexion = Column(DateTime, nullable=True)
     points_total = Column(Integer, nullable=False, default=0)
@@ -125,13 +127,18 @@ class User(Base):
     meilleure_serie = Column(Integer, nullable=False, default=0)
     graines_or = Column(Integer, nullable=False, default=0)
     graines_secours = Column(Integer, nullable=False, default=3)
+    energie_solaire = Column(Integer, nullable=False, default=5)
     abonnement = Column(String(30), nullable=False, default="free")
+    is_active = Column(Boolean, nullable=False, default=True)
     region = Column(String(120), nullable=False, default="Bénin")
 
     # Relations
     rations = relationship("Ration", back_populates="user", cascade="all, delete-orphan")
     trophees = relationship("TropheeUtilisateur", back_populates="user", cascade="all, delete-orphan")
     completions_defis = relationship("CompletionDefi", back_populates="user", cascade="all, delete-orphan")
+    diagnostics_vetscan = relationship("DiagnosticVetScan", back_populates="user", cascade="all, delete-orphan")
+    evenements_reproduction = relationship("EvenementReproduction", back_populates="user", cascade="all, delete-orphan")
+    formations_completees = relationship("FormationCompletee", back_populates="user", cascade="all, delete-orphan")
 
 
 class Ration(Base):
@@ -262,6 +269,75 @@ class UserActionLog(Base):
     meta_json = Column(Text, nullable=False, default="{}")
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
 
+
+# ---------------------------------------------------------------------------
+# Modèles métier complémentaires demandés
+# ---------------------------------------------------------------------------
+
+class DiagnosticVetScan(Base):
+    """
+    Table diagnostics_vetscan.
+    """
+
+    __tablename__ = "diagnostics_vetscan"
+
+    id = Column(String(36), primary_key=True, default=_uuid_str)
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    espece = Column(String(80), nullable=False, index=True)
+    symptomes_decrits = Column(Text, nullable=False)
+    photo_path = Column(String(255), nullable=True)
+    diagnostic_1 = Column(String(255), nullable=False)
+    score_1 = Column(Float, nullable=False, default=0.0)
+    diagnostic_2 = Column(String(255), nullable=False)
+    score_2 = Column(Float, nullable=False, default=0.0)
+    diagnostic_3 = Column(String(255), nullable=False)
+    score_3 = Column(Float, nullable=False, default=0.0)
+    protocole_soins = Column(Text, nullable=False)
+    decision_triage = Column(String(50), nullable=False, default="autonome")
+    points_gagnes = Column(Integer, nullable=False, default=0)
+    date_creation = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+
+    user = relationship("User", back_populates="diagnostics_vetscan")
+
+
+class EvenementReproduction(Base):
+    """
+    Table evenements_reproduction.
+    """
+
+    __tablename__ = "evenements_reproduction"
+
+    id = Column(String(36), primary_key=True, default=_uuid_str)
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    animal_id = Column(String(120), nullable=False, index=True)
+    espece = Column(String(80), nullable=False, index=True)
+    type_evenement = Column(String(80), nullable=False, index=True)
+    date_evenement = Column(DateTime, nullable=False, index=True)
+    date_prevue_prochain = Column(DateTime, nullable=True, index=True)
+    notes = Column(Text, nullable=True)
+    date_creation = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+
+    user = relationship("User", back_populates="evenements_reproduction")
+
+
+class FormationCompletee(Base):
+    """
+    Table formations_completees.
+    """
+
+    __tablename__ = "formations_completees"
+    __table_args__ = (
+        UniqueConstraint("user_id", "formation_code", "lecon_numero", name="uq_formation_lecon_unique"),
+    )
+
+    id = Column(String(36), primary_key=True, default=_uuid_str)
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    formation_code = Column(String(120), nullable=False, index=True)
+    lecon_numero = Column(Integer, nullable=False, default=1)
+    score_quiz = Column(Integer, nullable=True)
+    date_completion = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+
+    user = relationship("User", back_populates="formations_completees")
 
 # ---------------------------------------------------------------------------
 # Initialisation et session DB
@@ -741,6 +817,140 @@ def get_latest_prix_for_ingredient(
 
 
 # ---------------------------------------------------------------------------
+# CRUD - DIAGNOSTICS VETSCAN
+# ---------------------------------------------------------------------------
+
+def create_diagnostic_vetscan(
+    db: Session,
+    user_id: str,
+    espece: str,
+    symptomes_decrits: str,
+    photo_path: Optional[str],
+    diagnostic_1: str,
+    score_1: float,
+    diagnostic_2: str,
+    score_2: float,
+    diagnostic_3: str,
+    score_3: float,
+    protocole_soins: Any,
+    decision_triage: str,
+    points_gagnes: int = 0,
+) -> DiagnosticVetScan:
+    """Crée un diagnostic VetScan."""
+    row = DiagnosticVetScan(
+        user_id=user_id,
+        espece=(espece or "").strip(),
+        symptomes_decrits=(symptomes_decrits or "").strip(),
+        photo_path=(photo_path or "").strip() or None,
+        diagnostic_1=(diagnostic_1 or "").strip(),
+        score_1=float(score_1 or 0.0),
+        diagnostic_2=(diagnostic_2 or "").strip(),
+        score_2=float(score_2 or 0.0),
+        diagnostic_3=(diagnostic_3 or "").strip(),
+        score_3=float(score_3 or 0.0),
+        protocole_soins=_to_json_text(protocole_soins or []),
+        decision_triage=(decision_triage or "autonome").strip().lower(),
+        points_gagnes=max(0, int(points_gagnes or 0)),
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return row
+
+
+def list_user_diagnostics_vetscan(db: Session, user_id: str, limit: int = 10) -> List[DiagnosticVetScan]:
+    """Retourne les derniers diagnostics VetScan d'un utilisateur."""
+    n = max(1, min(int(limit or 10), 200))
+    return (
+        db.query(DiagnosticVetScan)
+        .filter(DiagnosticVetScan.user_id == user_id)
+        .order_by(desc(DiagnosticVetScan.date_creation))
+        .limit(n)
+        .all()
+    )
+
+
+# ---------------------------------------------------------------------------
+# CRUD - EVENEMENTS REPRODUCTION
+# ---------------------------------------------------------------------------
+
+def create_evenement_reproduction(
+    db: Session,
+    user_id: str,
+    animal_id: str,
+    espece: str,
+    type_evenement: str,
+    date_evenement: Any,
+    date_prevue_prochain: Any = None,
+    notes: Optional[str] = None,
+) -> EvenementReproduction:
+    """Crée un événement de reproduction."""
+    row = EvenementReproduction(
+        user_id=user_id,
+        animal_id=(animal_id or "").strip(),
+        espece=(espece or "").strip(),
+        type_evenement=(type_evenement or "").strip(),
+        date_evenement=date_evenement if isinstance(date_evenement, datetime) else datetime.utcnow(),
+        date_prevue_prochain=date_prevue_prochain if isinstance(date_prevue_prochain, datetime) else None,
+        notes=(notes or "").strip() or None,
+    )
+    if not isinstance(date_evenement, datetime):
+        row.date_evenement = datetime.utcnow()
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return row
+
+
+def list_user_evenements_reproduction(db: Session, user_id: str, limit: int = 50) -> List[EvenementReproduction]:
+    """Retourne les événements de reproduction d'un utilisateur."""
+    n = max(1, min(int(limit or 50), 500))
+    return (
+        db.query(EvenementReproduction)
+        .filter(EvenementReproduction.user_id == user_id)
+        .order_by(desc(EvenementReproduction.date_creation))
+        .limit(n)
+        .all()
+    )
+
+
+# ---------------------------------------------------------------------------
+# CRUD - FORMATIONS COMPLÉTÉES
+# ---------------------------------------------------------------------------
+
+def create_formation_completee(
+    db: Session,
+    user_id: str,
+    formation_code: str,
+    lecon_numero: int,
+    score_quiz: Optional[int] = None,
+) -> FormationCompletee:
+    """Enregistre une leçon de formation complétée."""
+    row = FormationCompletee(
+        user_id=user_id,
+        formation_code=(formation_code or "").strip(),
+        lecon_numero=max(1, int(lecon_numero or 1)),
+        score_quiz=int(score_quiz) if score_quiz is not None else None,
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return row
+
+
+def list_user_formations_completees(db: Session, user_id: str, limit: int = 100) -> List[FormationCompletee]:
+    """Retourne les formations/leçons complétées d'un utilisateur."""
+    n = max(1, min(int(limit or 100), 500))
+    return (
+        db.query(FormationCompletee)
+        .filter(FormationCompletee.user_id == user_id)
+        .order_by(desc(FormationCompletee.date_completion))
+        .limit(n)
+        .all()
+    )
+
+
+# ---------------------------------------------------------------------------
 # Sérialisation (utile pour les API)
 # ---------------------------------------------------------------------------
 
@@ -752,6 +962,7 @@ def serialize_user(user: User) -> Dict[str, Any]:
         "prenom": user.prenom,
         "langue_preferee": user.langue_preferee,
         "espece_principale": user.espece_principale,
+        "departement": getattr(user, "departement", ""),
         "date_inscription": user.date_inscription.isoformat() if user.date_inscription else None,
         "derniere_connexion": user.derniere_connexion.isoformat() if user.derniere_connexion else None,
         "points_total": int(user.points_total or 0),
@@ -760,8 +971,58 @@ def serialize_user(user: User) -> Dict[str, Any]:
         "meilleure_serie": int(user.meilleure_serie or 0),
         "graines_or": int(user.graines_or or 0),
         "graines_secours": int(user.graines_secours or 0),
+        "energie_solaire": int(getattr(user, "energie_solaire", 5) or 5),
         "abonnement": user.abonnement,
+        "is_active": bool(getattr(user, "is_active", True)),
         "region": user.region,
+    }
+
+
+def serialize_diagnostic_vetscan(d: DiagnosticVetScan) -> Dict[str, Any]:
+    """Transforme un diagnostic VetScan en dictionnaire JSON-compatible."""
+    return {
+        "id": d.id,
+        "user_id": d.user_id,
+        "espece": d.espece,
+        "symptomes_decrits": d.symptomes_decrits,
+        "photo_path": d.photo_path,
+        "diagnostic_1": d.diagnostic_1,
+        "score_1": float(d.score_1 or 0.0),
+        "diagnostic_2": d.diagnostic_2,
+        "score_2": float(d.score_2 or 0.0),
+        "diagnostic_3": d.diagnostic_3,
+        "score_3": float(d.score_3 or 0.0),
+        "protocole_soins": _from_json_text(d.protocole_soins, []),
+        "decision_triage": d.decision_triage,
+        "points_gagnes": int(d.points_gagnes or 0),
+        "date_creation": d.date_creation.isoformat() if d.date_creation else None,
+    }
+
+
+def serialize_evenement_reproduction(e: EvenementReproduction) -> Dict[str, Any]:
+    """Transforme un événement reproduction en dictionnaire JSON-compatible."""
+    return {
+        "id": e.id,
+        "user_id": e.user_id,
+        "animal_id": e.animal_id,
+        "espece": e.espece,
+        "type_evenement": e.type_evenement,
+        "date_evenement": e.date_evenement.isoformat() if e.date_evenement else None,
+        "date_prevue_prochain": e.date_prevue_prochain.isoformat() if e.date_prevue_prochain else None,
+        "notes": e.notes,
+        "date_creation": e.date_creation.isoformat() if e.date_creation else None,
+    }
+
+
+def serialize_formation_completee(f: FormationCompletee) -> Dict[str, Any]:
+    """Transforme une formation complétée en dictionnaire JSON-compatible."""
+    return {
+        "id": f.id,
+        "user_id": f.user_id,
+        "formation_code": f.formation_code,
+        "lecon_numero": int(f.lecon_numero or 1),
+        "score_quiz": int(f.score_quiz) if f.score_quiz is not None else None,
+        "date_completion": f.date_completion.isoformat() if f.date_completion else None,
     }
 
 
@@ -874,4 +1135,16 @@ __all__ = [
     "serialize_defi_quotidien",
     "serialize_completion_defi",
     "serialize_prix_marche",
+    "DiagnosticVetScan",
+    "EvenementReproduction",
+    "FormationCompletee",
+    "create_diagnostic_vetscan",
+    "list_user_diagnostics_vetscan",
+    "create_evenement_reproduction",
+    "list_user_evenements_reproduction",
+    "create_formation_completee",
+    "list_user_formations_completees",
+    "serialize_diagnostic_vetscan",
+    "serialize_evenement_reproduction",
+    "serialize_formation_completee",
 ]

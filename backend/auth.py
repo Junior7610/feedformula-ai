@@ -122,6 +122,13 @@ def generer_code_otp() -> str:
     return f"{random.randint(0, 999999):06d}"
 
 
+def generer_otp() -> str:
+    """
+    Alias public demandé par l'API.
+    """
+    return generer_code_otp()
+
+
 def _masquer_telephone(telephone: str) -> str:
     """
     Masque un numéro de téléphone pour éviter l'exposition directe.
@@ -174,6 +181,13 @@ def verifier_code_otp(db: Session, telephone: str, code_saisi: str) -> bool:
     return bool(verify_otp_code_db(db, tel, code))
 
 
+def verifier_otp(code: str, code_attendu: str) -> bool:
+    """
+    Compare deux codes OTP de manière pure.
+    """
+    return (code or "").strip() == (code_attendu or "").strip()
+
+
 def creer_jwt_utilisateur(user_id: str, telephone: str) -> str:
     """
     Crée un token JWT valable 30 jours.
@@ -185,6 +199,47 @@ def creer_jwt_utilisateur(user_id: str, telephone: str) -> str:
         "sub": user_id,
         "telephone": telephone,
         "iat": int(now.timestamp()),
+        "exp": int(expire.timestamp()),
+        "scope": "user",
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm=JWT_ALGORITHM)
+
+
+def creer_token_jwt(user_id: str) -> str:
+    """
+    Alias demandé par le backend pour générer un token à partir d'un user_id.
+    """
+    return creer_jwt_utilisateur(user_id, "")
+
+
+def verifier_token_jwt(token: str) -> Optional[str]:
+    """
+    Vérifie un token JWT et retourne l'identifiant utilisateur si valide.
+    """
+    try:
+        payload = decoder_jwt(token)
+        return str(payload.get("sub") or "").strip() or None
+    except HTTPException:
+        return None
+
+
+def get_current_user(token: str):
+    """
+    Retourne l'utilisateur courant à partir d'un token JWT.
+    """
+    user_id = verifier_token_jwt(token)
+    if not user_id:
+        return None
+
+    db_gen = get_db()
+    db = next(db_gen)
+    try:
+        return get_user_by_id(db, user_id)
+    finally:
+        try:
+            db.close()
+        except Exception:
+            pass
         "exp": int(expire.timestamp()),
         "scope": "user",
     }
@@ -446,7 +501,7 @@ def connexion(payload: ConnexionRequest, db: Session = Depends(get_db)) -> Dict[
 
 
 @router.post("/verifier-otp")
-def verifier_otp(payload: VerificationOtpRequest, db: Session = Depends(get_db)) -> Dict[str, Any]:
+def verifier_otp_endpoint(payload: VerificationOtpRequest, db: Session = Depends(get_db)) -> Dict[str, Any]:
     """
     Vérifie l'OTP puis émet un JWT valide 30 jours.
     """
@@ -497,5 +552,12 @@ __all__ = [
     "install_auth_middleware",
     "exiger_utilisateur_authentifie",
     "generer_code_otp",
+    "generer_otp",
     "verifier_code_otp",
+    "verifier_otp",
+    "creer_jwt_utilisateur",
+    "creer_token_jwt",
+    "verifier_token_jwt",
+    "get_current_user",
+    "verifier_otp_endpoint",
 ]

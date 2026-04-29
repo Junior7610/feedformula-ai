@@ -64,6 +64,12 @@ try:
     from .database import init_db
     from .auth import install_auth_middleware, router as auth_router
     from .gamification_api import router as gamification_router
+    from .vetscan_service import router as vetscan_router
+    from .audio_service import router as audio_router
+    from .reprotrack_service import router as reprotrack_router
+    from .farmcast_service import router as farmcast_router
+    from .notification_service import router as notification_router
+    from .scraper_prix import router as marche_router
 except Exception:
     # Mode script: python backend/main.py
     from langue_detector import detecter_langue, get_prompt_pour_langue
@@ -71,6 +77,12 @@ except Exception:
     from database import init_db
     from auth import install_auth_middleware, router as auth_router
     from gamification_api import router as gamification_router
+    from vetscan_service import router as vetscan_router
+    from audio_service import router as audio_router
+    from reprotrack_service import router as reprotrack_router
+    from farmcast_service import router as farmcast_router
+    from notification_service import router as notification_router
+    from scraper_prix import router as marche_router
 
 
 # -----------------------------------------------------------------------------
@@ -522,7 +534,7 @@ class TranscriptionResponse(BaseModel):
 app = FastAPI(
     title=APP_NAME,
     version=APP_VERSION,
-    description="API backend NutriCore (ration + narration IA + langues + transcription).",
+    description="API backend FeedFormula AI (ration, auth, santé, reproduction, audio, marché et contenu).",
 )
 
 frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
@@ -552,20 +564,47 @@ app.add_middleware(
 # Middleware d'authentification JWT (non bloquant).
 install_auth_middleware(app)
 
-# Routes modules Auth et Gamification.
+# Routes modules métier.
 app.include_router(auth_router)
 app.include_router(gamification_router)
+app.include_router(vetscan_router)
+app.include_router(audio_router)
+app.include_router(reprotrack_router)
+app.include_router(farmcast_router)
+app.include_router(notification_router)
+app.include_router(marche_router)
 
 
 # -----------------------------------------------------------------------------
 # Endpoints
 # -----------------------------------------------------------------------------
 @app.get("/sante")
-def sante() -> Dict[str, str]:
+@app.get("/health")
+def sante() -> Dict[str, Any]:
     """
-    Endpoint de santé simple pour supervision/ping.
+    Endpoint de santé amélioré pour supervision/ping.
+    Retourne aussi l'état des principaux services applicatifs.
     """
-    return {"status": "ok", "app": APP_NAME, "version": APP_VERSION}
+    services = {
+        "database": "ok",
+        "auth": "ok",
+        "gamification": "ok",
+        "vetscan": "ok",
+        "audio": "ok",
+        "reprotrack": "ok",
+        "farmcast": "ok",
+        "notifications": "ok",
+        "marche": "ok",
+        "frontend": "ok" if os.path.exists(frontend_path) else "absent",
+    }
+
+    return {
+        "status": "ok",
+        "app": APP_NAME,
+        "version": APP_VERSION,
+        "frontend_mount": "/app",
+        "services": services,
+    }
 
 
 @app.get("/langues")
