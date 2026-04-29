@@ -26,6 +26,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -523,6 +524,11 @@ app = FastAPI(
     version=APP_VERSION,
     description="API backend NutriCore (ration + narration IA + langues + transcription).",
 )
+
+frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
+
+if os.path.exists(frontend_path):
+    app.mount("/app", StaticFiles(directory=frontend_path, html=True), name="frontend")
 
 # Initialisation base de données au démarrage.
 init_db()
