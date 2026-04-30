@@ -34,9 +34,9 @@ from sqlalchemy.orm import Session
 # Imports locaux robustes
 # ---------------------------------------------------------------------------
 try:
-    from .database import get_db, get_user_by_id, add_points_to_user, log_user_action
+    from database import get_db, get_user_by_id, add_points_to_user, log_user_action
 except Exception:  # pragma: no cover - fallback exécution directe
-    from database import get_db, get_user_by_id, add_points_to_user, log_user_action  # type: ignore
+    from backend.database import get_db, get_user_by_id, add_points_to_user, log_user_action  # type: ignore
 
 
 try:

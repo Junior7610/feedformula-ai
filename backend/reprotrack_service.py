@@ -20,47 +20,19 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field, field_validator
-from sqlalchemy import Column, Date, DateTime, ForeignKey, Integer, String, Text
-from sqlalchemy.orm import Session, relationship
+from sqlalchemy.orm import Session
 
 # -----------------------------------------------------------------------------
 # Imports locaux compatibles package/script
 # -----------------------------------------------------------------------------
-try:
-    from .database import Base, User, get_db, get_user_by_id
-except Exception:
-    from database import Base, User, get_db, get_user_by_id  # type: ignore
+from database import Base, EvenementReproduction, User, get_db, get_user_by_id
 
 
 # -----------------------------------------------------------------------------
-# Modèle ORM local
+# Modèle ORM partagé
 # -----------------------------------------------------------------------------
-class EvenementReproductionORM(Base):
-    """
-    Table evenements_reproduction.
-
-    Cette table est définie ici pour ne pas dépendre d'une version antérieure
-    du module de base de données. Elle sera créée par `init_db()` si le module
-    est importé avant l'initialisation de la base.
-    """
-
-    __tablename__ = "evenements_reproduction"
-
-    id = Column(String(36), primary_key=True)
-    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    animal_id = Column(String(120), nullable=False, index=True)
-    espece = Column(String(80), nullable=False, index=True)
-    type_evenement = Column(String(80), nullable=False, index=True)
-    date_evenement = Column(DateTime, nullable=False, index=True)
-    date_prevue_prochain = Column(DateTime, nullable=True, index=True)
-    notes = Column(Text, nullable=True)
-    date_creation = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
-
-    user = relationship("User")
-
-
-# -----------------------------------------------------------------------------
-# Outils internes
+# Le modèle `EvenementReproduction` est défini uniquement dans `database.py`.
+# Ce module l'importe pour éviter toute double définition SQLAlchemy.
 # -----------------------------------------------------------------------------
 def _uuid_str() -> str:
     """Retourne un identifiant texte simple pour les lignes ReproTrack."""
@@ -223,8 +195,8 @@ class ReproTrackService:
             return {"taux_gestation": 0.0, "confiance": 0.0, "total_evenements": 0}
 
         evenements = (
-            db.query(EvenementReproductionORM)
-            .filter(EvenementReproductionORM.user_id == user_id)
+            db.query(EvenementReproduction)
+            .filter(EvenementReproduction.user_id == user_id)
             .all()
         )
 
@@ -261,13 +233,13 @@ class ReproTrackService:
         date_evenement: Any,
         date_prevue_prochain: Any = None,
         notes: Optional[str] = None,
-    ) -> EvenementReproductionORM:
+    ) -> EvenementReproduction:
         """Crée un événement reproduction en base."""
         user = get_user_by_id(db, user_id)
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Utilisateur introuvable.")
 
-        evenement = EvenementReproductionORM(
+        evenement = EvenementReproduction(
             id=_uuid_str(),
             user_id=user_id,
             animal_id=_clean_text(animal_id),
@@ -283,13 +255,13 @@ class ReproTrackService:
         db.refresh(evenement)
         return evenement
 
-    def lister_evenements(self, db: Session, user_id: str, limit: int = 100) -> List[EvenementReproductionORM]:
+    def lister_evenements(self, db: Session, user_id: str, limit: int = 100) -> List[EvenementReproduction]:
         """Retourne les événements reproduction d'un utilisateur."""
         limite = max(1, min(int(limit or 100), 500))
         return (
-            db.query(EvenementReproductionORM)
-            .filter(EvenementReproductionORM.user_id == (user_id or "").strip())
-            .order_by(EvenementReproductionORM.date_evenement.desc())
+            db.query(EvenementReproduction)
+            .filter(EvenementReproduction.user_id == (user_id or "").strip())
+            .order_by(EvenementReproduction.date_evenement.desc())
             .limit(limite)
             .all()
         )
@@ -493,7 +465,7 @@ def get_stats(user_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
 
 
 __all__ = [
-    "EvenementReproductionORM",
+    "EvenementReproduction",
     "ReproTrackService",
     "ReproTrackEventRequest",
     "ReproTrackCalendarResponse",

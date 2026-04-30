@@ -35,30 +35,18 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
 # ---------------------------------------------------------------------------
-# Imports locaux (compatibles "python -m backend.main" et "python backend/main.py")
+# Imports locaux
 # ---------------------------------------------------------------------------
-try:
-    from .database import (
-        create_user,
-        get_db,
-        get_user_by_id,
-        get_user_by_telephone,
-        serialize_user,
-        update_user_last_login,
-        upsert_otp_code,
-        verify_otp_code as verify_otp_code_db,
-    )
-except Exception:
-    from database import (  # type: ignore
-        create_user,
-        get_db,
-        get_user_by_id,
-        get_user_by_telephone,
-        serialize_user,
-        update_user_last_login,
-        upsert_otp_code,
-        verify_otp_code as verify_otp_code_db,
-    )
+from database import (
+    create_user,
+    get_db,
+    get_user_by_id,
+    get_user_by_telephone,
+    serialize_user,
+    update_user_last_login,
+    upsert_otp_code,
+    verify_otp_code as verify_otp_code_db,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -240,10 +228,6 @@ def get_current_user(token: str):
             db.close()
         except Exception:
             pass
-        "exp": int(expire.timestamp()),
-        "scope": "user",
-    }
-    return jwt.encode(payload, SECRET_KEY, algorithm=JWT_ALGORITHM)
 
 
 def decoder_jwt(token: str) -> Dict[str, Any]:

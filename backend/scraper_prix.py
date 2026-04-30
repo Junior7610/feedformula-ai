@@ -25,20 +25,12 @@ from sqlalchemy.orm import Session
 # ---------------------------------------------------------------------------
 # Imports locaux compatibles package / exécution directe
 # ---------------------------------------------------------------------------
-try:
-    from .database import (
-        add_prix_marche,
-        get_db,
-        get_latest_prix_for_ingredient,
-        serialize_prix_marche,
-    )
-except Exception:
-    from database import (  # type: ignore
-        add_prix_marche,
-        get_db,
-        get_latest_prix_for_ingredient,
-        serialize_prix_marche,
-    )
+from database import (
+    add_prix_marche,
+    get_db,
+    get_latest_prix_for_ingredient,
+    serialize_prix_marche,
+)
 
 
 # ---------------------------------------------------------------------------

@@ -20,14 +20,21 @@ import io
 import json
 import os
 import re
+import sys
 import time
 import unicodedata
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+ROOT_DIR = Path(__file__).resolve().parent.parent
+BACKEND_DIR = ROOT_DIR / "backend"
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
+
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 
 from pydantic import BaseModel, Field, field_validator
@@ -62,38 +69,21 @@ except Exception:
 
 
 # -----------------------------------------------------------------------------
-# Imports locaux (compatibles exécution directe et package)
+# Imports locaux
 # -----------------------------------------------------------------------------
-try:
-    # Mode package: python -m backend.main
-    from .langue_detector import detecter_langue, get_prompt_pour_langue
-    from .nutrition_engine import NutritionEngine
-    from .database import init_db
-    from .auth import install_auth_middleware, router as auth_router
-    from .gamification_api import router as gamification_router
-    from .vetscan_service import router as vetscan_router
-    from .audio_service import router as audio_router
-    from .reprotrack_service import router as reprotrack_router
-    from .farmcast_service import router as farmcast_router
-    from .academy_service import router as academy_router
-    from .paiement_service import router as paiement_router
-    from .notification_service import router as notification_router
-    from .scraper_prix import router as marche_router
-except Exception:
-    # Mode script: python backend/main.py
-    from langue_detector import detecter_langue, get_prompt_pour_langue
-    from nutrition_engine import NutritionEngine
-    from database import init_db
-    from auth import install_auth_middleware, router as auth_router
-    from gamification_api import router as gamification_router
-    from vetscan_service import router as vetscan_router
-    from audio_service import router as audio_router
-    from reprotrack_service import router as reprotrack_router
-    from farmcast_service import router as farmcast_router
-    from academy_service import router as academy_router
-    from paiement_service import router as paiement_router
-    from notification_service import router as notification_router
-    from scraper_prix import router as marche_router
+from langue_detector import detecter_langue, get_prompt_pour_langue
+from nutrition_engine import NutritionEngine
+from database import init_db
+from auth import install_auth_middleware, router as auth_router
+from gamification_api import router as gamification_router
+from vetscan_service import router as vetscan_router
+from audio_service import audio_service as audio_service_instance, router as audio_router
+from reprotrack_service import router as reprotrack_router
+from farmcast_service import router as farmcast_router
+from academy_service import router as academy_router
+from paiement_service import router as paiement_router
+from notification_service import router as notification_router
+from scraper_prix import router as marche_router
 
 
 # -----------------------------------------------------------------------------
@@ -613,6 +603,49 @@ class TranscriptionResponse(BaseModel):
     confidence: Optional[float] = None
 
 
+class RationAudioRequest(BaseModel):
+    """Corps de requête pour la lecture vocale d'une ration."""
+
+    ration_texte: str = Field(..., min_length=1)
+    langue: str = Field(default="fr", min_length=2, max_length=8)
+
+
+def _normaliser_code_langue(langue: str) -> str:
+    """Normalise un code langue pour les routes audio."""
+    return (langue or "fr").strip().lower() or "fr"
+
+
+def _chemin_audio_demo(langue: str) -> Path:
+    """Construit le chemin du MP3 de démonstration correspondant."""
+    code = _normaliser_code_langue(langue)
+    return ROOT_DIR / "assets" / f"demo_{code}.mp3"
+
+
+def _resumer_ration_audio(ration_texte: str, langue: str) -> str:
+    """
+    Prépare un texte court à lire à voix haute.
+
+    Le résumé final est produit par le service audio lorsqu'il sait le faire.
+    On garde un fallback local pour éviter de casser l'endpoint.
+    """
+    texte = (ration_texte or "").strip()
+    if not texte:
+        return "Aucune ration disponible pour la lecture vocale."
+
+    try:
+        resume = audio_service_instance.resumer_ration_pour_audio(texte, langue)  # type: ignore[arg-type]
+    except TypeError:
+        resume = audio_service_instance.resumer_ration_pour_audio(texte)
+    except Exception:
+        resume = texte
+
+    if not isinstance(resume, str) or not resume.strip():
+        resume = texte
+
+    resume = re.sub(r"\s+", " ", resume).strip()
+    return resume[:900]
+
+
 # -----------------------------------------------------------------------------
 # Initialisation FastAPI
 # -----------------------------------------------------------------------------
@@ -1000,6 +1033,76 @@ async def transcrire_audio(
         raise HTTPException(
             status_code=500, detail=f"Erreur interne /transcrire-audio: {exc}"
         )
+
+
+@app.post("/audio/ration-vocale")
+async def ration_vocale(payload: RationAudioRequest) -> Response:
+    """
+    Résume une ration puis la convertit en audio MP3.
+    """
+    langue_norm = _normaliser_code_langue(payload.langue)
+    resume = _resumer_ration_audio(payload.ration_texte, langue_norm)
+
+    try:
+        audio_bytes = await audio_service_instance.text_to_speech(
+            texte=resume,
+            langue=langue_norm,
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Impossible de générer l'audio de ration: {exc}",
+        )
+
+    return Response(
+        content=audio_bytes,
+        media_type="audio/mpeg",
+        headers={
+            "Content-Disposition": 'inline; filename="ration-vocale.mp3"',
+            "Cache-Control": "no-store",
+        },
+    )
+
+
+@app.get("/audio/demo/{langue}")
+async def audio_demo(langue: str) -> Response:
+    """
+    Retourne l'audio de démonstration correspondant à la langue demandée.
+    """
+    langue_norm = _normaliser_code_langue(langue)
+    chemin = _chemin_audio_demo(langue_norm)
+
+    if not chemin.exists():
+        try:
+            if hasattr(audio_service_instance, "generer_audio_demo"):
+                resultat = await audio_service_instance.generer_audio_demo(langue_norm)
+                if isinstance(resultat, (bytes, bytearray)) and resultat:
+                    chemin.parent.mkdir(parents=True, exist_ok=True)
+                    chemin.write_bytes(bytes(resultat))
+                elif isinstance(resultat, str):
+                    resultat_path = Path(resultat)
+                    if resultat_path.exists():
+                        chemin = resultat_path
+        except Exception as exc:
+            raise HTTPException(
+                status_code=502,
+                detail=f"Impossible de générer l'audio de démonstration: {exc}",
+            )
+
+    if not chemin.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"Aucun audio de démonstration disponible pour la langue '{langue_norm}'.",
+        )
+
+    return Response(
+        content=chemin.read_bytes(),
+        media_type="audio/mpeg",
+        headers={
+            "Content-Disposition": f'inline; filename="{chemin.name}"',
+            "Cache-Control": "no-store",
+        },
+    )
 
 
 # -----------------------------------------------------------------------------

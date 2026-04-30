@@ -21,10 +21,7 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-try:
-    from .database import get_db, get_user_by_id, serialize_user
-except Exception:
-    from database import get_db, get_user_by_id, serialize_user  # type: ignore
+from database import get_db, get_user_by_id, serialize_user
 
 
 # -----------------------------------------------------------------------------

@@ -35,15 +35,9 @@ from sqlalchemy.orm import Session
 # -----------------------------------------------------------------------------
 # Imports locaux compatibles package / exécution directe
 # -----------------------------------------------------------------------------
-try:
-    from .database import get_db, get_user_by_id, serialize_user
-except Exception:  # pragma: no cover - fallback exécution directe
-    from database import get_db, get_user_by_id, serialize_user  # type: ignore
+from database import get_db, get_user_by_id, serialize_user
 
-try:
-    from .database import User
-except Exception:  # pragma: no cover - fallback exécution directe
-    from database import User  # type: ignore
+from database import User
 
 
 # -----------------------------------------------------------------------------

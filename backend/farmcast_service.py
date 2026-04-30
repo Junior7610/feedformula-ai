@@ -78,7 +78,7 @@ class FarmCastCreateResponse(BaseModel):
 # Imports optionnels
 # -----------------------------------------------------------------------------
 try:
-    from .audio_service import AudioService
+    from audio_service import AudioService
 except Exception:  # pragma: no cover - fallback si le module n'existe pas encore
     AudioService = None  # type: ignore
 

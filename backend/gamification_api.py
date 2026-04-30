@@ -33,7 +33,7 @@ from sqlalchemy.orm import Session
 # Imports locaux (compatibles package/script)
 # ---------------------------------------------------------------------------
 try:
-    from .database import (
+    from database import (
         add_points_to_user,
         complete_defi,
         count_user_actions_last_24h,
