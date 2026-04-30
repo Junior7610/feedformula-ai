@@ -2,9 +2,19 @@
 <html lang="fr">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>FeedFormula AI - FarmAcademy</title>
-        <link rel="stylesheet" href="./style.css" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+        />
+        <meta name="theme-color" content="#1B5E20" />
+        <meta
+            name="description"
+            content="FeedFormula AI - FarmAcademy, catalogue de formations agricoles et vue leçon interactive."
+        />
+        <title>FeedFormula AI — FarmAcademy</title>
+
+        <link rel="stylesheet" href="style.css" />
+
         <script
             defer
             src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
@@ -13,85 +23,411 @@
             defer
             src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"
         ></script>
-        <script defer src="./api.js"></script>
-        <script defer src="./script.js"></script>
-        <script defer src="./api_bindings.js"></script>
+        <script defer src="script.js"></script>
     </head>
-    <body data-page="farmacademy">
-        <header
-            class="app-header app-header--sticky app-header--academy"
-            role="banner"
-        >
-            <a class="app-header__back" href="./index.html" aria-label="Retour"
-                >←</a
-            >
-            <div class="app-header__title-wrap">
-                <h1>📘 FarmAcademy</h1>
-                <span class="badge-star badge-star--academy"
-                    >+20 🌟 par leçon</span
+
+    <body class="farmacademy-page" data-page="farmacademy">
+        <!-- En-tête dédiée à la formation -->
+        <header class="app-header academy-header" role="banner">
+            <div class="app-header-inner">
+                <a
+                    class="brand"
+                    href="index.html"
+                    aria-label="Retour à l'accueil"
                 >
+                    <img
+                        class="brand-mark"
+                        src="../assets/logo_principal.png"
+                        alt="Logo FeedFormula AI"
+                    />
+                    <div>
+                        <div class="brand-title">FeedFormula AI</div>
+                        <div class="brand-subtitle">FarmAcademy</div>
+                    </div>
+                </a>
+
+                <div class="header-actions">
+                    <span class="badge badge-gold">+20 🌟 par leçon</span>
+                    <a
+                        class="header-avatar"
+                        href="profil.html"
+                        aria-label="Ouvrir le profil"
+                    >
+                        <img
+                            src="../assets/aya_joie.png"
+                            alt="Avatar utilisateur"
+                        />
+                    </a>
+                </div>
             </div>
-            <a
-                href="./profil.html"
-                class="app-header__avatar"
-                aria-label="Profil"
-            >
-                <img src="../assets/aya_joie.png" alt="Avatar" />
-            </a>
         </header>
 
-        <main class="app-main app-main--with-nav">
-            <section class="academy-zone card-shell">
-                <div class="section-title-row">
-                    <h2>Catalogue des formations</h2>
+        <main class="page-shell">
+            <!-- Zone d'introduction -->
+            <section class="card modules-hero" aria-labelledby="academyTitle">
+                <div>
+                    <h1 id="academyTitle" class="section-title">
+                        📘 FarmAcademy
+                    </h1>
+                    <p class="section-subtitle">
+                        Apprenez à mieux nourrir, soigner et gérer votre
+                        exploitation grâce à des formations courtes et
+                        pratiques.
+                    </p>
                 </div>
-                <div id="academyCatalog" class="academy-grid"></div>
+
+                <div class="challenge-card">
+                    <div class="challenge-head">
+                        <h2>🎓 Objectif du jour</h2>
+                        <span class="challenge-tag"
+                            >+20 🌟 par quiz validé</span
+                        >
+                    </div>
+                    <p class="challenge-text">
+                        Terminez une leçon complète pour gagner des points et
+                        débloquer votre certification.
+                    </p>
+                </div>
             </section>
 
-            <section class="lesson-zone card-shell">
-                <div class="section-title-row">
-                    <h2>Vue leçon</h2>
-                    <span id="lessonProgress">0 / 0</span>
+            <!-- Catalogue des formations -->
+            <section class="card" aria-labelledby="catalogTitle">
+                <div class="card-head">
+                    <h2 id="catalogTitle">Catalogue des formations</h2>
+                    <span class="badge badge-soft">5 parcours</span>
                 </div>
 
-                <article id="lessonView" class="lesson-view">
-                    <h3 id="lessonTitle">Sélectionnez une formation</h3>
-                    <div id="lessonContent"></div>
-                    <div id="lessonQuiz" class="quiz-zone"></div>
+                <div
+                    class="academy-catalog course-grid"
+                    data-course-panel
+                    aria-label="Liste des formations"
+                >
+                    <article
+                        class="course-card"
+                        data-course-card
+                        data-course-id="volailles"
+                    >
+                        <div class="course-top">
+                            <div class="course-icon" aria-hidden="true">🐔</div>
+                            <div class="badge badge-gold">Débutant</div>
+                        </div>
+                        <h3 class="course-title">Alimentation des volailles</h3>
+                        <p class="course-meta">5 leçons • 45 min</p>
+                        <div class="course-progress">
+                            <div class="progress-track">
+                                <div
+                                    class="progress-fill"
+                                    style="width: 40%"
+                                ></div>
+                            </div>
+                            <div class="course-progress-label">
+                                2 / 5 leçons complétées
+                            </div>
+                        </div>
+                        <div class="course-cert">Non certifié</div>
+                        <div style="margin-top: 12px">
+                            <button
+                                type="button"
+                                class="btn btn-primary btn-wide module-action"
+                                data-module-action
+                                data-target="farmacademy"
+                            >
+                                Accéder →
+                            </button>
+                        </div>
+                    </article>
 
-                    <div class="action-row">
-                        <button
-                            id="prevLessonButton"
-                            class="secondary-action"
-                            type="button"
-                        >
-                            Précédent
-                        </button>
-                        <button
-                            id="nextLessonButton"
-                            class="secondary-action"
-                            type="button"
-                        >
-                            Suivant
-                        </button>
+                    <article
+                        class="course-card"
+                        data-course-card
+                        data-course-id="bovine"
+                    >
+                        <div class="course-top">
+                            <div class="course-icon" aria-hidden="true">🐄</div>
+                            <div class="badge badge-soft">Intermédiaire</div>
+                        </div>
+                        <h3 class="course-title">Santé bovine</h3>
+                        <p class="course-meta">4 leçons • 40 min</p>
+                        <div class="course-progress">
+                            <div class="progress-track">
+                                <div
+                                    class="progress-fill"
+                                    style="width: 100%"
+                                ></div>
+                            </div>
+                            <div class="course-progress-label">
+                                4 / 4 leçons complétées
+                            </div>
+                        </div>
+                        <div class="course-cert">Certifié</div>
+                        <div style="margin-top: 12px">
+                            <button
+                                type="button"
+                                class="btn btn-primary btn-wide module-action"
+                                data-module-action
+                                data-target="farmacademy"
+                            >
+                                Accéder →
+                            </button>
+                        </div>
+                    </article>
+
+                    <article
+                        class="course-card"
+                        data-course-card
+                        data-course-id="repro"
+                    >
+                        <div class="course-top">
+                            <div class="course-icon" aria-hidden="true">📅</div>
+                            <div class="badge badge-gold">Intermédiaire</div>
+                        </div>
+                        <h3 class="course-title">Gestion reproduction</h3>
+                        <p class="course-meta">3 leçons • 30 min</p>
+                        <div class="course-progress">
+                            <div class="progress-track">
+                                <div
+                                    class="progress-fill"
+                                    style="width: 33%"
+                                ></div>
+                            </div>
+                            <div class="course-progress-label">
+                                1 / 3 leçons complétées
+                            </div>
+                        </div>
+                        <div class="course-cert">Non certifié</div>
+                        <div style="margin-top: 12px">
+                            <button
+                                type="button"
+                                class="btn btn-primary btn-wide module-action"
+                                data-module-action
+                                data-target="farmacademy"
+                            >
+                                Accéder →
+                            </button>
+                        </div>
+                    </article>
+
+                    <article
+                        class="course-card"
+                        data-course-card
+                        data-course-id="finance"
+                    >
+                        <div class="course-top">
+                            <div class="course-icon" aria-hidden="true">💰</div>
+                            <div class="badge badge-soft">Débutant</div>
+                        </div>
+                        <h3 class="course-title">Finance agricole</h3>
+                        <p class="course-meta">3 leçons • 35 min</p>
+                        <div class="course-progress">
+                            <div class="progress-track">
+                                <div
+                                    class="progress-fill"
+                                    style="width: 0%"
+                                ></div>
+                            </div>
+                            <div class="course-progress-label">
+                                0 / 3 leçons complétées
+                            </div>
+                        </div>
+                        <div class="course-cert">Non certifié</div>
+                        <div style="margin-top: 12px">
+                            <button
+                                type="button"
+                                class="btn btn-primary btn-wide module-action"
+                                data-module-action
+                                data-target="farmacademy"
+                            >
+                                Accéder →
+                            </button>
+                        </div>
+                    </article>
+
+                    <article
+                        class="course-card"
+                        data-course-card
+                        data-course-id="paturage"
+                    >
+                        <div class="course-top">
+                            <div class="course-icon" aria-hidden="true">🌿</div>
+                            <div class="badge badge-gold">Avancé</div>
+                        </div>
+                        <h3 class="course-title">Pâturages durables</h3>
+                        <p class="course-meta">3 leçons • 50 min</p>
+                        <div class="course-progress">
+                            <div class="progress-track">
+                                <div
+                                    class="progress-fill"
+                                    style="width: 100%"
+                                ></div>
+                            </div>
+                            <div class="course-progress-label">
+                                3 / 3 leçons complétées
+                            </div>
+                        </div>
+                        <div class="course-cert">Certifié</div>
+                        <div style="margin-top: 12px">
+                            <button
+                                type="button"
+                                class="btn btn-primary btn-wide module-action"
+                                data-module-action
+                                data-target="farmacademy"
+                            >
+                                Accéder →
+                            </button>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <!-- Vue leçon -->
+            <section class="card" aria-labelledby="lessonTitleBlock">
+                <div class="card-head">
+                    <h2 id="lessonTitleBlock">Vue leçon</h2>
+                    <span class="badge badge-soft" data-lesson-index>1</span>
+                </div>
+
+                <div class="lesson-panel" data-lesson-panel>
+                    <div class="lesson-view">
+                        <h3 class="section-title" id="lessonTitle">
+                            Sélectionnez une formation
+                        </h3>
+
+                        <div class="lesson-content">
+                            <p>
+                                Choisissez une formation dans le catalogue pour
+                                afficher son contenu, son quiz et sa
+                                progression.
+                            </p>
+
+                            <div class="chart-card">
+                                <img
+                                    class="lesson-image"
+                                    src="../assets/illustration_accueil.png"
+                                    alt="Illustration pédagogique FarmAcademy"
+                                />
+                            </div>
+                        </div>
+
+                        <div class="quiz-box">
+                            <strong>Quiz</strong>
+                            <p>
+                                Les questions apparaîtront ici lorsque vous
+                                ouvrirez une leçon.
+                            </p>
+                            <div class="quiz-options">
+                                <button
+                                    class="quiz-option"
+                                    type="button"
+                                    data-quiz-option="0"
+                                >
+                                    Réponse A
+                                </button>
+                                <button
+                                    class="quiz-option"
+                                    type="button"
+                                    data-quiz-option="1"
+                                >
+                                    Réponse B
+                                </button>
+                                <button
+                                    class="quiz-option"
+                                    type="button"
+                                    data-quiz-option="2"
+                                >
+                                    Réponse C
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="lesson-nav">
+                            <button
+                                id="prevLessonButton"
+                                class="btn btn-secondary btn-wide"
+                                type="button"
+                                data-lesson-prev
+                            >
+                                Précédent
+                            </button>
+                            <button
+                                id="nextLessonButton"
+                                class="btn btn-primary btn-wide"
+                                type="button"
+                                data-lesson-next
+                            >
+                                Suivant
+                            </button>
+                        </div>
                     </div>
-                </article>
+                </div>
+            </section>
+
+            <!-- Conseils rapides -->
+            <section class="card" aria-labelledby="academyTipsTitle">
+                <h2 id="academyTipsTitle" class="section-title">
+                    Conseils rapides
+                </h2>
+                <div class="stack" style="margin-top: 14px">
+                    <article class="history-item">
+                        <strong>Apprenez par petites étapes</strong>
+                        <div class="history-meta">
+                            Une leçon courte chaque jour améliore la
+                            mémorisation et la pratique.
+                        </div>
+                    </article>
+
+                    <article class="history-item">
+                        <strong>Testez vos connaissances</strong>
+                        <div class="history-meta">
+                            Les quiz vous permettent de gagner des points et de
+                            valider vos acquis.
+                        </div>
+                    </article>
+
+                    <article class="history-item">
+                        <strong>Appliquez immédiatement</strong>
+                        <div class="history-meta">
+                            Mettez en pratique chaque conseil sur votre
+                            exploitation pour progresser plus vite.
+                        </div>
+                    </article>
+                </div>
             </section>
         </main>
 
+        <!-- Section Aya -->
+        <aside class="aya-floating" aria-label="Mascotte Aya">
+            <div class="aya-bubble is-show">
+                Bienvenue dans FarmAcademy ! Une nouvelle leçon peut vous
+                rapporter des points.
+            </div>
+            <img
+                class="aya-image"
+                src="../assets/aya_joie.png"
+                alt="Aya, mascotte de FarmAcademy"
+            />
+        </aside>
+
+        <!-- Navigation basse -->
         <nav class="bottom-nav" aria-label="Navigation principale">
-            <a class="bottom-nav__item" href="./index.html"
-                >🏠<span>Accueil</span></a
-            >
-            <a class="bottom-nav__item" href="./modules.html"
-                >📦<span>Modules</span></a
-            >
-            <a class="bottom-nav__item" href="./classement.html"
-                >🏆<span>Classement</span></a
-            >
-            <a class="bottom-nav__item" href="./profil.html"
-                >👤<span>Profil</span></a
-            >
+            <div class="bottom-nav-inner">
+                <a class="nav-item" href="index.html">
+                    <span class="nav-icon" aria-hidden="true">🏠</span>
+                    <span class="nav-text">Accueil</span>
+                </a>
+                <a class="nav-item" href="modules.html">
+                    <span class="nav-icon" aria-hidden="true">📦</span>
+                    <span class="nav-text">Modules</span>
+                </a>
+                <a class="nav-item" href="classement.html">
+                    <span class="nav-icon" aria-hidden="true">🏆</span>
+                    <span class="nav-text">Classement</span>
+                </a>
+                <a class="nav-item" href="profil.html">
+                    <span class="nav-icon" aria-hidden="true">👤</span>
+                    <span class="nav-text">Profil</span>
+                </a>
+            </div>
         </nav>
     </body>
 </html>
+</head></title></div></div></h2></span></div></p></strong></p></strong></strong></strong>

@@ -2,105 +2,148 @@
 <html lang="fr">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>FeedFormula AI - ReproTrack</title>
-        <link rel="stylesheet" href="./style.css" />
-        <script
-            defer
-            src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
-        ></script>
-        <script
-            defer
-            src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"
-        ></script>
-        <script defer src="./api.js"></script>
-        <script defer src="./api_bindings.js"></script>
-        <script defer src="./script.js"></script>
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+        />
+        <meta name="theme-color" content="#8E24AA" />
+        <meta
+            name="description"
+            content="FeedFormula AI — ReproTrack, calendrier reproduction et tableau de bord fertilité."
+        />
+        <title>FeedFormula AI — ReproTrack</title>
+
+        <link rel="stylesheet" href="style.css" />
+        <script defer src="script.js"></script>
     </head>
-    <body data-page="reprotrack">
-        <!-- En-tête rose/mauve dédié au suivi reproduction -->
-        <header
-            class="app-header app-header--sticky app-header--repro"
-            role="banner"
-        >
-            <a class="app-header__back" href="./index.html" aria-label="Retour"
-                >←</a
-            >
-            <div class="app-header__title-wrap">
-                <h1>🩷 ReproTrack</h1>
-                <span class="badge-star">+10 🌟</span>
+    <body data-page="reprotrack" class="repro-page">
+        <!-- En-tête rose / mauve pour le suivi reproduction -->
+        <header class="app-header repro-header">
+            <div class="app-header-inner">
+                <a
+                    class="brand"
+                    href="</head>index.html"
+                    aria-label="Retour à l'accueil"
+                >
+                    <img
+                        class="brand-mark"
+                        src="../assets/logo_principal.png"
+                        alt="Logo FeedFormula AI"
+                    />
+                    <div>
+                        <div class="brand-title">FeedFormula AI</div>
+                        <div class="brand-subtitle">ReproTrack</div>
+                    </div>
+                </a>
+
+                <div class="header-actions">
+                    <span class="badge badge-gold">+10 🌟</span>
+                </div>
             </div>
-            <a
-                href="./profil.html"
-                class="app-header__avatar"
-                aria-label="Ouvrir le profil"
-            >
-                <img src="../assets/aya_joie.png" alt="Avatar utilisateur" />
-            </a>
         </header>
 
-        <main class="app-main app-main--with-nav">
-            <!-- Calendrier du mois en cours -->
-            <section
-                class="calendar-zone card-shell"
-                aria-label="Calendrier de reproduction"
-            >
-                <div class="section-title-row">
-                    <h2>Calendrier du mois</h2>
-                    <strong id="calendarMonthLabel"></strong>
-                </div>
-
-                <div id="reproCalendar" class="calendar-grid"></div>
-
-                <div class="calendar-legend" aria-label="Légende du calendrier">
-                    <span
-                        ><i class="legend-dot legend-dot--heat"></i
-                        >Chaleurs</span
-                    >
-                    <span
-                        ><i class="legend-dot legend-dot--insemination"></i
-                        >Insémination</span
-                    >
-                    <span
-                        ><i class="legend-dot legend-dot--birth"></i
-                        >Mises-bas</span
-                    >
+        <main class="page-shell">
+            <!-- Titre de page -->
+            <section class="card">
+                <div>
+                    <h1 class="section-title">📅 ReproTrack</h1>
+                    <p class="section-subtitle">
+                        Suivi simple des chaleurs, inséminations et mises-bas
+                        pour mieux anticiper la reproduction.
+                    </p>
                 </div>
             </section>
 
-            <!-- Enregistrement rapide d'un événement -->
-            <section
-                class="card-shell"
-                aria-label="Enregistrer un événement reproductif"
-            >
-                <div class="section-title-row">
-                    <h2>Événements</h2>
+            <!-- Calendrier du mois en cours -->
+            <section class="card calendar-card" aria-labelledby="calendarTitle">
+                <div class="card-head">
+                    <h2 id="calendarTitle</title>">Calendrier du mois</h2>
+                    <span class="badge badge-soft" id="calendarMonthLabel">
+                        Mois en cours
+                    </span>
                 </div>
 
-                <div class="event-toolbar">
-                    <select
-                        id="eventType"
-                        class="select-input"
-                        aria-label="Type d'événement"
-                    >
-                        <option value="saillie">Saillie</option>
-                        <option value="insemination">Insémination</option>
-                        <option value="mise-bas">Mise-bas</option>
-                        <option value="chaleur">Chaleur observée</option>
-                    </select>
+                <div
+                    class="calendar-grid"
+                    data-repro-calendar
+                    aria-label="Calendrier reproduction"
+                ></div>
 
-                    <input
-                        id="eventAnimal"
-                        class="text-input text-input--single"
-                        type="text"
-                        placeholder="Nom ou numéro animal"
-                        autocomplete="off"
-                    />
+                <div class="stack" style="margin-top: 14px">
+                    <div class="legend-item">
+                        <span
+                            class="calendar-day is-heat"
+                            style="width: 18px; height: 18px; min-height: 18px"
+                            aria-hidden="true"
+                        ></span>
+                        <span>Chaleurs prévues</span>
+                    </div>
+
+                    <div class="legend-item">
+                        <span
+                            class="calendar-day is-ai"
+                            style="width: 18px; height: 18px; min-height: 18px"
+                            aria-hidden="true"
+                        ></span>
+                        <span>Inséminations</span>
+                    </div>
+
+                    <div class="legend-item">
+                        <span
+                            class="calendar-day is-birth"
+                            style="width: 18px; height: 18px; min-height: 18px"
+                            aria-hidden="true"
+                        ></span>
+                        <span>Mises-bas</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Enregistrement d'un événement -->
+            <section class="card" aria-labelledby="eventTitle">
+                <h2 id="eventTitle" class="section-title">
+                    Enregistrer un événement
+                </h2>
+                <p class="section-subtitle">
+                    Note rapidement une saillie, une insémination, une mise-bas
+                    ou une chaleur observée.
+                </p>
+
+                <div class="stack" style="margin-top: 14px">
+                    <div class="field-group">
+                        <label class="field-label" for="reproEventType"
+                            >Type d'événement</label
+                        >
+                        <select
+                            id="reproEventType"
+                            data-repro-event-type
+                            aria-label="Type d'événement reproductif"
+                        >
+                            <option value="Saillie">Saillie</option>
+                            <option value="Insémination">Insémination</option>
+                            <option value="Mise-bas">Mise-bas</option>
+                            <option value="Chaleur observée">
+                                Chaleur observée</div></div></span>
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="field-label" for="reproAnimal"
+                            >Animal concerné</label
+                        >
+                        <input
+                            id="reproAnimal"
+                            type="text</span>"
+                            placeholder="Nom ou numéro de l'animal"
+                            autocomplete="off"
+                        />
+                    </div>
 
                     <button
-                        id="saveEventButton"
-                        class="primary-action"
+                        class="btn btn-primary btn-wide"
                         type="button"
+                        data-repro-event-button
                     >
                         Enregistrer un événement
                     </button>
@@ -108,53 +151,83 @@
             </section>
 
             <!-- Liste des animaux suivis -->
-            <section class="card-shell" aria-label="Animaux suivis">
-                <div class="section-title-row">
-                    <h2>Animaux suivis</h2>
+            <section class="card" aria-labelledby="trackedTitle">
+                <div class="card-head">
+                    <h2 id="trackedTitle">Animaux suivis</h2>
+                    <span class="badge badge-soft">5 derniers</span>
                 </div>
 
-                <div id="trackedAnimals" class="tracked-list"></div>
+                <div
+                    class="repro-list"
+                    data-repro-list
+                    aria-label="Liste des animaux suivis"
+                ></div>
             </section>
 
             <!-- Tableau de bord fertilité -->
-            <section class="card-shell" aria-label="Tableau de bord fertilité">
-                <div class="section-title-row">
-                    <h2>Tableau de bord fertilité</h2>
+            <section class="card" aria-labelledby="dashboardTitle">
+                <div class="card-head">
+                    <h2 id="dashboardTitle">Tableau de bord fertilité</h2>
+                    <span class="badge badge-gold">Vue globale</span>
                 </div>
 
-                <div class="result-grid result-grid--3">
-                    <div class="result-card">
-                        <span>Taux gestation global</span>
-                        <strong id="fertilityRate">--%</strong>
-                    </div>
-
-                    <div class="result-card">
-                        <span>Intervalle vêlage-vêlage moyen</span>
-                        <strong id="calvingInterval">-- jours</strong>
-                    </div>
-
-                    <div class="result-card">
-                        <span>Mises-bas ce mois</span>
-                        <strong id="birthsThisMonth">--</strong>
-                    </div>
-                </div>
+                <div
+                    class="fertility-dashboard"
+                    data-repro-dashboard
+                    aria-label="Indicateurs de fertilité"
+                ></div>
             </section>
+
+            <!-- Conseil Aya -->
+            <aside class="card" aria-label="Conseil ReproTrack">
+                <div class="card-head">
+                    <h2>💡 Conseil Aya</h2>
+                    <span class="badge badge-soft">Astuce</span>
+                </div>
+                <p class="section-subtitle" style="margin-top: 12px">
+                    Note les événements le jour même pour améliorer la précision
+                    du suivi et anticiper les prochaines étapes reproductives.
+                </p>
+            </aside>
         </main>
 
-        <!-- Navigation basse commune -->
+        <!-- Mascotte Aya -->
+        <aside class="aya-floating" aria-label="Mascotte Aya">
+            <div class="aya-bubble is-show">
+                ReproTrack t'aide à suivre les événements clés et à mieux
+                planifier tes animaux reproducteurs.
+            </div>
+            <img
+                class="aya-image"
+                src="../assets/aya_joie.png"
+                alt="Aya, la mascotte de FeedFormula AI"
+            />
+        </aside>
+
+        <!-- Navigation basse -->
         <nav class="bottom-nav" aria-label="Navigation principale">
-            <a class="bottom-nav__item" href="./index.html"
-                >🏠<span>Accueil</span></a
-            >
-            <a class="bottom-nav__item" href="./modules.html"
-                >📦<span>Modules</span></a
-            >
-            <a class="bottom-nav__item" href="./classement.html"
-                >🏆<span>Classement</span></a
-            >
-            <a class="bottom-nav__item" href="./profil.html"
-                >👤<span>Profil</span></a
-            >
+            <div class="bottom-nav-inner">
+                <a class="nav-item" href="index.html">
+                    <span class="nav-icon" aria-hidden="true">🏠</span>
+                    <span class="nav-text">Accueil</span>
+                </a>
+
+                <a class="nav-item" href="modules.html">
+                    <span class="nav-icon" aria-hidden="true">📦</span>
+                    <span class="nav-text">Modules</span>
+                </a>
+
+                <a class="nav-item" href="classement.html">
+                    <span class="nav-icon" aria-hidden="true">🏆</span>
+                    <span class="nav-text">Classement</span>
+                </a>
+
+                <a class="nav-item" href="profil.html">
+                    <span class="nav-icon" aria-hidden="true">👤</span>
+                    <span class="nav-text">Profil</span>
+                </a>
+            </div>
         </nav>
     </body>
 </html>
+</h2>

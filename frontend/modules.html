@@ -2,104 +2,283 @@
 <html lang="fr">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>FeedFormula AI - Nos Services</title>
-        <link rel="stylesheet" href="./style.css" />
-        <script
-            defer
-            src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
-        ></script>
-        <script
-            defer
-            src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"
-        ></script>
-        <script defer src="./api.js"></script>
-        <script defer src="./script.js"></script>
-        <script defer src="./api_bindings.js"></script>
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+        />
+        <meta name="theme-color" content="#1B5E20" />
+        <meta
+            name="description"
+            content="FeedFormula AI — Nos services : 8 modules filtrables pour mieux nourrir, soigner, suivre et former."
+        />
+        <title>FeedFormula AI — Nos Services</title>
+        <link rel="stylesheet" href="style.css" />
+        <script defer src="script.js"></script>
     </head>
-    <body data-page="modules">
-        <!-- En-tête partagé -->
-        <header class="app-header app-header--sticky" role="banner">
-            <a
-                class="app-header__brand"
-                href="./index.html"
-                aria-label="Accueil FeedFormula AI"
-            >
-                <img
-                    src="../assets/logo_feedformula_minimal.png"
-                    alt="Logo"
-                    class="app-header__brand-logo"
-                />
-                <span>FeedFormula AI</span>
-            </a>
-            <a
-                href="./profil.html"
-                class="app-header__avatar"
-                aria-label="Ouvrir le profil"
-            >
-                <img src="../assets/aya_joie.png" alt="Avatar utilisateur" />
-            </a>
+    <body class="modules-page" data-page="modules">
+        <!-- En-tête commune -->
+        <header class="app-header">
+            <div class="app-header-inner">
+                <a class="brand" href="index.html" aria-label="Retour à l'accueil">
+                    <img
+                        class="brand-mark"
+                        src="../assets/logo_principal.png"
+                        alt="Logo FeedFormula AI"
+                    />
+                    <div>
+                        <div class="brand-title">FeedFormula AI</div>
+                        <div class="brand-subtitle">Nos Services</div>
+                    </div>
+                </a>
+
+                <div class="header-actions">
+                    <a
+                        class="header-avatar"
+                        href="profil.html"
+                        aria-label="Ouvrir le profil utilisateur"
+                    >
+                        <img
+                            src="../assets/aya_joie.png"
+                            alt="Avatar utilisateur"
+                        />
+                    </a>
+                </div>
+            </div>
         </header>
 
-        <main class="app-main app-main--with-nav">
-            <!-- Bandeau d’introduction -->
-            <section class="hero-block card-shell">
-                <p class="eyebrow">Nos Services</p>
-                <h1>8 modules pour élever plus sereinement</h1>
-                <p>
-                    Accédez à des outils pratiques, rapides et pensés pour votre
-                    ferme.
-                </p>
+        <main class="page-shell">
+            <!-- Titre et sous-titre -->
+            <section class="card modules-hero" aria-labelledby="modulesTitle">
+                <div>
+                    <h1 id="modulesTitle" class="section-title">
+                        Nos Services
+                    </h1>
+                    <p class="section-subtitle">
+                        Huit modules pensés pour aider les éleveurs à gagner du
+                        temps, des points et de meilleures décisions.
+                    </p>
+                </div>
+
+                <div class="badge badge-gold" aria-label="Points gagnables">
+                    Jusqu'à +20 🌟 par module
+                </div>
             </section>
 
-            <!-- Filtre des modules -->
-            <section
-                class="filter-bar card-shell"
-                aria-label="Filtre des modules"
-            >
-                <button
-                    class="filter-pill is-active"
-                    data-filter="all"
-                    type="button"
-                >
-                    Tous
-                </button>
-                <button class="filter-pill" data-filter="sante" type="button">
-                    Santé
-                </button>
-                <button class="filter-pill" data-filter="finance" type="button">
-                    Finance
-                </button>
-                <button
-                    class="filter-pill"
-                    data-filter="formation"
-                    type="button"
-                >
-                    Formation
-                </button>
+            <!-- Filtres -->
+            <section class="card" aria-labelledby="filtersTitle">
+                <h2 id="filtersTitle" class="section-title">Filtrer</h2>
+                <div class="filters-bar module-filters" role="tablist" aria-label="Filtres des modules">
+                    <button class="filter-chip active" type="button" data-filter="Tous" aria-pressed="true">
+                        Tous
+                    </button>
+                    <button class="filter-chip" type="button" data-filter="Santé" aria-pressed="false">
+                        Santé
+                    </button>
+                    <button class="filter-chip" type="button" data-filter="Finance" aria-pressed="false">
+                        Finance
+                    </button>
+                    <button class="filter-chip" type="button" data-filter="Formation" aria-pressed="false">
+                        Formation
+                    </button>
+                </div>
             </section>
 
-            <!-- Grille des cartes -->
+            <!-- Grille des 8 modules -->
             <section
-                id="modulesGrid"
-                class="module-grid"
+                class="modules-grid"
                 aria-label="Liste des modules"
             >
-                <article class="module-card" data-category="sante finance">
-                    <div class="module-card__emoji">🌾</div>
-                    <h2>NutriCore</h2>
-                    <p>Calculez une ration rentable et équilibrée.</p>
-                    <span class="status-badge status-badge--ok"
-                        >Disponible</span
+                <!-- NutriCore -->
+                <article class="module-card" data-category="Santé">
+                    <div class="module-icon" aria-hidden="true">🌾</div>
+                    <div class="module-name">NutriCore</div>
+                    <div class="module-desc">
+                        Rations adaptées en quelques secondes.
+                    </div>
+                    <div class="module-footer">
+                        <span class="module-status">Disponible</span>
+                        <span class="module-points">+10 🌟</span>
+                    </div>
+                    <button
+                        class="module-action btn btn-small btn-wide"
+                        type="button"
+                        data-module-action
+                        data-target="nutricore"
                     >
-                    <strong>+10 🌟</strong>
-                    <a href="./nutricore.html" class="module-card__cta"
-                        >Accéder →</a
-                    >
+                        Accéder →
+                    </button>
                 </article>
 
-                <article class="module-card" data-category="sante"></article>
+                <!-- VetScan -->
+                <article class="module-card" data-category="Santé">
+                    <div class="module-icon" aria-hidden="true">🩺</div>
+                    <div class="module-name">VetScan</div>
+                    <div class="module-desc">
+                        Diagnostic photo et symptômes rapide.
+                    </div>
+                    <div class="module-footer">
+                        <span class="module-status">Disponible</span>
+                        <span class="module-points">+20 🌟</span>
+                    </div>
+                    <button
+                        class="module-action btn btn-small btn-wide"
+                        type="button"
+                        data-module-action
+                        data-target="vetscan"
+                    >
+                        Accéder →
+                    </button>
+                </article>
+
+                <!-- ReproTrack -->
+                <article class="module-card" data-category="Santé">
+                    <div class="module-icon" aria-hidden="true">📅</div>
+                    <div class="module-name">ReproTrack</div>
+                    <div class="module-desc">
+                        Chaleurs, saillies et mises-bas suivies.
+                    </div>
+                    <div class="module-footer">
+                        <span class="module-status">Disponible</span>
+                        <span class="module-points">+10 🌟</span>
+                    </div>
+                    <button
+                        class="module-action btn btn-small btn-wide"
+                        type="button"
+                        data-module-action
+                        data-target="reprotrack"
+                    >
+                        Accéder →
+                    </button>
+                </article>
+
+                <!-- FarmAcademy -->
+                <article class="module-card" data-category="Formation">
+                    <div class="module-icon" aria-hidden="true">📘</div>
+                    <div class="module-name">FarmAcademy</div>
+                    <div class="module-desc">
+                        Formations courtes avec quiz interactifs.
+                    </div>
+                    <div class="module-footer">
+                        <span class="module-status">Disponible</span>
+                        <span class="module-points">+20 🌟</span>
+                    </div>
+                    <button
+                        class="module-action btn btn-small btn-wide"
+                        type="button"
+                        data-module-action
+                        data-target="farmacademy"
+                    >
+                        Accéder →
+                    </button>
+                </article>
+
+                <!-- Classement -->
+                <article class="module-card" data-category="Finance">
+                    <div class="module-icon" aria-hidden="true">🏆</div>
+                    <div class="module-name">Classement</div>
+                    <div class="module-desc">
+                        Comparez votre progression en direct.
+                    </div>
+                    <div class="module-footer">
+                        <span class="module-status">Disponible</span>
+                        <span class="module-points">+10 🌟</span>
+                    </div>
+                    <button
+                        class="module-action btn btn-small btn-wide"
+                        type="button"
+                        data-module-action
+                        data-target="classement"
+                    >
+                        Accéder →
+                    </button>
+                </article>
+
+                <!-- Profil -->
+                <article class="module-card" data-category="Formation">
+                    <div class="module-icon" aria-hidden="true">👤</div>
+                    <div class="module-name">Profil</div>
+                    <div class="module-desc">
+                        Points, trophées et série quotidienne.
+                    </div>
+                    <div class="module-footer">
+                        <span class="module-status">Disponible</span>
+                        <span class="module-points">+10 🌟</span>
+                    </div>
+                    <button
+                        class="module-action btn btn-small btn-wide"
+                        type="button"
+                        data-module-action
+                        data-target="profil"
+                    >
+                        Accéder →
+                    </button>
+                </article>
+
+                <!-- Boutique -->
+                <article class="module-card" data-category="Finance">
+                    <div class="module-icon" aria-hidden="true">🎁</div>
+                    <div class="module-name">Boutique</div>
+                    <div class="module-desc">
+                        Récompenses et bonus à débloquer.
+                    </div>
+                    <div class="module-footer">
+                        <span class="module-status locked">Bientôt</span>
+                        <span class="module-points">+20 🌟</span>
+                    </div>
+                    <button
+                        class="module-action btn btn-small btn-wide btn-disabled"
+                        type="button"
+                        data-module-action
+                        disabled
+                    >
+                        Bientôt
+                    </button>
+                </article>
+
+                <!-- Communauté -->
+                <article class="module-card" data-category="Formation">
+                    <div class="module-icon" aria-hidden="true">🤝</div>
+                    <div class="module-name">Communauté</div>
+                    <div class="module-desc">
+                        Partage d'astuces entre éleveurs.
+                    </div>
+                    <div class="module-footer">
+                        <span class="module-status locked">Bientôt</span>
+                        <span class="module-points">+10 🌟</span>
+                    </div>
+                    <button
+                        class="module-action btn btn-small btn-wide btn-disabled"
+                        type="button"
+                        data-module-action
+                        disabled
+                    >
+                        Bientôt
+                    </button>
+                </article>
             </section>
         </main>
+
+        <!-- Barre de navigation basse -->
+        <nav class="bottom-nav" aria-label="Navigation principale">
+            <div class="bottom-nav-inner">
+                <a class="nav-item" href="index.html">
+                    <span class="nav-icon" aria-hidden="true">🏠</span>
+                    <span class="nav-text">Accueil</span>
+                </a>
+                <a class="nav-item active" href="modules.html" aria-current="page">
+                    <span class="nav-icon" aria-hidden="true">📦</span>
+                    <span class="nav-text">Modules</span>
+                </a>
+                <a class="nav-item" href="classement.html">
+                    <span class="nav-icon" aria-hidden="true">🏆</span>
+                    <span class="nav-text">Classement</span>
+                </a>
+                <a class="nav-item" href="profil.html">
+                    <span class="nav-icon" aria-hidden="true">👤</span>
+                    <span class="nav-text">Profil</span>
+                </a>
+            </div>
+        </nav>
     </body>
 </html>
+</title></head></div></div>

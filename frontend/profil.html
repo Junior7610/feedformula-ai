@@ -2,256 +2,668 @@
 <html lang="fr">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+        />
+        <meta name="theme-color" content="#1B5E20" />
         <meta
             name="description"
-            content="FeedFormula AI - Profil, gamification, trophées et boutique."
+            content="FeedFormula AI — Profil, gamification, trophées, série et boutique de récompenses."
         />
-        <title>FeedFormula AI - Profil</title>
-        <link rel="stylesheet" href="./style.css" />
-        <script
-            defer
-            src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
-        ></script>
-        <script
-            defer
-            src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"
-        ></script>
-        <script defer src="./api.js"></script>
-        <script defer src="./script.js"></script>
-        <script defer src="./api_bindings.js"></script>
+        <title>FeedFormula AI — Profil</title>
+        <link rel="stylesheet" href="style.css" />
+        <script defer src="script.js"></script>
     </head>
+    <body class="profil-page" data-page="profil">
+        <!-- En-tête fixe -->
+        <header class="app-header profile-header" role="banner">
+            <div class="app-header-inner">
+                <a class="brand" href="index.html" aria-label="Retour à l'accueil">
+                    <img
+                        class="brand-mark"
+                        src="../assets/logo_principal.png"
+                        alt="Logo FeedFormula AI"
+                    />
+                    <div>
+                        <div class="brand-title">FeedFormula AI</div>
+                        <div class="brand-subtitle">Profil et gamification</div>
+                    </div>
+                </a>
 
-    <body data-page="profil">
-        <!-- En-tête de navigation du profil -->
-        <header class="app-header app-header--sticky" role="banner">
-            <a class="app-header__back" href="./index.html" aria-label="Retour"
-                >←</a
-            >
-
-            <div class="app-header__title-wrap">
-                <h1>👤 Profil</h1>
-                <span class="badge-star">Gamification complète</span>
+                <div class="header-actions">
+                    <span class="badge badge-gold" id="profileBadgeLevel">
+                        🌾 Tige
+                    </span>
+                </div>
             </div>
-
-            <a
-                href="./profil.html"
-                class="app-header__avatar"
-                aria-label="Ouvrir le profil"
-            >
-                <img src="../assets/aya_joie.png" alt="Avatar utilisateur" />
-            </a>
         </header>
 
-        <main class="app-main app-main--with-nav">
+        <main class="page-shell">
             <!-- Carte identité -->
-            <section
-                class="profile-hero card-shell"
-                aria-label="Carte d'identité"
-            >
-                <div class="profile-avatar" id="profileAvatar">LT</div>
+            <section class="card">
+                <div class="profile-head">
+                    <div class="profile-avatar-wrap">
+                        <img
+                            class="profile-avatar hidden"
+                            data-profile-avatar
+                            src="../assets/aya_joie.png"
+                            alt="Avatar du profil"
+                        />
+                        <div class="avatar-fallback" data-avatar-fallback>
+                            LT
+                        </div>
+                    </div>
 
-                <div class="profile-meta">
-                    <h2 id="profileName">Léonel Togbe</h2>
-                    <p id="profileRegion">Région : Atlantique</p>
-                    <p id="profileMemberSince">Inscription : 12/06/2025</p>
+                    <div class="identity">
+                        <h1 data-profile-name>Aminata S.</h1>
+                        <p data-profile-region>
+                            Atacora, Bénin • Commune de Natitingou
+                        </p>
+                        <div class="badge badge-soft" data-profile-joined>
+                            Inscrit le 12/05/2025
+                        </div>
+                    </div>
                 </div>
             </section>
 
             <!-- Niveau et progression -->
-            <section
-                class="profile-level card-shell"
-                aria-label="Niveau actuel"
-            >
-                <div class="section-title-row">
-                    <h2>Niveau</h2>
-                    <span id="profileLevelBadge" class="badge-star"
-                        >🌾 Tige</span
-                    >
+            <section class="card">
+                <div class="level-title">
+                    <span>Niveau actuel</span>
+                    <span class="level-points" data-profile-xp-meta>
+                        1 240 / 1 500 pts
+                    </span>
                 </div>
 
-                <div class="progress-track" aria-hidden="true">
-                    <span
-                        id="profileProgress"
-                        class="progress-track__bar"
-                        style="width: 48%"
-                    ></span>
+                <div class="level-badge" data-profile-level-badge>
+                    🌾 Tige
                 </div>
 
-                <div class="level-caption">
-                    <span id="profilePoints">480 / 1000 pts</span>
-                    <span id="profileNextLevel">Niveau suivant : Fleur</span>
+                <div class="level-track" aria-hidden="true">
+                    <div
+                        class="level-fill"
+                        data-profile-xp-fill
+                        style="width: 82%"
+                    ></div>
+                </div>
+
+                <div class="level-meta">
+                    <span>Prochain niveau : 🌱 Semence</span>
+                    <span>+260 pts restants</span>
                 </div>
             </section>
 
-            <!-- Statistiques globales -->
-            <section
-                class="stats-zone card-shell"
-                aria-label="Statistiques d'utilisation"
-            >
-                <div class="section-title-row">
-                    <h2>Statistiques</h2>
-                </div>
+            <!-- Statistiques -->
+            <section class="card">
+                <h2 class="section-title">Mes statistiques</h2>
+                <p class="section-subtitle">
+                    Ton activité et tes progrès sur FeedFormula AI.
+                </p>
 
-                <div class="profile-stats">
-                    <article class="stat-card">
-                        <span>🌾</span>
-                        <strong>128</strong>
-                        <span>Rations générées</span>
+                <div class="stats-grid" style="margin-top: 14px">
+                    <article class="stat-item">
+                        <span class="stat-label">🌾 Rations générées</span>
+                        <span class="stat-value" data-stat-rations>38</span>
                     </article>
 
-                    <article class="stat-card">
-                        <span>💰</span>
-                        <strong>245 000</strong>
-                        <span>Économies en FCFA</span>
+                    <article class="stat-item">
+                        <span class="stat-label">💰 Économies en FCFA</span>
+                        <span class="stat-value" data-stat-savings>
+                            126 000 FCFA
+                        </span>
                     </article>
 
-                    <article class="stat-card">
-                        <span>🏥</span>
-                        <strong>31</strong>
-                        <span>Animaux diagnostiqués</span>
+                    <article class="stat-item">
+                        <span class="stat-label">🏥 Animaux diagnostiqués</span>
+                        <span class="stat-value" data-stat-diagnosed>14</span>
                     </article>
 
-                    <article class="stat-card">
-                        <span>🔥</span>
-                        <strong>12</strong>
-                        <span>Série actuelle</span>
+                    <article class="stat-item">
+                        <span class="stat-label">🔥 Série actuelle</span>
+                        <span class="stat-value" data-stat-streak>12</span>
                     </article>
 
-                    <article class="stat-card">
-                        <span>🏆</span>
-                        <strong>9</strong>
-                        <span>Trophées obtenus</span>
+                    <article class="stat-item">
+                        <span class="stat-label">🏆 Trophées obtenus</span>
+                        <span class="stat-value" data-stat-trophies>9</span>
                     </article>
 
-                    <article class="stat-card">
-                        <span>📅</span>
-                        <strong>67</strong>
-                        <span>Jours d'utilisation</span>
+                    <article class="stat-item">
+                        <span class="stat-label">📅 Jours d'utilisation</span>
+                        <span class="stat-value" data-stat-days>87</span>
                     </article>
                 </div>
             </section>
 
-            <!-- Série quotidienne -->
-            <section
-                class="streak-zone card-shell"
-                aria-label="Série d'utilisation"
-            >
-                <div class="section-title-row">
-                    <h2>Série</h2>
+            <!-- Série -->
+            <section class="card">
+                <div class="streak-row">
+                    <div class="streak-left">
+                        <div class="flame" aria-hidden="true">🔥</div>
+                    </div>
+
+                    <div class="streak-info">
+                        <strong data-streak-current>12 jours d'affilée !</strong>
+                        <div class="muted">
+                            Meilleure série :
+                            <span data-streak-best>24 jours</span>
+                        </div>
+                        <div class="muted">
+                            Graines de Secours disponibles :
+                            <span data-rescue-seeds>3</span>
+                        </div>
+                    </div>
                 </div>
-
-                <p>🔥 12 jours d'affilée !</p>
-                <p>Meilleure série : <strong>18 jours</strong></p>
-                <p>Graines de Secours disponibles : <strong>4</strong></p>
-            </section>
-
-            <!-- Trophées -->
-            <section class="trophy-zone card-shell" aria-label="Trophées">
-                <div class="section-title-row">
-                    <h2>Trophées</h2>
-                </div>
-
-                <div id="trophyGrid" class="trophy-grid"></div>
             </section>
 
             <!-- Classements -->
-            <section class="rank-zone card-shell" aria-label="Classements">
-                <div class="section-title-row">
-                    <h2>Classements</h2>
-                </div>
+            <section class="card">
+                <h2 class="section-title">Mes classements</h2>
+                <div class="rank-list" style="margin-top: 14px">
+                    <article class="rank-item">
+                        <span>Ma Commune</span>
+                        <strong data-rank-commune>#4 / 128 éleveurs</strong>
+                    </article>
 
-                <div class="rank-summary">
-                    Ma Commune : <strong>#4 / 80 éleveurs</strong>
-                </div>
-                <div class="rank-summary">
-                    Mon Département : <strong>#18 / 720 éleveurs</strong>
-                </div>
-                <div class="rank-summary">
-                    National : <strong>#152 / 8 400 éleveurs</strong>
+                    <article class="rank-item">
+                        <span>Mon Département</span>
+                        <strong data-rank-departement>
+                            #18 / 1 204 éleveurs
+                        </strong>
+                    </article>
+
+                    <article class="rank-item">
+                        <span>National</span>
+                        <strong data-rank-national>
+                            #346 / 28 900 éleveurs
+                        </strong>
+                    </article>
                 </div>
             </section>
 
             <!-- Graines d'or -->
-            <section class="seeds-zone card-shell" aria-label="Graines d'or">
-                <div class="section-title-row">
-                    <h2>Graines d'or</h2>
-                    <span id="goldSeeds">🌟 480</span>
+            <section class="card">
+                <h2 class="section-title">Graines d'or</h2>
+                <p class="section-subtitle">
+                    Tes points gagnés et les récompenses accessibles.
+                </p>
+
+                <div class="streak-row" style="margin-top: 14px">
+                    <div>
+                        <div class="muted">Solde actuel</div>
+                        <strong
+                            style="font-size: 1.5rem; color: var(--color-green)"
+                            data-gold-balance
+                        >
+                            320 🌟
+                        </strong>
+                    </div>
+
+                    <button
+                        class="btn btn-gold btn-small"
+                        id="shopButton"
+                        data-shop-button
+                        type="button"
+                    >
+                        Boutique
+                    </button>
                 </div>
 
-                <button id="shopButton" class="primary-action" type="button">
-                    Boutique
+                <div
+                    class="card hidden"
+                    id="shopPanel"
+                    data-shop-panel
+                    style="margin-top: 14px"
+                ></div>
+            </section>
+
+            <!-- Trophées -->
+            <section class="card">
+                <h2 class="section-title">Mes trophées</h2>
+                <p class="section-subtitle">
+                    Clique sur un trophée pour voir sa condition d'obtention.
+                </p>
+
+                <div
+                    class="trophy-grid"
+                    data-trophy-grid
+                    style="margin-top: 14px"
+                    aria-label="Liste des trophées"
+                >
+                    <button
+                        class="trophy unlocked"
+                        type="button"
+                        data-trophy-name="Premières rations"
+                        data-trophy-condition="Obtenir 5 rations validées"
+                    >
+                        <span class="icon">🌱</span>
+                        <span class="name">Premières rations</span>
+                    </button>
+                    <button
+                        class="trophy unlocked"
+                        type="button"
+                        data-trophy-name="Série active"
+                        data-trophy-condition="Atteindre 10 jours d'utilisation"
+                    >
+                        <span class="icon">🔥</span>
+                        <span class="name">Série active</span>
+                    </button>
+                    <button
+                        class="trophy unlocked"
+                        type="button"
+                        data-trophy-name="Rationneur"
+                        data-trophy-condition="Générer 20 rations"
+                    >
+                        <span class="icon">🌾</span>
+                        <span class="name">Rationneur</span>
+                    </button>
+                    <button
+                        class="trophy unlocked"
+                        type="button"
+                        data-trophy-name="VetScan Pro"
+                        data-trophy-condition="Diagnostiquer 10 animaux"
+                    >
+                        <span class="icon">🏥</span>
+                        <span class="name">VetScan Pro</span>
+                    </button>
+                    <button
+                        class="trophy unlocked"
+                        type="button"
+                        data-trophy-name="Compétiteur"
+                        data-trophy-condition="Participer au classement pendant 7 jours"
+                    >
+                        <span class="icon">🏆</span>
+                        <span class="name">Compétiteur</span>
+                    </button>
+                    <button
+                        class="trophy unlocked"
+                        type="button"
+                        data-trophy-name="Économe"
+                        data-trophy-condition="Économiser 100 000 FCFA"
+                    >
+                        <span class="icon">💰</span>
+                        <span class="name">Économe</span>
+                    </button>
+
+                    <button
+                        class="trophy unlocked"
+                        type="button"
+                        data-trophy-name="Polyvalent"
+                        data-trophy-condition="Utiliser 3 modules différents"
+                    >
+                        <span class="icon">📦</span>
+                        <span class="name">Polyvalent</span>
+                    </button>
+                    <button
+                        class="trophy unlocked"
+                        type="button"
+                        data-trophy-name="Apprenant"
+                        data-trophy-condition="Compléter une leçon FarmAcademy"
+                    >
+                        <span class="icon">🎓</span>
+                        <span class="name">Apprenant</span>
+                    </button>
+                    <button
+                        class="trophy unlocked"
+                        type="button"
+                        data-trophy-name="Soigneur"
+                        data-trophy-condition="Effectuer 5 analyses médicales"
+                    >
+                        <span class="icon">🩺</span>
+                        <span class="name">Soigneur</span>
+                    </button>
+
+                    <button
+                        class="trophy locked"
+                        type="button"
+                        data-trophy-name="Ultra série"
+                        data-trophy-condition="Garder une série de 30 jours"
+                    >
+                        <span class="icon">⚡</span>
+                        <span class="name">Ultra série</span>
+                    </button>
+                    <button
+                        class="trophy locked"
+                        type="button"
+                        data-trophy-name="Champion local"
+                        data-trophy-condition="Classer 1er dans ta commune"
+                    >
+                        <span class="icon">🥇</span>
+                        <span class="name">Champion local</span>
+                    </button>
+                    <button
+                        class="trophy locked"
+                        type="button"
+                        data-trophy-name="Ambassadeur"
+                        data-trophy-condition="Partager 10 rations sur WhatsApp"
+                    >
+                        <span class="icon">📲</span>
+                        <span class="name">Ambassadeur</span>
+                    </button>
+
+                    <button
+                        class="trophy locked"
+                        type="button"
+                        data-trophy-name="Maître NutriCore"
+                        data-trophy-condition="Utiliser NutriCore 50 fois"
+                    >
+                        <span class="icon">🧠</span>
+                        <span class="name">Maître NutriCore</span>
+                    </button>
+                    <button
+                        class="trophy locked"
+                        type="button"
+                        data-trophy-name="Diamant vert"
+                        data-trophy-condition="Atteindre 1 000 🌟"
+                    >
+                        <span class="icon">💎</span>
+                        <span class="name">Diamant vert</span>
+                    </button>
+                    <button
+                        class="trophy locked"
+                        type="button"
+                        data-trophy-name="Quiz master"
+                        data-trophy-condition="Compléter 5 quiz FarmAcademy"
+                    >
+                        <span class="icon">✅</span>
+                        <span class="name">Quiz master</span>
+                    </button>
+
+                    <button
+                        class="trophy locked"
+                        type="button"
+                        data-trophy-name="Urgentiste"
+                        data-trophy-condition="Diagnostiquer 25 cas VetScan"
+                    >
+                        <span class="icon">🚨</span>
+                        <span class="name">Urgentiste</span>
+                    </button>
+                    <button
+                        class="trophy locked"
+                        type="button"
+                        data-trophy-name="Repro expert"
+                        data-trophy-condition="Enregistrer 15 événements ReproTrack"
+                    >
+                        <span class="icon">🐄</span>
+                        <span class="name">Repro expert</span>
+                    </button>
+                    <button
+                        class="trophy locked"
+                        type="button"
+                        data-trophy-name="Assidu"
+                        data-trophy-condition="Faire 30 jours d'activité"
+                    >
+                        <span class="icon">📅</span>
+                        <span class="name">Assidu</span>
+                    </button>
+
+                    <button
+                        class="trophy locked"
+                        type="button"
+                        data-trophy-name="Multilingue"
+                        data-trophy-condition="Utiliser la langue locale 10 fois"
+                    >
+                        <span class="icon">🗣️</span>
+                        <span class="name">Multilingue</span>
+                    </button>
+                    <button
+                        class="trophy locked"
+                        type="button"
+                        data-trophy-name="Archiviste"
+                        data-trophy-condition="Sauvegarder 20 rations hors ligne"
+                    >
+                        <span class="icon">💾</span>
+                        <span class="name">Archiviste</span>
+                    </button>
+                    <button
+                        class="trophy locked"
+                        type="button"
+                        data-trophy-name="Explorateur"
+                        data-trophy-condition="Utiliser tous les modules"
+                    >
+                        <span class="icon">🧩</span>
+                        <span class="name">Explorateur</span>
+                    </button>
+
+                    <button
+                        class="trophy locked"
+                        type="button"
+                        data-trophy-name="Roi du champ"
+                        data-trophy-condition="Gagner 5 000 🌟"
+                    >
+                        <span class="icon">👑</span>
+                        <span class="name">Roi du champ</span>
+                    </button>
+                    <button
+                        class="trophy locked"
+                        type="button"
+                        data-trophy-name="Top national"
+                        data-trophy-condition="Atteindre le top 10 national"
+                    >
+                        <span class="icon">🌍</span>
+                        <span class="name">Top national</span>
+                    </button>
+                    <button
+                        class="trophy locked"
+                        type="button"
+                        data-trophy-name="Sage agricole"
+                        data-trophy-condition="Compléter 10 leçons"
+                    >
+                        <span class="icon">📚</span>
+                        <span class="name">Sage agricole</span>
+                    </button>
+
+                    <button
+                        class="trophy locked"
+                        type="button"
+                        data-trophy-name="Aya complice"
+                        data-trophy-condition="Partager une réussite avec Aya"
+                    >
+                        <span class="icon">🐮</span>
+                        <span class="name">Aya complice</span>
+                    </button>
+                    <button
+                        class="trophy locked"
+                        type="button"
+                        data-trophy-name="Légende verte"
+                        data-trophy-condition="Utiliser FeedFormula AI pendant 100 jours"
+                    >
+                        <span class="icon">⭐</span>
+                        <span class="name">Légende verte</span>
+                    </button>
+                    <button
+                        class="trophy locked"
+                        type="button"
+                        data-trophy-name="Sprint gagnant"
+                        data-trophy-condition="Remporter 50 🌟 en une journée"
+                    >
+                        <span class="icon">🎯</span>
+                        <span class="name">Sprint gagnant</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Historique rapide -->
+            <section class="card">
+                <h2 class="section-title">Dernières rations</h2>
+                <div class="history-list" style="margin-top: 14px">
+                    <article class="history-item">
+                        <div class="history-item-top">
+                            <strong>Ration poulet chair</strong>
+                            <span class="badge badge-soft">-12% coût</span>
+                        </div>
+                        <div class="history-meta">
+                            12 avril 2026 • 18 500 FCFA
+                        </div>
+                    </article>
+
+                    <article class="history-item">
+                        <div class="history-item-top">
+                            <strong>Ration vache laitière</strong>
+                            <span class="badge badge-soft">Équilibre</span>
+                        </div>
+                        <div class="history-meta">
+                            11 avril 2026 • 24 900 FCFA
+                        </div>
+                    </article>
+
+                    <article class="history-item">
+                        <div class="history-item-top">
+                            <strong>Ration tilapia</strong>
+                            <span class="badge badge-soft">Protéines</span>
+                        </div>
+                        <div class="history-meta">
+                            10 avril 2026 • 9 800 FCFA
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <!-- Bouton boutique -->
+            <section class="card">
+                <button
+                    class="btn btn-primary"
+                    type="button"
+                    id="openRewardsButton"
+                >
+                    🎁 Voir la boutique de récompenses
                 </button>
             </section>
         </main>
 
-        <!-- Modal trophée -->
-        <div id="trophyModal" class="modal-overlay" hidden>
-            <div
-                class="modal-box"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="modalTitle"
-            >
-                <h3 id="modalTitle">Trophée</h3>
-                <p id="modalCondition">Condition du trophée</p>
-                <button
-                    id="closeModalButton"
-                    class="secondary-action"
-                    type="button"
-                >
-                    Fermer
-                </button>
-            </div>
-        </div>
-
-        <!-- Modal boutique -->
-        <div id="shopModal" class="modal-overlay" hidden>
-            <div
-                class="modal-box"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="shopTitle"
-            >
-                <h3 id="shopTitle">Boutique des récompenses</h3>
-                <div id="shopList" class="shop-list"></div>
-                <button
-                    id="closeShopButton"
-                    class="secondary-action"
-                    type="button"
-                >
-                    Fermer
-                </button>
-            </div>
-        </div>
-
         <!-- Mascotte Aya -->
-        <aside class="aya-widget" aria-live="polite">
-            <img
-                src="../assets/aya_joie.png"
-                alt="Aya"
-                class="aya-widget__image"
-            />
-            <div id="ayaBubble" class="aya-widget__bubble">
-                Votre profil vous aide à suivre votre progression et vos
-                récompenses.
+        <aside class="aya-floating" aria-label="Mascotte Aya">
+            <div class="aya-bubble is-show" id="ayaProfileBubble">
+                Bravo, tu avances bien ! Continue pour débloquer de nouveaux trophées.
             </div>
+            <img
+                class="aya-image"
+                src="../assets/aya_joie.png"
+                alt="Aya, la mascotte"
+            />
         </aside>
 
-        <!-- Navigation inférieure -->
+        <!-- Navigation basse -->
         <nav class="bottom-nav" aria-label="Navigation principale">
-            <a class="bottom-nav__item" href="./index.html"
-                >🏠<span>Accueil</span></a
-            >
-            <a class="bottom-nav__item" href="./modules.html"
-                >📦<span>Modules</span></a
-            >
-            <a class="bottom-nav__item" href="./classement.html"
-                >🏆<span>Classement</span></a
-            >
-            <a class="bottom-nav__item is-active" href="./profil.html"
-                >👤<span>Profil</span></a
-            >
+            <div class="bottom-nav-inner">
+                <a class="nav-item" href="index.html">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-text">Accueil</span>
+                </a>
+                <a class="nav-item" href="modules.html">
+                    <span class="nav-icon">📦</span>
+                    <span class="nav-text">Modules</span>
+                </a>
+                <a class="nav-item" href="classement.html">
+                    <span class="nav-icon">🏆</span>
+                    <span class="nav-text">Classement</span>
+                </a>
+                <a class="nav-item active" href="profil.html" aria-current="page">
+                    <span class="nav-icon">👤</span>
+                    <span class="nav-text">Profil</span>
+                </a>
+            </div>
         </nav>
+
+        <!-- Popup trophée -->
+        <div
+            class="modal-backdrop hidden"
+            id="trophyBackdrop"
+            aria-hidden="true"
+        ></div>
+        <section
+            class="modal hidden"
+            id="trophyModal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="trophyModalTitle"
+        >
+            <div
+                style="
+                    display: flex;
+                    align-items: flex-start;
+                    justify-content: space-between;
+                    gap: 12px;
+                "
+            >
+                <h2 class="modal-title" id="trophyModalTitle">Trophée</h2>
+                <button
+                    class="modal-close"
+                    type="button"
+                    id="closeTrophyModal"
+                    aria-label="Fermer le popup"
+                >
+                    ✕
+                </button>
+            </div>
+            <p
+                id="trophyModalText"
+                style="margin-top: 12px; color: var(--color-text)"
+            >
+                Condition d'obtention
+            </p>
+        </section>
+
+        <!-- Popup boutique -->
+        <div
+            class="modal-backdrop hidden"
+            id="shopBackdrop"
+            aria-hidden="true"
+        ></div>
+        <section
+            class="modal hidden"
+            id="shopModal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="shopModalTitle"
+        >
+            <div
+                style="
+                    display: flex;
+                    align-items: flex-start;
+                    justify-content: space-between;
+                    gap: 12px;
+                "
+            >
+                <h2 class="modal-title" id="shopModalTitle">
+                    Boutique de récompenses
+                </h2>
+                <button
+                    class="modal-close"
+                    type="button"
+                    id="closeShopModal"
+                    aria-label="Fermer la boutique"
+                >
+                    ✕
+                </button>
+            </div>
+
+            <div class="stack" style="margin-top: 14px">
+                <div class="history-item">
+                    <strong>Réduction premium</strong>
+                    <div class="history-meta">
+                        250 🌟 • déblocage d'un mois de bonus
+                    </div>
+                </div>
+                <div class="history-item">
+                    <strong>Avatar Aya spécial</strong>
+                    <div class="history-meta">
+                        150 🌟 • thème exclusif du profil
+                    </div>
+                </div>
+                <div class="history-item">
+                    <strong>Graines de secours</strong>
+                    <div class="history-meta">100 🌟 • 1 recharge de série</div>
+                </div>
+                <div class="history-item">
+                    <strong>Badge champion local</strong>
+                    <div class="history-meta">
+                        500 🌟 • badge visible sur le classement
+                    </div>
+                </div>
+            </div>
+        </section>
     </body>
 </html>
+</head></title></div></div></p></div></span></div></span></span></span></span></span></span></span></span></strong></span></span></span></span></strong></span></strong></div></strong></strong></strong></strong></strong></strong></strong>

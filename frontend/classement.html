@@ -2,143 +2,281 @@
 <html lang="fr">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+        />
+        <meta name="theme-color" content="#1B5E20" />
         <meta
             name="description"
-            content="FeedFormula AI - Classement temps réel des éleveurs, podium et statut de ligue."
+            content="FeedFormula AI — Classement temps réel avec podium, rangs et statut de ligue."
         />
-        <title>FeedFormula AI - Classement</title>
-        <link rel="stylesheet" href="./style.css" />
-        <script
-            defer
-            src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
-        ></script>
-        <script
-            defer
-            src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"
-        ></script>
-        <script defer src="./api.js"></script>
-        <script defer src="./script.js"></script>
-        <script defer src="./api_bindings.js"></script>
+        <title>FeedFormula AI — Classement</title>
+        <link rel="stylesheet" href="style.css" />
+        <script defer src="script.js"></script>
     </head>
-    <body data-page="classement">
-        <!-- En-tête de la page classement -->
-        <header class="app-header app-header--sticky" role="banner">
-            <a
-                class="app-header__back"
-                href="./index.html"
-                aria-label="Retour à l'accueil"
-                >←</a
-            >
+    <body data-page="classement" class="page-classement">
+        <!-- En-tête fixe -->
+        <header class="app-header">
+            <div class="app-header-inner">
+                <a
+                    class="brand"
+                    href="index.html"
+                    aria-label="Retour à l'accueil"
+                >
+                    <img
+                        class="brand-mark"
+                        src="../assets/logo_principal.png"
+                        alt="Logo FeedFormula AI"
+                    />
+                    <div>
+                        <div class="brand-title">FeedFormula AI</div>
+                        <div class="brand-subtitle">
+                            Classement en temps réel
+                        </div>
+                    </div>
+                </a>
 
-            <div class="app-header__title-wrap">
-                <h1>🏆 Classement</h1>
-                <span class="badge-star">Saison en cours</span>
+                <div class="header-actions">
+                    <a
+                        class="header-avatar"
+                        href="profil.html"
+                        aria-label="Accéder au profil"
+                    >
+                        <img
+                            src="../assets/aya_joie.png"
+                            alt="Avatar utilisateur"
+                        />
+                    </a>
+                </div>
             </div>
-
-            <a
-                href="./profil.html"
-                class="app-header__avatar"
-                aria-label="Ouvrir le profil"
-            >
-                <img src="../assets/aya_joie.png" alt="Avatar utilisateur" />
-            </a>
         </header>
 
-        <main class="app-main app-main--with-nav">
-            <!-- Onglets de sélection du classement -->
-            <section class="card-shell" aria-label="Sélecteur de classement">
+        <main class="page-shell">
+            <!-- Titre principal -->
+            <section
+                class="card modules-hero"
+                aria-labelledby="classement-title"
+            >
+                <div>
+                    <h1 id="classement-title" class="section-title">
+                        🏆 Classement en temps réel
+                    </h1>
+                    <p class="section-subtitle">
+                        Compare ta progression avec les autres éleveurs de ta
+                        zone.
+                    </p>
+                </div>
+
+                <div class="season-countdown" data-season-countdown>
+                    <div class="card-head">
+                        <h2>⏳ Fin de saison</h2>
+                        <span class="badge badge-soft">Saison active</span>
+                    </div>
+
+                    <div class="countdown-timer" aria-label="Compte à rebours">
+                        <div class="timer-chip">
+                            <strong>12</strong>
+                            <span>Jours</span>
+                        </div>
+                        <div class="timer-chip">
+                            <strong>08</strong>
+                            <span>Heures</span>
+                        </div>
+                        <div class="timer-chip">
+                            <strong>34</strong>
+                            <span>Minutes</span>
+                        </div>
+                        <div class="timer-chip">
+                            <strong>59</strong>
+                            <span>Secondes</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Onglets de classement -->
+            <section class="card" aria-label="Choix de la zone">
                 <div
-                    class="tabs-row"
+                    class="league-tabs tabs"
                     role="tablist"
-                    aria-label="Portée du classement"
+                    aria-label="Zones de classement"
                 >
                     <button
-                        class="filter-pill is-active"
-                        data-board="commune"
+                        class="tab active"
                         type="button"
+                        data-scope="commune"
+                        role="tab"
+                        aria-selected="true"
                     >
                         Ma Commune
                     </button>
                     <button
-                        class="filter-pill"
-                        data-board="departement"
+                        class="tab"
                         type="button"
+                        data-scope="departement"
+                        role="tab"
+                        aria-selected="false"
                     >
                         Département
                     </button>
                     <button
-                        class="filter-pill"
-                        data-board="national"
+                        class="tab"
                         type="button"
+                        data-scope="national"
+                        role="tab"
+                        aria-selected="false"
                     >
                         National
                     </button>
                 </div>
-
-                <p class="countdown-note">
-                    Fin de saison dans
-                    <strong id="seasonCountdown">--j --:--:--</strong>
-                </p>
             </section>
 
-            <!-- Podium Top 3 -->
+            <!-- Podium -->
+            <section class="podium-card" aria-labelledby="podium-title">
+                <div class="card-head">
+                    <h2 id="podium-title">Podium Top 3</h2>
+                    <span class="badge badge-gold">Top performeurs</span>
+                </div>
+
+                <div class="podium-top3 podium" data-podium>
+                    <article class="podium-item rank-2">
+                        <div class="medal">🥈</div>
+                        <div class="name">2e place</div>
+                        <div class="meta">Avatar • Niveau • Points</div>
+                    </article>
+
+                    <article class="podium-item rank-1">
+                        <div class="medal">🥇</div>
+                        <div class="name">1re place</div>
+                        <div class="meta">Avatar • Niveau • Points</div>
+                    </article>
+
+                    <article class="podium-item rank-3">
+                        <div class="medal">🥉</div>
+                        <div class="name">3e place</div>
+                        <div class="meta">Avatar • Niveau • Points</div>
+                    </article>
+                </div>
+            </section>
+
+            <!-- Indicateur de ligue -->
             <section
-                class="podium-zone card-shell"
-                aria-label="Podium des trois premiers"
+                class="card zone-indicator"
+                data-zone-indicator
+                aria-labelledby="zone-title"
             >
-                <div class="section-title-row">
-                    <h2>Podium Top 3</h2>
+                <h2 id="zone-title" class="section-title">Statut de ligue</h2>
+                <div class="pill up">⬆️ Tu es en zone montée</div>
+                <div class="pill neutral">➡️ Tu es en zone neutre</div>
+                <div class="pill down">⬇️ Tu es en zone descente</div>
+            </section>
+
+            <!-- Liste des rangs -->
+            <section class="card" aria-labelledby="leaderboard-title">
+                <div class="card-head">
+                    <h2 id="leaderboard-title">Rangs 4 à 50</h2>
+                    <span class="badge badge-soft" id="currentScopeLabel">
+                        Ma Commune
+                    </span>
                 </div>
 
-                <div id="podium" class="podium">
-                    <!-- Le podium est injecté par JavaScript -->
+                <div class="list-card rank-list-card" data-rank-list>
+                    <article class="row">
+                        <div class="rank">#4</div>
+                        <div class="user">
+                            <div class="name">Amina Kouassi</div>
+                            <div class="sub">Niveau 7 — Bassam</div>
+                        </div>
+                        <div class="score">
+                            <div class="pts">4 850 pts</div>
+                            <div class="lvl">+120 aujourd'hui</div>
+                        </div>
+                    </article>
+
+                    <article class="row">
+                        <div class="rank">#5</div>
+                        <div class="user">
+                            <div class="name">Koffi Adjo</div>
+                            <div class="sub">Niveau 6 — Adjarra</div>
+                        </div>
+                        <div class="score">
+                            <div class="pts">4 620 pts</div>
+                            <div class="lvl">+98 aujourd'hui</div>
+                        </div>
+                    </article>
+
+                    <article class="row current-user">
+                        <div class="rank">#8</div>
+                        <div class="user">
+                            <div class="name">Vous</div>
+                            <div class="sub">Niveau 5 — Votre exploitation</div>
+                        </div>
+                        <div class="score">
+                            <div class="pts">2 430 pts</div>
+                            <div class="lvl">+80 aujourd'hui</div>
+                        </div>
+                    </article>
+
+                    <article class="row">
+                        <div class="rank">#9</div>
+                        <div class="user">
+                            <div class="name">Mamadou Traoré</div>
+                            <div class="sub">Niveau 5 — Kandi</div>
+                        </div>
+                        <div class="score">
+                            <div class="pts">2 390 pts</div>
+                            <div class="lvl">+65 aujourd'hui</div>
+                        </div>
+                    </article>
+
+                    <article class="row">
+                        <div class="rank">#10</div>
+                        <div class="user">
+                            <div class="name">Aïcha Bamba</div>
+                            <div class="sub">Niveau 4 — Abomey</div>
+                        </div>
+                        <div class="score">
+                            <div class="pts">2 120 pts</div>
+                            <div class="lvl">+44 aujourd'hui</div>
+                        </div>
+                    </article>
                 </div>
             </section>
 
-            <!-- Rangs 4 à 50 -->
-            <section class="card-shell" aria-label="Liste des rangs">
-                <div class="section-title-row">
-                    <h2>Rangs 4 à 50</h2>
-                </div>
-
-                <div id="rankingList" class="ranking-list">
-                    <!-- La liste est injectée par JavaScript -->
-                </div>
-            </section>
-
-            <!-- Statut de ligue -->
-            <section class="card-shell" aria-label="Statut de ligue">
-                <div
-                    id="leagueStatus"
-                    class="league-status league-status--neutral"
-                >
-                    ➡️ Tu es en zone neutre
-                </div>
-
-                <a
-                    href="./nutricore.html"
-                    class="primary-action primary-action--link"
-                >
+            <!-- Bouton principal -->
+            <section class="sticky-cta">
+                <a class="btn btn-boost btn-improve-rank" href="nutricore.html">
                     Améliorer mon rang
                 </a>
             </section>
         </main>
 
-        <!-- Navigation basse commune -->
+        <!-- Navigation du bas -->
         <nav class="bottom-nav" aria-label="Navigation principale">
-            <a class="bottom-nav__item" href="./index.html"
-                >🏠<span>Accueil</span></a
-            >
-            <a class="bottom-nav__item" href="./modules.html"
-                >📦<span>Modules</span></a
-            >
-            <a class="bottom-nav__item is-active" href="./classement.html"
-                >🏆<span>Classement</span></a
-            >
-            <a class="bottom-nav__item" href="./profil.html"
-                >👤<span>Profil</span></a
-            >
+            <div class="bottom-nav-inner nav-inner">
+                <a class="nav-item" href="index.html">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-text">Accueil</span>
+                </a>
+                <a class="nav-item" href="modules.html">
+                    <span class="nav-icon">📦</span>
+                    <span class="nav-text">Modules</span>
+                </a>
+                <a
+                    class="nav-item active"
+                    href="classement.html"
+                    aria-current="page"
+                >
+                    <span class="nav-icon">🏆</span>
+                    <span class="nav-text">Classement</span>
+                </a>
+                <a class="nav-item" href="profil.html">
+                    <span class="nav-icon">👤</span>
+                    <span class="nav-text">Profil</span>
+                </a>
+            </div>
         </nav>
     </body>
 </html>
+</head></title></div></div></div></h2></strong></span></strong></span></strong></span></strong></span></div></div>

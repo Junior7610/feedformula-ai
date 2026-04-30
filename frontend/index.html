@@ -2,13 +2,20 @@
 <html lang="fr">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+        />
+        <meta name="theme-color" content="#1B5E20" />
         <meta
             name="description"
-            content="FeedFormula AI - Nutrition animale intelligente pour les éleveurs africains."
+            content="FeedFormula AI — Génération intelligente de rations animales, assistance vocale, modules agricoles et gamification."
         />
         <title>FeedFormula AI</title>
-        <link rel="stylesheet" href="./style.css" />
+
+        <link rel="stylesheet" href="style.css" />
+
+        <!-- Bibliothèques externes pour l'export PDF et les graphiques -->
         <script
             defer
             src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
@@ -17,463 +24,904 @@
             defer
             src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"
         ></script>
-        <script defer src="./api.js"></script>
-        <script defer src="./script.js"></script>
-        <script defer src="./api_bindings.js"></script>
-        <script>
-            window.FEEDFORMULA_API_BASE_URL =
-                window.FEEDFORMULA_API_BASE_URL || "";
-        </script>
+
+        <script defer src="script.js"></script>
     </head>
-    <body data-page="accueil">
-        <!-- Écran de démarrage : affiché au chargement puis masqué automatiquement -->
-        <section
+
+    <body class="home-page" data-page="accueil">
+        <!-- Écran de démarrage -->
+        <div
             id="splashScreen"
             class="splash-screen"
             aria-label="Écran de démarrage"
         >
-            <div class="splash-screen__content">
+            <div class="splash-content">
+                <div class="splash-logo" aria-hidden="true">
+                    <img src="../assets/logo_principal.png" alt="" />
+                    <div class="splash-title">FeedFormula AI</div>
+                </div>
+
                 <img
-                    src="../assets/logo_feedformula_minimal.png"
-                    alt="FeedFormula AI"
-                    class="splash-screen__logo"
-                />
-                <h1 class="splash-screen__title">FeedFormula AI</h1>
-                <img
+                    class="splash-mascot"
                     src="../assets/aya_joie.png"
-                    alt="Aya joyeuse"
-                    class="splash-screen__aya"
+                    alt="Aya, la mascotte joyeuse de FeedFormula AI"
                 />
-                <div class="splash-screen__loader" aria-hidden="true">
-                    <span></span>
+
+                <div class="splash-loader" aria-label="Chargement en cours">
+                    <div class="splash-loader-bar"></div>
                 </div>
             </div>
-        </section>
+        </div>
+
+        <!-- Zone de célébration -->
+        <div id="celebrationLayer" class="celebration" aria-hidden="true"></div>
 
         <!-- En-tête fixe -->
-        <header class="app-header app-header--sticky" role="banner">
-            <a
-                class="app-header__brand"
-                href="./index.html"
-                aria-label="Accueil FeedFormula AI"
-            >
-                <img
-                    src="../assets/logo_feedformula_minimal.png"
-                    alt="Logo FeedFormula AI"
-                    class="app-header__brand-logo"
-                />
-                <span class="app-header__brand-name">FeedFormula AI</span>
-            </a>
+        <header class="app-header" role="banner">
+            <div class="app-header-inner">
+                <a
+                    class="brand"
+                    href="index.html"
+                    aria-label="Retour à l'accueil"
+                >
+                    <img
+                        class="brand-mark"
+                        src="../assets/logo_feedformula_minimal.png"
+                        alt="Logo FeedFormula AI"
+                    />
+                    <div>
+                        <div class="brand-title">FeedFormula AI</div>
+                        <div class="brand-subtitle">
+                            Votre assistant d'élevage intelligent
+                        </div>
+                    </div>
+                </a>
 
-            <a
-                href="./profil.html"
-                class="app-header__avatar"
-                aria-label="Ouvrir le profil"
-            >
-                <img src="../assets/aya_joie.png" alt="Avatar utilisateur" />
-            </a>
+                <div class="header-actions">
+                    <a
+                        class="header-avatar"
+                        href="profil.html"
+                        aria-label="Ouvrir le profil utilisateur"
+                    >
+                        <img
+                            src="../assets/aya_joie.png"
+                            alt="Avatar utilisateur"
+                        />
+                    </a>
+                </div>
+            </div>
         </header>
 
-        <main class="app-main app-main--with-nav">
-            <!-- Barre de niveau -->
-            <section
-                class="level-banner card-shell"
-                aria-label="Progression du niveau"
-            >
-                <div class="level-banner__row">
-                    <strong id="levelLabel">Niveau 1 — Semence 🌱</strong>
-                    <span id="levelPoints">0 / 100 pts → Niveau 2</span>
+        <main class="page-shell">
+            <!-- Barre de progression du niveau -->
+            <section class="xp-sticky" aria-label="Progression de niveau">
+                <div class="level-title">
+                    <span id="levelBadge" class="level-name"
+                        >Niveau 1 — Semence 🌱</span
+                    >
+                    <span id="xpValue" class="level-points"
+                        >0 / 100 pts → Niveau 2</span
+                    >
                 </div>
-                <div
-                    class="progress-track progress-track--level"
-                    aria-hidden="true"
-                >
-                    <span
-                        id="levelProgress"
-                        class="progress-track__bar"
-                        style="width: 0%"
-                    ></span>
+                <div class="xp-track" aria-hidden="true">
+                    <div id="xpFill" class="xp-fill" style="width: 0%"></div>
+                </div>
+                <div class="level-meta">
+                    <span>Continuez à générer des rations pour progresser</span>
+                    <span>+10 🌟 par ration</span>
                 </div>
             </section>
 
-            <!-- Défi du jour -->
+            <!-- Bannière hors ligne -->
             <section
-                class="daily-challenge card-shell card-shell--gold"
-                aria-label="Défi quotidien"
+                id="offlineBanner"
+                class="offline-banner hidden"
+                aria-live="polite"
             >
-                <div class="section-title-row">
-                    <h2>⚡ Défi du jour</h2>
-                    <span id="dailyCountdown" class="countdown-pill"
-                        >--:--:--</span
-                    >
-                </div>
-                <p id="dailyChallengeText">
-                    Préparez une ration équilibrée pour réduire les coûts de 10%
-                    aujourd'hui.
+                Vous êtes hors ligne. Les dernières rations restent accessibles
+                grâce au cache local.
+            </section>
+
+            <!-- Cache local -->
+            <section
+                id="offlineCachePanel"
+                class="card card-offline-cache hidden"
+                aria-label="Rations mises en cache"
+            >
+                <h2 class="section-title">Rations récentes hors ligne</h2>
+                <p class="section-subtitle">
+                    Vous pouvez revoir vos dernières rations même sans
+                    connexion.
                 </p>
-                <div
-                    class="progress-track progress-track--gold"
-                    aria-hidden="true"
+                <ul id="offlineRationsList" class="offline-rations-list"></ul>
+            </section>
+
+            <!-- Défi quotidien -->
+            <section
+                class="card challenge-card"
+                aria-labelledby="dailyChallengeTitle"
+            >
+                <div class="challenge-head">
+                    <h2 id="dailyChallengeTitle">⚡ Défi du jour</h2>
+                    <span class="challenge-tag">
+                        Temps restant :
+                        <strong id="challengeCountdown">00:00:00</strong>
+                    </span>
+                </div>
+                <p
+                    id="dailyChallengeText"
+                    class="challenge-text"
+                    data-challenge-text
                 >
-                    <span
-                        class="progress-track__bar progress-track__bar--gold"
-                        style="width: 72%"
-                    ></span>
+                    Générer une ration équilibrée pour optimiser les
+                    performances alimentaires de votre troupeau et gagner des
+                    points bonus.
+                </p>
+                <div class="challenge-progress" aria-hidden="true">
+                    <div
+                        id="challengeProgress"
+                        class="challenge-progress-fill"
+                        data-challenge-progress
+                        style="width: 65%"
+                    ></div>
                 </div>
             </section>
 
             <!-- Sélecteur de langue -->
             <section
-                class="language-switcher card-shell"
-                aria-label="Sélecteur de langue"
+                class="language-strip"
+                aria-labelledby="languageSelectorTitle"
             >
-                <div class="language-switcher__row" id="languageSwitcher">
+                <div class="strip-label" id="languageSelectorTitle">
+                    Choisissez votre langue
+                </div>
+
+                <div
+                    class="language-list"
+                    role="list"
+                    aria-label="Langues rapides"
+                >
                     <button
-                        class="language-pill is-active"
-                        data-lang="fr"
+                        class="lang-item active"
                         type="button"
+                        data-lang="fr"
+                        aria-pressed="true"
                     >
                         🇫🇷 FR
                     </button>
-                    <button class="language-pill" data-lang="fon" type="button">
+                    <button
+                        class="lang-item"
+                        type="button"
+                        data-lang="fon"
+                        aria-pressed="false"
+                    >
                         🇧🇯 FON
                     </button>
-                    <button class="language-pill" data-lang="yor" type="button">
+                    <button
+                        class="lang-item"
+                        type="button"
+                        data-lang="yor"
+                        aria-pressed="false"
+                    >
                         🇳🇬 YOR
                     </button>
-                    <button class="language-pill" data-lang="den" type="button">
+                    <button
+                        class="lang-item"
+                        type="button"
+                        data-lang="den"
+                        aria-pressed="false"
+                    >
                         🇧🇯 DEN
                     </button>
-                    <button class="language-pill" data-lang="en" type="button">
+                    <button
+                        class="lang-item"
+                        type="button"
+                        data-lang="en"
+                        aria-pressed="false"
+                    >
                         🇬🇧 EN
                     </button>
                     <button
-                        class="language-pill language-pill--more"
-                        id="languageMoreBtn"
+                        class="lang-more"
                         type="button"
+                        id="languageMoreBtn"
+                        data-lang-toggle
                         aria-expanded="false"
+                        aria-controls="languagePanel"
                     >
                         50 langues ▼
                     </button>
                 </div>
 
-                <div id="languagePanel" class="language-panel" hidden>
-                    <!-- Liste complète injectée par JavaScript -->
-                </div>
+                <!-- Liste complète des langues -->
+                <details id="languagePanel" class="card hidden" data-lang-panel>
+                    <summary class="section-title">Langues disponibles</summary>
+                    <div
+                        class="language-list"
+                        style="margin-top: 12px; flex-wrap: wrap"
+                    >
+                        <button
+                            class="lang-item"
+                            type="button"
+                            data-lang="fr"
+                            data-lang-button
+                        >
+                            Français
+                        </button>
+                        <button
+                            class="lang-item"
+                            type="button"
+                            data-lang="fon"
+                            data-lang-button
+                        >
+                            Fon
+                        </button>
+                        <button
+                            class="lang-item"
+                            type="button"
+                            data-lang="yor"
+                            data-lang-button
+                        >
+                            Yoruba
+                        </button>
+                        <button
+                            class="lang-item"
+                            type="button"
+                            data-lang="den"
+                            data-lang-button
+                        >
+                            Dendi
+                        </button>
+                        <button
+                            class="lang-item"
+                            type="button"
+                            data-lang="en"
+                            data-lang-button
+                        >
+                            English
+                        </button>
+                        <button
+                            class="lang-item"
+                            type="button"
+                            data-lang="ha"
+                            data-lang-button
+                        >
+                            Hausa
+                        </button>
+                        <button
+                            class="lang-item"
+                            type="button"
+                            data-lang="sw"
+                            data-lang-button
+                        >
+                            Swahili
+                        </button>
+                        <button
+                            class="lang-item"
+                            type="button"
+                            data-lang="ar"
+                            data-lang-button
+                        >
+                            العربية
+                        </button>
+                        <button
+                            class="lang-item"
+                            type="button"
+                            data-lang="es"
+                            data-lang-button
+                        >
+                            Español
+                        </button>
+                        <button
+                            class="lang-item"
+                            type="button"
+                            data-lang="pt"
+                            data-lang-button
+                        >
+                            Português
+                        </button>
+                        <button
+                            class="lang-item"
+                            type="button"
+                            data-lang="ig"
+                            data-lang-button
+                        >
+                            Igbo
+                        </button>
+                        <button
+                            class="lang-item"
+                            type="button"
+                            data-lang="bm"
+                            data-lang-button
+                        >
+                            Bambara
+                        </button>
+                        <button
+                            class="lang-item"
+                            type="button"
+                            data-lang="wo"
+                            data-lang-button
+                        >
+                            Wolof
+                        </button>
+                        <button
+                            class="lang-item"
+                            type="button"
+                            data-lang="sn"
+                            data-lang-button
+                        >
+                            Shona
+                        </button>
+                        <button
+                            class="lang-item"
+                            type="button"
+                            data-lang="ak"
+                            data-lang-button
+                        >
+                            Akan
+                        </button>
+                        <button
+                            class="lang-item"
+                            type="button"
+                            data-lang="zu"
+                            data-lang-button
+                        >
+                            Zulu
+                        </button>
+                        <button
+                            class="lang-item"
+                            type="button"
+                            data-lang="xh"
+                            data-lang-button
+                        >
+                            Xhosa
+                        </button>
+                        <button
+                            class="lang-item"
+                            type="button"
+                            data-lang="am"
+                            data-lang-button
+                        >
+                            Amharic
+                        </button>
+                        <button
+                            class="lang-item"
+                            type="button"
+                            data-lang="ru"
+                            data-lang-button
+                        >
+                            Русский
+                        </button>
+                        <button
+                            class="lang-item"
+                            type="button"
+                            data-lang="zh"
+                            data-lang-button
+                        >
+                            中文
+                        </button>
+                    </div>
+                </details>
             </section>
 
-            <!-- Bouton microphone -->
-            <section class="voice-zone card-shell" aria-label="Commande vocale">
-                <canvas
-                    id="voiceCanvas"
-                    class="voice-zone__canvas"
-                    width="600"
-                    height="160"
-                    aria-hidden="true"
-                ></canvas>
+            <!-- Microphone central -->
+            <section class="card" aria-labelledby="voiceTitle">
+                <h2 id="voiceTitle" class="section-title">
+                    Parlez à FeedFormula AI
+                </h2>
+                <p class="section-subtitle">
+                    Dites ce que vous avez sous la main, l'espèce et l'objectif
+                    recherché.
+                </p>
 
-                <button
-                    id="micButton"
-                    class="voice-button"
-                    type="button"
-                    aria-pressed="false"
-                    aria-label="Activer le micro"
-                >
-                    <span class="voice-button__icon">🎤</span>
-                </button>
+                <div class="mic-zone">
+                    <canvas
+                        id="waveCanvas"
+                        class="wave-canvas"
+                        width="480"
+                        height="120"
+                        aria-hidden="true"
+                        data-wave-canvas
+                        data-mode="rest"
+                    ></canvas>
 
-                <p class="voice-zone__label">Appuyez et parlez</p>
-                <p id="micStatus" class="voice-zone__status">Repos</p>
+                    <button
+                        id="btnMic"
+                        class="btn-mic"
+                        type="button"
+                        aria-label="Activer la reconnaissance vocale"
+                        data-mic-button
+                    >
+                        <span class="mic-wave"></span>
+                        <span class="mic-wave"></span>
+                        <span class="mic-wave"></span>
+                        <span class="mic-core" aria-hidden="true">🎤</span>
+                    </button>
+
+                    <p class="mic-help">Appuyez et parlez</p>
+                </div>
             </section>
 
             <!-- Séparateur -->
-            <div class="divider-with-text" aria-hidden="true">
+            <section
+                class="separator"
+                aria-label="Séparation entre voix et texte"
+            >
                 <span>ou tapez ci-dessous</span>
-            </div>
+            </section>
 
             <!-- Zone de saisie texte -->
-            <section
-                class="text-input-zone card-shell"
-                aria-label="Saisie manuelle"
-            >
-                <textarea
-                    id="descriptionInput"
-                    class="text-input"
-                    rows="4"
-                    placeholder="Décrivez vos animaux et vos ingrédients..."
-                ></textarea>
-            </section>
+            <section class="card" aria-labelledby="inputTitle">
+                <h2 id="inputTitle" class="section-title">
+                    Décrivez vos animaux et vos ingrédients
+                </h2>
 
-            <!-- Grille des espèces -->
-            <section
-                class="species-zone card-shell"
-                aria-label="Sélection de l'espèce"
-            >
-                <div class="section-title-row">
-                    <h2>Choisissez l'espèce</h2>
-                </div>
-
-                <div id="speciesGrid" class="species-grid">
-                    <button
-                        class="species-card"
-                        data-species="poulet-chair"
-                        type="button"
-                    >
-                        🐔<span>Poulet chair</span>
-                    </button>
-                    <button
-                        class="species-card"
-                        data-species="poule-pondeuse"
-                        type="button"
-                    >
-                        🥚<span>Poule pondeuse</span>
-                    </button>
-                    <button
-                        class="species-card"
-                        data-species="pintade"
-                        type="button"
-                    >
-                        🦜<span>Pintade</span>
-                    </button>
-                    <button
-                        class="species-card"
-                        data-species="vache-laitiere"
-                        type="button"
-                    >
-                        🐄<span>Vache laitière</span>
-                    </button>
-                    <button
-                        class="species-card"
-                        data-species="mouton"
-                        type="button"
-                    >
-                        🐑<span>Mouton</span>
-                    </button>
-                    <button
-                        class="species-card"
-                        data-species="chevre"
-                        type="button"
-                    >
-                        🐐<span>Chèvre</span>
-                    </button>
-                    <button
-                        class="species-card"
-                        data-species="porc"
-                        type="button"
-                    >
-                        🐷<span>Porc</span>
-                    </button>
-                    <button
-                        class="species-card"
-                        data-species="tilapia"
-                        type="button"
-                    >
-                        🐟<span>Tilapia</span>
-                    </button>
+                <div class="field-group">
+                    <label class="field-label" for="texteDemande">
+                        Votre demande
+                    </label>
+                    <textarea
+                        id="texteDemande"
+                        data-text-input
+                        placeholder="Décrivez vos animaux et vos ingrédients..."
+                        autocomplete="off"
+                        spellcheck="true"
+                        data-lang-aware="1"
+                        data-multilingual-placeholder="1"
+                    ></textarea>
                 </div>
             </section>
 
-            <!-- Stade physiologique : affiché après sélection de l'espèce -->
-            <section id="stageSection" class="stage-zone card-shell" hidden>
-                <div class="section-title-row">
-                    <h2>Stade physiologique</h2>
-                </div>
-                <div id="stageSelector" class="stage-selector"></div>
-            </section>
-
-            <!-- Ingrédients avec tags et suggestions -->
+            <!-- Sélection des espèces -->
             <section
-                class="ingredient-zone card-shell"
-                aria-label="Ingrédients de la ration"
+                class="card species-section"
+                aria-labelledby="speciesTitle"
             >
-                <div class="section-title-row">
-                    <h2>Ingrédients</h2>
+                <div>
+                    <h2 id="speciesTitle" class="section-title">
+                        Choisissez une espèce
+                    </h2>
+                    <p class="section-subtitle">
+                        Tapez sur une carte pour activer automatiquement le
+                        stade adapté.
+                    </p>
                 </div>
-
-                <input
-                    id="ingredientInput"
-                    class="text-input text-input--single"
-                    type="text"
-                    placeholder="Tapez un ingrédient, par exemple maïs"
-                    autocomplete="off"
-                />
 
                 <div
-                    id="ingredientSuggestions"
-                    class="suggestions-box"
+                    id="speciesGrid"
+                    class="species-grid-cards"
+                    role="list"
+                    aria-label="Espèces animales"
+                >
+                    <button
+                        class="species-card"
+                        type="button"
+                        data-espece="poulet-chair"
+                        data-species="Poulet chair"
+                        data-label="Poulet chair"
+                        role="listitem"
+                    >
+                        <span class="species-emoji" aria-hidden="true">🐔</span>
+                        <span class="species-name">Poulet chair</span>
+                    </button>
+
+                    <button
+                        class="species-card"
+                        type="button"
+                        data-espece="poule-pondeuse"
+                        data-species="Poule pondeuse"
+                        data-label="Poule pondeuse"
+                        role="listitem"
+                    >
+                        <span class="species-emoji" aria-hidden="true">🥚</span>
+                        <span class="species-name">Poule pondeuse</span>
+                    </button>
+
+                    <button
+                        class="species-card"
+                        type="button"
+                        data-espece="pintade"
+                        data-species="Pintade"
+                        data-label="Pintade"
+                        role="listitem"
+                    >
+                        <span class="species-emoji" aria-hidden="true">🦜</span>
+                        <span class="species-name">Pintade</span>
+                    </button>
+
+                    <button
+                        class="species-card"
+                        type="button"
+                        data-espece="vache-laitiere"
+                        data-species="Vache laitière"
+                        data-label="Vache laitière"
+                        role="listitem"
+                    >
+                        <span class="species-emoji" aria-hidden="true">🐄</span>
+                        <span class="species-name">Vache laitière</span>
+                    </button>
+
+                    <button
+                        class="species-card"
+                        type="button"
+                        data-espece="mouton"
+                        data-species="Mouton"
+                        data-label="Mouton"
+                        role="listitem"
+                    >
+                        <span class="species-emoji" aria-hidden="true">🐑</span>
+                        <span class="species-name">Mouton</span>
+                    </button>
+
+                    <button
+                        class="species-card"
+                        type="button"
+                        data-espece="chevre"
+                        data-species="Chèvre"
+                        data-label="Chèvre"
+                        role="listitem"
+                    >
+                        <span class="species-emoji" aria-hidden="true">🐐</span>
+                        <span class="species-name">Chèvre</span>
+                    </button>
+
+                    <button
+                        class="species-card"
+                        type="button"
+                        data-espece="porc"
+                        data-species="Porc"
+                        data-label="Porc"
+                        role="listitem"
+                    >
+                        <span class="species-emoji" aria-hidden="true">🐷</span>
+                        <span class="species-name">Porc</span>
+                    </button>
+
+                    <button
+                        class="species-card"
+                        type="button"
+                        data-espece="tilapia"
+                        data-species="Tilapia"
+                        data-label="Tilapia"
+                        role="listitem"
+                    >
+                        <span class="species-emoji" aria-hidden="true">🐟</span>
+                        <span class="species-name">Tilapia</span>
+                    </button>
+                </div>
+
+                <select
+                    id="espece"
+                    class="hidden"
+                    aria-label="Espèce sélectionnée"
+                    data-species-active
+                >
+                    <option value="">Sélectionner une espèce</option>
+                    <option value="poulet-chair">Poulet chair</option>
+                    <option value="poule-pondeuse">Poule pondeuse</option>
+                    <option value="pintade">Pintade</option>
+                    <option value="vache-laitiere">Vache laitière</option>
+                    <option value="mouton">Mouton</option>
+                    <option value="chevre">Chèvre</option>
+                    <option value="porc">Porc</option>
+                    <option value="tilapia">Tilapia</option>
+                </select>
+            </section>
+
+            <!-- Sélecteur de stade -->
+            <section
+                id="stageSection"
+                class="card stage-selector hidden"
+                aria-labelledby="stageTitle"
+            >
+                <h2 id="stageTitle" class="section-title">
+                    Choisissez le stade
+                </h2>
+                <p class="section-subtitle">
+                    Le stade se met à jour selon l'espèce sélectionnée.
+                </p>
+
+                <div
+                    id="stageOptions"
+                    class="stage-pills"
+                    aria-label="Options de stade"
+                    data-stage-container
+                ></div>
+
+                <select
+                    id="stade"
+                    class="field-group"
+                    aria-label="Stade de production"
+                    data-stage-value
+                >
+                    <option value="">Sélectionner un stade</option>
+                </select>
+            </section>
+
+            <!-- Ingrédients -->
+            <section
+                class="card ingredients-zone"
+                aria-labelledby="ingredientsTitle"
+            >
+                <h2 id="ingredientsTitle" class="section-title">Ingrédients</h2>
+                <p class="section-subtitle">
+                    Tapez un ingrédient pour voir les suggestions et constituer
+                    vos tags.
+                </p>
+
+                <div class="ingredients-input-wrap">
+                    <label class="field-label" for="ingredientsInput">
+                        Rechercher un ingrédient
+                    </label>
+                    <input
+                        id="ingredientsInput"
+                        data-ingredients-input
+                        type="text"
+                        inputmode="text"
+                        placeholder="Ex. maïs, son de blé, tourteau..."
+                        autocomplete="off"
+                        data-multilingual-placeholder="1"
+                    />
+                </div>
+
+                <div
+                    id="ingredientsSuggestions"
+                    class="ingredients-suggestions"
                     aria-label="Suggestions d'ingrédients"
+                    data-ingredients-suggestions
                 ></div>
                 <div
-                    id="ingredientTags"
-                    class="tag-zone"
+                    id="ingredientsTags"
+                    class="tags-list"
                     aria-label="Ingrédients ajoutés"
+                    data-ingredients-tags
                 ></div>
             </section>
 
-            <!-- Slider du nombre d'animaux -->
-            <section
-                class="slider-zone card-shell"
-                aria-label="Nombre d'animaux"
-            >
-                <div class="section-title-row">
-                    <h2>Nombre d'animaux</h2>
-                    <strong id="animalCountValue">50</strong>
+            <!-- Nombre d'animaux -->
+            <section class="card slider-group" aria-labelledby="animalsTitle">
+                <div class="slider-head">
+                    <h2 id="animalsTitle" class="section-title">
+                        Nombre d'animaux
+                    </h2>
+                    <span class="slider-value" id="nombreAnimauxValue">50</span>
                 </div>
+
+                <label class="sr-only" for="nombreAnimaux">
+                    Nombre d'animaux
+                </label>
                 <input
-                    id="animalCountSlider"
-                    class="range-slider"
+                    id="nombreAnimaux"
                     type="range"
                     min="1"
                     max="5000"
+                    step="1"
                     value="50"
+                    data-animals-slider
                 />
+                <p class="section-subtitle">
+                    Nombre d'animaux :
+                    <strong id="nombreAnimauxDisplay">50</strong>
+                </p>
             </section>
 
             <!-- Objectif -->
-            <section
-                class="objective-zone card-shell"
-                aria-label="Objectif de la ration"
-            >
-                <div class="section-title-row">
-                    <h2>Objectif</h2>
-                </div>
+            <section class="card objective-group" aria-labelledby="goalTitle">
+                <h2 id="goalTitle" class="section-title">
+                    Choisissez votre objectif
+                </h2>
 
                 <div
-                    class="objective-group"
+                    class="radio-group"
                     role="radiogroup"
-                    aria-label="Choix de l'objectif"
+                    aria-label="Objectif de la ration"
                 >
-                    <button
-                        class="objective-option is-active"
-                        data-objective="equilibre"
-                        type="button"
-                    >
-                        ⚖️ Équilibre
-                    </button>
-                    <button
-                        class="objective-option"
-                        data-objective="economique"
-                        type="button"
-                    >
-                        💰 Économique
-                    </button>
-                    <button
-                        class="objective-option"
-                        data-objective="proteines"
-                        type="button"
-                    >
-                        💪 Riche protéines
-                    </button>
+                    <label class="radio-card is-selected">
+                        <input
+                            type="radio"
+                            name="objectif"
+                            value="equilibre"
+                            checked
+                        />
+                        <span>⚖️ Équilibre</span>
+                    </label>
+
+                    <label class="radio-card">
+                        <input
+                            type="radio"
+                            name="objectif"
+                            value="economique"
+                        />
+                        <span>💰 Économique</span>
+                    </label>
+
+                    <label class="radio-card">
+                        <input type="radio" name="objectif" value="proteines" />
+                        <span>💪 Riche protéines</span>
+                    </label>
                 </div>
             </section>
 
-            <!-- Bouton générer -->
-            <section class="generate-zone card-shell">
+            <!-- Bouton de génération -->
+            <section class="card">
                 <button
-                    id="generateButton"
-                    class="primary-action"
+                    id="btnGenerer"
+                    class="btn btn-primary btn-generate"
                     type="button"
+                    data-generate-ration
                 >
                     🌾 Générer ma ration
                 </button>
-                <p class="action-star">+10 🌟</p>
+                <p
+                    class="text-center section-subtitle"
+                    style="margin-top: 10px"
+                >
+                    +10 🌟 à chaque génération réussie
+                </p>
             </section>
 
-            <!-- Résultat -->
-            <section id="resultSection" class="result-panel card-shell" hidden>
-                <div class="section-title-row">
-                    <h2>Votre ration</h2>
-                    <button
-                        id="saveHistoryButton"
-                        class="chip-button"
-                        type="button"
+            <!-- Zone résultat -->
+            <section
+                id="resultatZone"
+                class="result-zone hidden"
+                aria-live="polite"
+                aria-labelledby="resultTitle"
+                data-result-zone
+            >
+                <h2 id="resultTitle" class="result-title" data-result-title>
+                    Votre ration générée
+                </h2>
+
+                <div
+                    id="resultContent"
+                    class="result-content"
+                    data-result-content
+                >
+                    <div class="result-hero">
+                        <strong>━━━ Ration optimisée ━━━</strong>
+                        <p class="section-subtitle" style="margin-top: 8px">
+                            Les détails s'affichent ici après la génération.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="chart-card" data-result-chart-box>
+                    <canvas
+                        id="chartComposition"
+                        width="400"
+                        height="280"
+                        aria-label="Graphique camembert de la composition"
+                        data-ration-chart
+                    ></canvas>
+                </div>
+
+                <div class="result-card">
+                    <div class="cout-big" id="coutBig" data-cout-big>
+                        0 FCFA/kg
+                    </div>
+                    <div
+                        id="coutDetails"
+                        class="section-subtitle"
+                        data-cout-details
                     >
-                        Sauvegarder
+                        Coût estimé et observations complémentaires
+                    </div>
+                </div>
+
+                <div
+                    id="performancesContent"
+                    class="result-card"
+                    data-result-perf
+                >
+                    <h3 class="section-title">Performances attendues</h3>
+                    <p class="section-subtitle">
+                        Les indicateurs de performance apparaîtront ici.
+                    </p>
+                </div>
+
+                <div
+                    class="result-actions"
+                    aria-label="Actions sur la ration"
+                    data-result-actions
+                >
+                    <button
+                        id="btnEcouterRation"
+                        class="btn btn-secondary"
+                        type="button"
+                        data-speak-ration
+                        data-speak
+                    >
+                        🔊 Écouter
+                    </button>
+                    <button
+                        id="btnTelechargerPDF"
+                        class="btn btn-gold btn-action-pdf"
+                        type="button"
+                        data-pdf-ration
+                        data-pdf
+                    >
+                        📄 PDF
+                    </button>
+                    <button
+                        id="btnPartagerWhatsApp"
+                        class="btn btn-secondary btn-action-wa"
+                        type="button"
+                        data-whatsapp-ration
+                        data-whatsapp
+                    >
+                        📱 WhatsApp
                     </button>
                 </div>
 
-                <div class="result-panel__content">
-                    <div id="rationText" class="ration-text"></div>
+                <button
+                    id="btnSauvegarderHistorique"
+                    class="btn btn-outline btn-save-history"
+                    type="button"
+                    data-save-history
+                >
+                    Sauvegarder dans l'historique
+                </button>
+            </section>
 
-                    <div class="result-grid">
-                        <div class="result-card">
-                            <span>Coût estimé</span>
-                            <strong id="rationCost">-- FCFA</strong>
-                        </div>
-                        <div class="result-card">
-                            <span>Volume total</span>
-                            <strong id="rationVolume">-- kg</strong>
-                        </div>
-                        <div class="result-card">
-                            <span>Protéines</span>
-                            <strong id="rationProtein">--%</strong>
-                        </div>
-                    </div>
-
-                    <div class="chart-wrap">
-                        <canvas
-                            id="compositionChart"
-                            width="300"
-                            height="300"
-                            aria-label="Graphique de composition"
-                        ></canvas>
-                    </div>
-
-                    <div id="rationSteps" class="ration-steps"></div>
-
-                    <div class="action-row">
-                        <button
-                            id="speakButton"
-                            class="secondary-action"
-                            type="button"
-                        >
-                            🔊 Écouter
-                        </button>
-                        <button
-                            id="pdfButton"
-                            class="secondary-action"
-                            type="button"
-                        >
-                            📄 PDF
-                        </button>
-                        <button
-                            id="whatsappButton"
-                            class="secondary-action"
-                            type="button"
-                        >
-                            📱 WhatsApp
-                        </button>
-                    </div>
-                </div>
+            <!-- Historique local -->
+            <section
+                class="card hidden"
+                id="historiquePanel"
+                aria-label="Historique local"
+            >
+                <h2 class="section-title">Historique local</h2>
+                <p class="section-subtitle">
+                    Vos dernières rations enregistrées sont conservées hors
+                    ligne.
+                </p>
             </section>
         </main>
 
         <!-- Mascotte Aya -->
-        <aside class="aya-widget" aria-live="polite">
+        <aside class="aya-floating" aria-label="Mascotte Aya">
+            <div id="ayaPointsBubble" class="aya-points-bubble" data-aya-points>
+                +10 🌟
+            </div>
             <img
+                id="ayaMascotte"
+                class="aya-image"
                 src="../assets/aya_joie.png"
-                alt="Aya"
-                class="aya-widget__image"
+                alt="Aya, mascotte de FeedFormula AI"
+                data-aya-image
             />
-            <div id="ayaBubble" class="aya-widget__bubble">
-                Bonjour ! Je vous aide à construire la meilleure ration.
+            <div id="ayaMessage" class="aya-bubble is-show" data-aya-bubble>
+                Je vous aide à créer une ration adaptée à vos animaux.
             </div>
         </aside>
 
-        <!-- Navigation basse fixe -->
+        <!-- Navigation basse -->
         <nav class="bottom-nav" aria-label="Navigation principale">
-            <a class="bottom-nav__item is-active" href="./index.html"
-                >🏠<span>Accueil</span></a
-            >
-            <a class="bottom-nav__item" href="./modules.html"
-                >📦<span>Modules</span></a
-            >
-            <a class="bottom-nav__item" href="./classement.html"
-                >🏆<span>Classement</span></a
-            >
-            <a class="bottom-nav__item" href="./profil.html"
-                >👤<span>Profil</span></a
-            >
+            <div class="bottom-nav-inner">
+                <a
+                    class="nav-item active"
+                    href="index.html"
+                    aria-current="page"
+                >
+                    <span class="nav-icon" aria-hidden="true">🏠</span>
+                    <span class="nav-text">Accueil</span>
+                </a>
+
+                <a class="nav-item" href="modules.html">
+                    <span class="nav-icon" aria-hidden="true">📦</span>
+                    <span class="nav-text">Modules</span>
+                </a>
+
+                <a class="nav-item" href="classement.html">
+                    <span class="nav-icon" aria-hidden="true">🏆</span>
+                    <span class="nav-text">Classement</span>
+                </a>
+
+                <a class="nav-item" href="profil.html">
+                    <span class="nav-icon" aria-hidden="true">👤</span>
+                    <span class="nav-text">Profil</span>
+                </a>
+            </div>
         </nav>
     </body>
 </html>
+</head></title></div></span></span></span></div></span></span></span></h2></div></strong></div></div></div></div>
