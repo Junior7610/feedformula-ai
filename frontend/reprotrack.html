@@ -9,225 +9,356 @@
         <meta name="theme-color" content="#8E24AA" />
         <meta
             name="description"
-            content="FeedFormula AI — ReproTrack, calendrier reproduction et tableau de bord fertilité."
+            content="FeedFormula AI — ReproTrack, calendrier reproduction et alertes 48h avant mise-bas."
         />
         <title>FeedFormula AI — ReproTrack</title>
-
         <link rel="stylesheet" href="style.css" />
-        <script defer src="script.js"></script>
+        <style>
+            body {
+                margin: 0;
+                font-family:
+                    system-ui,
+                    -apple-system,
+                    Segoe UI,
+                    Roboto,
+                    sans-serif;
+                background: #f8f4fb;
+                color: #341842;
+            }
+            .wrap {
+                max-width: 1040px;
+                margin: 0 auto;
+                padding: 16px 16px 120px;
+            }
+            .grid {
+                display: grid;
+                gap: 16px;
+            }
+            .card {
+                background: #fff;
+                border-radius: 20px;
+                padding: 16px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            }
+            .input,
+            .select {
+                width: 100%;
+                border: 1px solid #ddd;
+                border-radius: 14px;
+                padding: 14px;
+                font-size: 16px;
+                box-sizing: border-box;
+            }
+            .btn {
+                border: 0;
+                border-radius: 16px;
+                padding: 16px;
+                font-size: 17px;
+                font-weight: 700;
+                cursor: pointer;
+            }
+            .primary {
+                background: #8e24aa;
+                color: #fff;
+            }
+            .secondary {
+                background: #f3f3f3;
+                color: #222;
+            }
+            .calendar {
+                display: grid;
+                grid-template-columns: repeat(7, 1fr);
+                gap: 8px;
+            }
+            .day {
+                padding: 10px;
+                border-radius: 12px;
+                background: #f8f8f8;
+                min-height: 48px;
+                text-align: center;
+            }
+            .heat {
+                background: #fff3e0;
+            }
+            .ai {
+                background: #ede7f6;
+            }
+            .birth {
+                background: #e8f5e9;
+            }
+            .metric {
+                background: #fafafa;
+                border-radius: 14px;
+                padding: 14px;
+            }
+            .metric strong {
+                display: block;
+                font-size: 22px;
+            }
+            .alert {
+                padding: 14px;
+                border-radius: 14px;
+                background: #f9f0fb;
+            }
+            .alert.urgent {
+                background: #ffebee;
+            }
+            .meta {
+                color: #666;
+                font-size: 14px;
+            }
+            .event-item {
+                padding: 12px 0;
+                border-bottom: 1px solid #eee;
+            }
+        </style>
     </head>
-    <body data-page="reprotrack" class="repro-page">
-        <!-- En-tête rose / mauve pour le suivi reproduction -->
-        <header class="app-header repro-header">
-            <div class="app-header-inner">
-                <a
-                    class="brand"
-                    href="</head>index.html"
-                    aria-label="Retour à l'accueil"
-                >
-                    <img
-                        class="brand-mark"
-                        src="../assets/logo_principal.png"
-                        alt="Logo FeedFormula AI"
-                    />
-                    <div>
-                        <div class="brand-title">FeedFormula AI</div>
-                        <div class="brand-subtitle">ReproTrack</div>
-                    </div>
-                </a>
-
-                <div class="header-actions">
-                    <span class="badge badge-gold">+10 🌟</span>
-                </div>
-            </div>
-        </header>
-
-        <main class="page-shell">
-            <!-- Titre de page -->
-            <section class="card">
-                <div>
-                    <h1 class="section-title">📅 ReproTrack</h1>
-                    <p class="section-subtitle">
-                        Suivi simple des chaleurs, inséminations et mises-bas
-                        pour mieux anticiper la reproduction.
-                    </p>
-                </div>
-            </section>
-
-            <!-- Calendrier du mois en cours -->
-            <section class="card calendar-card" aria-labelledby="calendarTitle">
-                <div class="card-head">
-                    <h2 id="calendarTitle</title>">Calendrier du mois</h2>
-                    <span class="badge badge-soft" id="calendarMonthLabel">
-                        Mois en cours
-                    </span>
-                </div>
-
-                <div
-                    class="calendar-grid"
-                    data-repro-calendar
-                    aria-label="Calendrier reproduction"
-                ></div>
-
-                <div class="stack" style="margin-top: 14px">
-                    <div class="legend-item">
-                        <span
-                            class="calendar-day is-heat"
-                            style="width: 18px; height: 18px; min-height: 18px"
-                            aria-hidden="true"
-                        ></span>
-                        <span>Chaleurs prévues</span>
-                    </div>
-
-                    <div class="legend-item">
-                        <span
-                            class="calendar-day is-ai"
-                            style="width: 18px; height: 18px; min-height: 18px"
-                            aria-hidden="true"
-                        ></span>
-                        <span>Inséminations</span>
-                    </div>
-
-                    <div class="legend-item">
-                        <span
-                            class="calendar-day is-birth"
-                            style="width: 18px; height: 18px; min-height: 18px"
-                            aria-hidden="true"
-                        ></span>
-                        <span>Mises-bas</span>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Enregistrement d'un événement -->
-            <section class="card" aria-labelledby="eventTitle">
-                <h2 id="eventTitle" class="section-title">
-                    Enregistrer un événement
-                </h2>
-                <p class="section-subtitle">
-                    Note rapidement une saillie, une insémination, une mise-bas
-                    ou une chaleur observée.
+    <body>
+        <div class="wrap">
+            <header class="card">
+                <h1>📅 ReproTrack</h1>
+                <p class="meta">
+                    Calendrier de reproduction, alertes 48h et statistiques du
+                    troupeau.
                 </p>
+            </header>
 
-                <div class="stack" style="margin-top: 14px">
-                    <div class="field-group">
-                        <label class="field-label" for="reproEventType"
-                            >Type d'événement</label
-                        >
-                        <select
-                            id="reproEventType"
-                            data-repro-event-type
-                            aria-label="Type d'événement reproductif"
-                        >
-                            <option value="Saillie">Saillie</option>
-                            <option value="Insémination">Insémination</option>
-                            <option value="Mise-bas">Mise-bas</option>
-                            <option value="Chaleur observée">
-                                Chaleur observée</div></div></span>
-                            </option>
+            <main class="grid">
+                <section class="card">
+                    <h2>Calendrier du mois</h2>
+                    <div id="calendar" class="calendar"></div>
+                </section>
+
+                <section class="card">
+                    <h2>Enregistrer un événement</h2>
+                    <div style="display: grid; gap: 12px">
+                        <select id="type" class="select">
+                            <option>Saillie</option>
+                            <option>Insémination</option>
+                            <option>Mise-bas</option>
+                            <option>Chaleur observée</option>
                         </select>
-                    </div>
-
-                    <div class="field-group">
-                        <label class="field-label" for="reproAnimal"
-                            >Animal concerné</label
-                        >
                         <input
-                            id="reproAnimal"
-                            type="text</span>"
-                            placeholder="Nom ou numéro de l'animal"
-                            autocomplete="off"
+                            id="animal"
+                            class="input"
+                            placeholder="Nom ou numéro de l’animal"
+                        />
+                        <input
+                            id="species"
+                            class="input"
+                            placeholder="Espèce (vache, chèvre...)"
+                        />
+                        <input id="date" class="input" type="date" />
+                        <input
+                            id="notes"
+                            class="input"
+                            placeholder="Notes optionnelles"
+                        />
+                        <button
+                            id="saveEvent"
+                            class="btn primary"
+                            type="button"
+                        >
+                            Enregistrer
+                        </button>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <h2>Alertes 48h avant mise-bas</h2>
+                    <div id="alerts"></div>
+                </section>
+
+                <section class="card">
+                    <h2>Statistiques du troupeau</h2>
+                    <div
+                        id="stats"
+                        style="
+                            display: grid;
+                            grid-template-columns: repeat(3, 1fr);
+                            gap: 12px;
+                        "
+                    ></div>
+                </section>
+
+                <section class="card">
+                    <h2>Événements du jour</h2>
+                    <div
+                        style="
+                            display: grid;
+                            grid-template-columns: 1fr 1fr 1fr;
+                            gap: 8px;
+                            margin-bottom: 12px;
+                        "
+                    >
+                        <input
+                            id="filterAnimal"
+                            class="input"
+                            placeholder="Filtre animal"
+                        />
+                        <input id="filterDate" class="input" type="date" />
+                        <input
+                            id="filterType"
+                            class="input"
+                            placeholder="Filtre type"
                         />
                     </div>
-
                     <button
-                        class="btn btn-primary btn-wide"
+                        id="refreshList"
+                        class="btn secondary"
                         type="button"
-                        data-repro-event-button
                     >
-                        Enregistrer un événement
+                        Actualiser
                     </button>
-                </div>
-            </section>
+                    <div id="events" style="margin-top: 12px"></div>
+                </section>
+            </main>
+        </div>
 
-            <!-- Liste des animaux suivis -->
-            <section class="card" aria-labelledby="trackedTitle">
-                <div class="card-head">
-                    <h2 id="trackedTitle">Animaux suivis</h2>
-                    <span class="badge badge-soft">5 derniers</span>
-                </div>
+        <script>
+            const userId =
+                localStorage.getItem("feedformula_user_id") || "demo-user";
+            const $ = (s) => document.querySelector(s);
+            const calendar = $("#calendar");
+            const alerts = $("#alerts");
+            const stats = $("#stats");
+            const events = $("#events");
+            const type = $("#type");
+            const animal = $("#animal");
+            const species = $("#species");
+            const dateInput = $("#date");
+            const notes = $("#notes");
+            const filterAnimal = $("#filterAnimal");
+            const filterDate = $("#filterDate");
+            const filterType = $("#filterType");
 
-                <div
-                    class="repro-list"
-                    data-repro-list
-                    aria-label="Liste des animaux suivis"
-                ></div>
-            </section>
+            function buildCalendar(items) {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = now.getMonth();
+                const first = new Date(year, month, 1).getDay();
+                const total = new Date(year, month + 1, 0).getDate();
+                const labels = ["D", "L", "M", "M", "J", "V", "S"];
+                const cells = labels.map(
+                    (d) => `<div class="day"><strong>${d}</strong></div>`,
+                );
+                for (let i = 0; i < first; i += 1)
+                    cells.push('<div class="day"></div>');
+                const heat = new Set([3, 9, 14, 21, 26]);
+                const ai = new Set([5, 17, 24]);
+                const birth = new Set(
+                    items
+                        .filter((e) => e.date_prevue_prochain)
+                        .map((e) => new Date(e.date_prevue_prochain).getDate()),
+                );
+                for (let day = 1; day <= total; day += 1) {
+                    let cls = "day";
+                    if (heat.has(day)) cls += " heat";
+                    if (ai.has(day)) cls += " ai";
+                    if (birth.has(day)) cls += " birth";
+                    cells.push(
+                        `<div class="${cls}"><strong>${day}</strong></div>`,
+                    );
+                }
+                calendar.innerHTML = cells.join("");
+            }
 
-            <!-- Tableau de bord fertilité -->
-            <section class="card" aria-labelledby="dashboardTitle">
-                <div class="card-head">
-                    <h2 id="dashboardTitle">Tableau de bord fertilité</h2>
-                    <span class="badge badge-gold">Vue globale</span>
-                </div>
+            function renderAlerts(items) {
+                if (!items.length) {
+                    alerts.innerHTML =
+                        '<p class="meta">Aucune alerte imminente.</p>';
+                    return;
+                }
+                alerts.innerHTML = items
+                    .map(
+                        (a) =>
+                            `<div class="alert ${a.type === "mise-bas_proche" ? "urgent" : ""}"><strong>${a.message}</strong><div class="meta">${a.espece || ""} ${a.animal_id || ""}</div>${a.whatsapp_url ? `<a class="btn secondary" href="${a.whatsapp_url}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:10px;text-decoration:none">WhatsApp</a>` : ""}</div>`,
+                    )
+                    .join("");
+            }
 
-                <div
-                    class="fertility-dashboard"
-                    data-repro-dashboard
-                    aria-label="Indicateurs de fertilité"
-                ></div>
-            </section>
+            function renderStats(data) {
+                stats.innerHTML = [
+                    {
+                        label: "Taux gestation",
+                        value: `${data.taux_gestation_global || 0}%`,
+                    },
+                    { label: "Saillies", value: data.total_saillies || 0 },
+                    { label: "Mises-bas", value: data.total_mises_bas || 0 },
+                ]
+                    .map(
+                        (m) =>
+                            `<div class="metric"><strong>${m.value}</strong><div class="meta">${m.label}</div></div>`,
+                    )
+                    .join("");
+            }
 
-            <!-- Conseil Aya -->
-            <aside class="card" aria-label="Conseil ReproTrack">
-                <div class="card-head">
-                    <h2>💡 Conseil Aya</h2>
-                    <span class="badge badge-soft">Astuce</span>
-                </div>
-                <p class="section-subtitle" style="margin-top: 12px">
-                    Note les événements le jour même pour améliorer la précision
-                    du suivi et anticiper les prochaines étapes reproductives.
-                </p>
-            </aside>
-        </main>
+            function renderEvents(items) {
+                if (!items.length) {
+                    events.innerHTML = '<p class="meta">Aucun événement.</p>';
+                    return;
+                }
+                events.innerHTML = items
+                    .map(
+                        (e) =>
+                            `<div class="event-item"><strong>${e.event?.type_evenement || e.type_evenement || "Événement"}</strong><div class="meta">${e.event?.animal_id || e.animal_id || ""} — ${e.event?.date_evenement || e.date_evenement || ""}</div><div class="meta">${e.event?.details || e.notes || ""}</div></div>`,
+                    )
+                    .join("");
+            }
 
-        <!-- Mascotte Aya -->
-        <aside class="aya-floating" aria-label="Mascotte Aya">
-            <div class="aya-bubble is-show">
-                ReproTrack t'aide à suivre les événements clés et à mieux
-                planifier tes animaux reproducteurs.
-            </div>
-            <img
-                class="aya-image"
-                src="../assets/aya_joie.png"
-                alt="Aya, la mascotte de FeedFormula AI"
-            />
-        </aside>
+            async function loadData() {
+                const cal = await fetch(
+                    `/reprotrack/calendrier/${encodeURIComponent(userId)}`,
+                ).then((r) => r.json());
+                const al = await fetch(
+                    `/reprotrack/alertes/${encodeURIComponent(userId)}`,
+                ).then((r) => r.json());
+                const st = await fetch(
+                    `/reprotrack/stats/${encodeURIComponent(userId)}`,
+                ).then((r) => r.json());
+                buildCalendar(cal.evenements || []);
+                renderAlerts(al.alertes || []);
+                renderStats(st || {});
+                renderEvents(cal.evenements || []);
+            }
 
-        <!-- Navigation basse -->
-        <nav class="bottom-nav" aria-label="Navigation principale">
-            <div class="bottom-nav-inner">
-                <a class="nav-item" href="index.html">
-                    <span class="nav-icon" aria-hidden="true">🏠</span>
-                    <span class="nav-text">Accueil</span>
-                </a>
+            $("#saveEvent").addEventListener("click", async () => {
+                const payload = {
+                    user_id: userId,
+                    animal_id: animal.value,
+                    espece: species.value,
+                    type_evenement: type.value,
+                    date_evenement: dateInput.value || new Date().toISOString(),
+                    notes: notes.value,
+                };
+                const res = await fetch("/reprotrack/evenement", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    alert(data.detail || "Erreur");
+                    return;
+                }
+                await loadData();
+            });
 
-                <a class="nav-item" href="modules.html">
-                    <span class="nav-icon" aria-hidden="true">📦</span>
-                    <span class="nav-text">Modules</span>
-                </a>
+            $("#refreshList").addEventListener("click", async () => {
+                const params = new URLSearchParams();
+                if (filterAnimal.value)
+                    params.set("animal_id", filterAnimal.value);
+                if (filterDate.value)
+                    params.set("date_filtre", filterDate.value);
+                if (filterType.value)
+                    params.set("type_evenement", filterType.value);
+                const cal = await fetch(
+                    `/reprotrack/evenements/${encodeURIComponent(userId)}?${params.toString()}`,
+                ).then((r) => r.json());
+                renderEvents(cal.evenements || []);
+            });
 
-                <a class="nav-item" href="classement.html">
-                    <span class="nav-icon" aria-hidden="true">🏆</span>
-                    <span class="nav-text">Classement</span>
-                </a>
-
-                <a class="nav-item" href="profil.html">
-                    <span class="nav-icon" aria-hidden="true">👤</span>
-                    <span class="nav-text">Profil</span>
-                </a>
-            </div>
-        </nav>
+            loadData();
+        </script>
     </body>
 </html>
-</h2>

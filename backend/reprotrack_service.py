@@ -1,60 +1,67 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 """
 Service ReproTrack de FeedFormula AI.
 
-Ce module fournit :
-- des calculs de reproduction par espèce,
-- un routeur FastAPI dédié,
-- une table SQLAlchemy pour historiser les événements,
-- des endpoints simples et robustes pour le frontend.
+Fonctions principales :
+- enregistrement d'événements reproductifs,
+- calcul des prochaines chaleurs,
+- calcul de date de mise-bas,
+- statistiques de gestation/fertilité,
+- alertes 48h avant mise-bas,
+- génération d'URL WhatsApp pré-remplies pour les alertes.
 
-Tous les commentaires sont en français pour faciliter la maintenance.
+Le module est volontairement simple, robuste et facilement intégrable
+dans une application FastAPI existante.
 """
 
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
-from fastapi import APIRouter, Depends, HTTPException, status
+# -----------------------------------------------------------------------------
+# Imports locaux
+# -----------------------------------------------------------------------------
+from database import (
+    EvenementReproduction,
+    get_db,
+    get_user_by_id,
+)
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
 # -----------------------------------------------------------------------------
-# Imports locaux compatibles package/script
+# Routeur FastAPI
 # -----------------------------------------------------------------------------
-from database import Base, EvenementReproduction, User, get_db, get_user_by_id
+router = APIRouter(prefix="/reprotrack", tags=["ReproTrack"])
 
 
 # -----------------------------------------------------------------------------
-# Modèle ORM partagé
-# -----------------------------------------------------------------------------
-# Le modèle `EvenementReproduction` est défini uniquement dans `database.py`.
-# Ce module l'importe pour éviter toute double définition SQLAlchemy.
+# Helpers internes
 # -----------------------------------------------------------------------------
 def _uuid_str() -> str:
-    """Retourne un identifiant texte simple pour les lignes ReproTrack."""
+    """Retourne un identifiant texte simple."""
     import uuid
 
     return str(uuid.uuid4())
 
 
-def _clean_text(value: Optional[str]) -> str:
+def _clean_text(value: Any) -> str:
     """Nettoie une chaîne texte."""
-    return " ".join((value or "").strip().split())
+    return " ".join(str(value or "").strip().split())
 
 
 def _parse_datetime(value: Any) -> datetime:
     """
-    Convertit une entrée en datetime.
+    Convertit une valeur en datetime.
 
     Accepte :
     - datetime
     - date
     - chaîne ISO
-    - chaîne au format YYYY-MM-DD
+    - chaîne YYYY-MM-DD
     """
     if isinstance(value, datetime):
         return value
@@ -75,7 +82,7 @@ def _parse_datetime(value: Any) -> datetime:
 
 
 def _parse_date(value: Any) -> date:
-    """Convertit une entrée en date."""
+    """Convertit une valeur en date."""
     if isinstance(value, date) and not isinstance(value, datetime):
         return value
     if isinstance(value, datetime):
@@ -91,9 +98,24 @@ def _parse_date(value: Any) -> date:
     raise ValueError("Type de date non supporté.")
 
 
-def _species_key(espece: str) -> str:
-    """Normalise le nom de l'espèce pour la logique métier."""
+def _species_key(espece: Any) -> str:
+    """Normalise l'espèce pour la logique métier."""
     return _clean_text(espece).lower()
+
+
+def _whatsapp_text(message: str) -> str:
+    """Prépare un texte pour URL WhatsApp."""
+    return (
+        message.replace("%", "%25")
+        .replace(" ", "%20")
+        .replace("\n", "%0A")
+        .replace("\r", "")
+    )
+
+
+def _build_whatsapp_url(message: str) -> str:
+    """Construit une URL WhatsApp pré-remplie."""
+    return f"https://wa.me/?text={_whatsapp_text(message)}"
 
 
 # -----------------------------------------------------------------------------
@@ -103,10 +125,10 @@ class ReproTrackService:
     """
     Service métier ReproTrack.
 
-    Les règles sont volontairement simples, lisibles et faciles à faire évoluer.
+    Les paramètres sont simples pour rester compatibles avec une utilisation
+    terrain sur mobile.
     """
 
-    # Cycles oestraux et gestations utilisés dans l'application
     CYCLES_CHALEURS = {
         "vache": 21,
         "chevre": 21,
@@ -123,28 +145,33 @@ class ReproTrackService:
         "lapin": 31,
     }
 
-    def predire_prochaines_chaleurs(self, espece: str, date_derniere_chaleur: Any) -> List[Dict[str, Any]]:
+    def predire_prochaines_chaleurs(
+        self,
+        espece: Any,
+        date_derniere_chaleur: Any,
+    ) -> List[Dict[str, Any]]:
         """
-        Calcule les prochaines périodes de chaleur pour une espèce donnée.
+        Calcule les prochaines chaleurs pour une espèce donnée.
 
         Retour :
-            [
-                {"date": "...", "probabilite": 0.72},
-                ...
-            ]
+        [
+            {"date": "...", "probabilite": 0.82, "jours_apres": 21},
+            ...
+        ]
         """
         espece_norm = _species_key(espece)
         date_base = _parse_datetime(date_derniere_chaleur)
         cycle = self.CYCLES_CHALEURS.get(espece_norm, 21)
 
-        # Probabilité décroissante avec le temps.
         resultats: List[Dict[str, Any]] = []
-        for i, facteur in enumerate([1.0, 1.2, 1.5], start=1):
+        for i in range(1, 4):
             prochaine_date = date_base + timedelta(days=cycle * i)
-            probabilite = max(0.35, min(0.95, 0.88 - (i - 1) * 0.15))
-            # Ajustement simplifié pour espèces saisonnières.
+            probabilite = max(0.25, min(0.95, 0.88 - (i - 1) * 0.15))
+
+            # Espèces plus variables sur le terrain
             if espece_norm in {"chevre", "mouton"}:
-                probabilite = max(0.25, probabilite - 0.08)
+                probabilite = max(0.2, probabilite - 0.08)
+
             resultats.append(
                 {
                     "date": prochaine_date.date().isoformat(),
@@ -152,25 +179,15 @@ class ReproTrackService:
                     "jours_apres": cycle * i,
                 }
             )
+
         return resultats
 
-    def calculer_date_mise_bas(self, espece: str, date_saillie: Any) -> Dict[str, Any]:
+    def calculer_date_mise_bas(self, espece: Any, date_saillie: Any) -> Dict[str, Any]:
         """
         Calcule la date prévue de mise-bas selon l'espèce.
-
-        Retour :
-            {
-              "date_prevue": "...",
-              "alerte_48h": "...",
-              "jours_gestation": 114
-            }
         """
         espece_norm = _species_key(espece)
-        if espece_norm not in self.GESTATIONS:
-            # Valeur de repli raisonnable
-            jours = 150
-        else:
-            jours = self.GESTATIONS[espece_norm]
+        jours = self.GESTATIONS.get(espece_norm, 150)
 
         debut = _parse_datetime(date_saillie)
         date_prevue = debut + timedelta(days=jours)
@@ -184,15 +201,17 @@ class ReproTrackService:
 
     def calculer_taux_gestation(self, user_id: str, db: Session) -> Dict[str, Any]:
         """
-        Calcule un taux de gestation indicatif basé sur les événements stockés.
-
-        La logique est volontairement simple :
-        - type_evenement = "mise-bas" => succès
-        - type_evenement = "saillie" ou "insemination" => exposition
+        Calcule un taux de gestation indicatif à partir des événements.
         """
         user_id = (user_id or "").strip()
         if not user_id:
-            return {"taux_gestation": 0.0, "confiance": 0.0, "total_evenements": 0}
+            return {
+                "taux_gestation": 0.0,
+                "confiance": 0.0,
+                "total_evenements": 0,
+                "expositions": 0,
+                "naissances": 0,
+            }
 
         evenements = (
             db.query(EvenementReproduction)
@@ -211,10 +230,17 @@ class ReproTrackService:
                 total_success += 1
 
         if total_expositions == 0:
-            return {"taux_gestation": 0.0, "confiance": 0.0, "total_evenements": len(evenements)}
+            return {
+                "taux_gestation": 0.0,
+                "confiance": 0.0,
+                "total_evenements": len(evenements),
+                "expositions": 0,
+                "naissances": total_success,
+            }
 
         taux = (total_success / max(1, total_expositions)) * 100.0
         confiance = min(0.98, 0.4 + (len(evenements) / 50.0))
+
         return {
             "taux_gestation": round(taux, 2),
             "confiance": round(confiance, 2),
@@ -234,10 +260,30 @@ class ReproTrackService:
         date_prevue_prochain: Any = None,
         notes: Optional[str] = None,
     ) -> EvenementReproduction:
-        """Crée un événement reproduction en base."""
+        """
+        Crée un événement de reproduction en base.
+        """
         user = get_user_by_id(db, user_id)
         if not user:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Utilisateur introuvable.")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Utilisateur introuvable.",
+            )
+
+        dt_evt = _parse_datetime(date_evenement)
+        dt_next = (
+            _parse_datetime(date_prevue_prochain) if date_prevue_prochain else None
+        )
+
+        # Si une saillie / insémination est enregistrée sans date future, on la calcule.
+        if dt_next is None and _clean_text(type_evenement).lower() in {
+            "saillie",
+            "insemination",
+            "insémination",
+        }:
+            dt_next = dt_evt + timedelta(
+                days=self.GESTATIONS.get(_species_key(espece), 150)
+            )
 
         evenement = EvenementReproduction(
             id=_uuid_str(),
@@ -245,8 +291,8 @@ class ReproTrackService:
             animal_id=_clean_text(animal_id),
             espece=_clean_text(espece),
             type_evenement=_clean_text(type_evenement),
-            date_evenement=_parse_datetime(date_evenement),
-            date_prevue_prochain=_parse_datetime(date_prevue_prochain) if date_prevue_prochain else None,
+            date_evenement=dt_evt,
+            date_prevue_prochain=dt_next,
             notes=_clean_text(notes) or None,
             date_creation=datetime.utcnow(),
         )
@@ -255,8 +301,13 @@ class ReproTrackService:
         db.refresh(evenement)
         return evenement
 
-    def lister_evenements(self, db: Session, user_id: str, limit: int = 100) -> List[EvenementReproduction]:
-        """Retourne les événements reproduction d'un utilisateur."""
+    def lister_evenements(
+        self,
+        db: Session,
+        user_id: str,
+        limit: int = 100,
+    ) -> List[EvenementReproduction]:
+        """Retourne les événements de reproduction d'un utilisateur."""
         limite = max(1, min(int(limit or 100), 500))
         return (
             db.query(EvenementReproduction)
@@ -267,31 +318,55 @@ class ReproTrackService:
         )
 
     def obtenir_alertes(self, db: Session, user_id: str) -> List[Dict[str, Any]]:
-        """Construit des alertes simplifiées à partir des événements."""
-        evenements = self.lister_evenements(db, user_id, limit=200)
+        """
+        Construit des alertes ReproTrack à partir des événements.
+
+        Si une mise-bas est attendue dans 48h, un message WhatsApp est ajouté.
+        """
+        evenements = self.lister_evenements(db, user_id, limit=300)
         alertes: List[Dict[str, Any]] = []
 
         for evt in evenements:
-            type_evt = _clean_text(evt.type_evenement).lower()
-            if type_evt in {"saillie", "insemination", "insémination"} and evt.date_prevue_prochain:
-                alerte_date = evt.date_prevue_prochain - timedelta(hours=48)
+            evt_any: Any = evt
+            type_evt = _clean_text(getattr(evt_any, "type_evenement", "")).lower()
+            date_prevue = getattr(evt_any, "date_prevue_prochain", None)
+            date_evenement = getattr(evt_any, "date_evenement", None)
+            animal_id = getattr(evt_any, "animal_id", "")
+            espece = getattr(evt_any, "espece", "")
+
+            # Mise-bas proche
+            if (
+                type_evt in {"saillie", "insemination", "insémination"}
+                and date_prevue is not None
+            ):
+                alerte_date = date_prevue - timedelta(hours=48)
+                message = (
+                    f"FeedFormula AI: mise-bas prévue pour {animal_id} ({espece}) "
+                    f"autour du {date_prevue.date().isoformat()}.\n"
+                    "Préparez l’aire de mise-bas, l’eau propre et surveillez l’animal."
+                )
+
                 alertes.append(
                     {
                         "type": "mise-bas_proche",
-                        "animal_id": evt.animal_id,
-                        "espece": evt.espece,
-                        "message": f"Mise-bas probable autour du {evt.date_prevue_prochain.date().isoformat()}",
+                        "animal_id": animal_id,
+                        "espece": espece,
+                        "message": f"Mise-bas probable autour du {date_prevue.date().isoformat()}",
                         "date_alerte": alerte_date.isoformat(),
+                        "date_prevue_prochain": date_prevue.isoformat(),
+                        "whatsapp_message": message,
+                        "whatsapp_url": _build_whatsapp_url(message),
                     }
                 )
 
+            # Fenêtres de chaleurs
             if type_evt in {"chaleur", "chaleur observée", "chaleur_observee"}:
-                predictions = self.predire_prochaines_chaleurs(evt.espece, evt.date_evenement)
+                predictions = self.predire_prochaines_chaleurs(espece, date_evenement)
                 alertes.append(
                     {
                         "type": "chaleurs",
-                        "animal_id": evt.animal_id,
-                        "espece": evt.espece,
+                        "animal_id": animal_id,
+                        "espece": espece,
                         "message": "Fenêtres de chaleur calculées.",
                         "predictions": predictions,
                     }
@@ -299,8 +374,61 @@ class ReproTrackService:
 
         return alertes[:20]
 
+    def calendrier_mensuel(self, db: Session, user_id: str) -> Dict[str, Any]:
+        """
+        Retourne les événements avec métadonnées utiles au calendrier frontend.
+        """
+        evenements = self.lister_evenements(db, user_id, limit=250)
+        items: List[Dict[str, Any]] = []
 
-# Instance globale du service
+        for evt in evenements:
+            evt_any: Any = evt
+            type_evt = _clean_text(getattr(evt_any, "type_evenement", "")).lower()
+            date_evenement = getattr(evt_any, "date_evenement", None)
+            date_prevue = getattr(evt_any, "date_prevue_prochain", None)
+            animal_id = getattr(evt_any, "animal_id", "")
+            espece = getattr(evt_any, "espece", "")
+            notes = getattr(evt_any, "notes", None)
+
+            item = {
+                "id": getattr(evt_any, "id", ""),
+                "animal_id": animal_id,
+                "espece": espece,
+                "type_evenement": getattr(evt_any, "type_evenement", ""),
+                "date_evenement": date_evenement.isoformat()
+                if date_evenement is not None
+                else None,
+                "date_prevue_prochain": date_prevue.isoformat()
+                if date_prevue is not None
+                else None,
+                "notes": notes,
+            }
+            if date_prevue is not None and type_evt in {
+                "saillie",
+                "insemination",
+                "insémination",
+            }:
+                item["alerte_48h"] = (date_prevue - timedelta(hours=48)).isoformat()
+                item["whatsapp"] = {
+                    "message": (
+                        f"FeedFormula AI: mise-bas prévue pour {animal_id} ({espece}) "
+                        f"autour du {date_prevue.date().isoformat()}."
+                    ),
+                    "url": _build_whatsapp_url(
+                        f"FeedFormula AI: mise-bas prévue pour {animal_id} ({espece}) "
+                        f"autour du {date_prevue.date().isoformat()}."
+                    ),
+                }
+            items.append(item)
+
+        return {
+            "user_id": user_id,
+            "total_evenements": len(evenements),
+            "evenements": items,
+        }
+
+
+# Instance globale
 SERVICE = ReproTrackService()
 
 
@@ -318,7 +446,9 @@ class ReproTrackEventRequest(BaseModel):
     date_prevue_prochain: Optional[str] = None
     notes: Optional[str] = None
 
-    @field_validator("user_id", "animal_id", "espece", "type_evenement", "date_evenement")
+    @field_validator(
+        "user_id", "animal_id", "espece", "type_evenement", "date_evenement"
+    )
     @classmethod
     def _strip_required(cls, value: str) -> str:
         txt = _clean_text(value)
@@ -336,18 +466,15 @@ class ReproTrackCalendarResponse(BaseModel):
 
 
 # -----------------------------------------------------------------------------
-# Routeur FastAPI
+# Routes FastAPI
 # -----------------------------------------------------------------------------
-router = APIRouter(prefix="/reprotrack", tags=["ReproTrack"])
-
-
 @router.post("/evenement")
 def enregistrer_evenement(
     payload: ReproTrackEventRequest,
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
     """
-    Enregistre un événement reproduction.
+    Enregistre un événement reproductif.
     """
     try:
         evenement = SERVICE.enregistrer_evenement(
@@ -360,6 +487,10 @@ def enregistrer_evenement(
             date_prevue_prochain=payload.date_prevue_prochain,
             notes=payload.notes,
         )
+        date_evenement = evenement.date_evenement
+        date_prevue_prochain = evenement.date_prevue_prochain
+        date_creation = evenement.date_creation
+
         return {
             "message": "Événement enregistré avec succès.",
             "evenement": {
@@ -368,57 +499,63 @@ def enregistrer_evenement(
                 "animal_id": evenement.animal_id,
                 "espece": evenement.espece,
                 "type_evenement": evenement.type_evenement,
-                "date_evenement": evenement.date_evenement.isoformat() if evenement.date_evenement else None,
-                "date_prevue_prochain": evenement.date_prevue_prochain.isoformat() if evenement.date_prevue_prochain else None,
+                "date_evenement": date_evenement.isoformat()
+                if date_evenement is not None
+                else None,
+                "date_prevue_prochain": date_prevue_prochain.isoformat()
+                if date_prevue_prochain is not None
+                else None,
                 "notes": evenement.notes,
-                "date_creation": evenement.date_creation.isoformat() if evenement.date_creation else None,
+                "date_creation": date_creation.isoformat()
+                if date_creation is not None
+                else None,
             },
         }
     except HTTPException:
         raise
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc))
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        )
     except Exception as exc:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erreur /reprotrack/evenement: {exc}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erreur /reprotrack/evenement: {exc}",
+        )
 
 
 @router.get("/calendrier/{user_id}")
 def get_calendrier(user_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
     """
-    Retourne l'historique des événements ReproTrack d'un utilisateur.
+    Retourne le calendrier ReproTrack.
     """
     try:
-        evenements = SERVICE.lister_evenements(db, user_id, limit=120)
-        return {
-            "user_id": user_id,
-            "total_evenements": len(evenements),
-            "evenements": [
-                {
-                    "id": evt.id,
-                    "animal_id": evt.animal_id,
-                    "espece": evt.espece,
-                    "type_evenement": evt.type_evenement,
-                    "date_evenement": evt.date_evenement.isoformat() if evt.date_evenement else None,
-                    "date_prevue_prochain": evt.date_prevue_prochain.isoformat() if evt.date_prevue_prochain else None,
-                    "notes": evt.notes,
-                }
-                for evt in evenements
-            ],
-        }
+        return SERVICE.calendrier_mensuel(db, user_id)
     except Exception as exc:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erreur /reprotrack/calendrier: {exc}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erreur /reprotrack/calendrier: {exc}",
+        )
 
 
 @router.get("/alertes/{user_id}")
 def get_alertes(user_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
     """
-    Retourne les alertes ReproTrack d'un utilisateur.
+    Retourne les alertes ReproTrack.
     """
     try:
         alertes = SERVICE.obtenir_alertes(db, user_id)
-        return {"user_id": user_id, "total_alertes": len(alertes), "alertes": alertes}
+        return {
+            "user_id": user_id,
+            "total_alertes": len(alertes),
+            "alertes": alertes,
+        }
     except Exception as exc:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erreur /reprotrack/alertes: {exc}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erreur /reprotrack/alertes: {exc}",
+        )
 
 
 @router.get("/stats/{user_id}")
@@ -433,12 +570,14 @@ def get_stats(user_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
         total_saillies = sum(
             1
             for evt in evenements
-            if _clean_text(evt.type_evenement).lower() in {"saillie", "insemination", "insémination"}
+            if _clean_text(evt.type_evenement).lower()
+            in {"saillie", "insemination", "insémination"}
         )
         total_mises_bas = sum(
             1
             for evt in evenements
-            if _clean_text(evt.type_evenement).lower() in {"mise-bas", "mise bas", "misebas"}
+            if _clean_text(evt.type_evenement).lower()
+            in {"mise-bas", "mise bas", "misebas"}
         )
 
         return {
@@ -448,27 +587,84 @@ def get_stats(user_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
             "total_evenements": taux.get("total_evenements", len(evenements)),
             "total_saillies": total_saillies,
             "total_mises_bas": total_mises_bas,
+            "expositions": taux.get("expositions", 0),
+            "naissances": taux.get("naissances", 0),
             "evenements": [
                 {
                     "id": evt.id,
                     "animal_id": evt.animal_id,
                     "espece": evt.espece,
                     "type_evenement": evt.type_evenement,
-                    "date_evenement": evt.date_evenement.isoformat() if evt.date_evenement else None,
-                    "date_prevue_prochain": evt.date_prevue_prochain.isoformat() if evt.date_prevue_prochain else None,
+                    "date_evenement": (
+                        evt.date_evenement.isoformat()
+                        if getattr(evt, "date_evenement", None) is not None
+                        else None
+                    ),
+                    "date_prevue_prochain": (
+                        evt.date_prevue_prochain.isoformat()
+                        if getattr(evt, "date_prevue_prochain", None) is not None
+                        else None
+                    ),
                 }
                 for evt in evenements[:20]
             ],
         }
     except Exception as exc:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Erreur /reprotrack/stats: {exc}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erreur /reprotrack/stats: {exc}",
+        )
+
+
+@router.get("/prochaines-chaleurs")
+def get_prochaines_chaleurs(
+    espece: str = Query(..., min_length=1),
+    date_derniere_chaleur: str = Query(..., min_length=1),
+) -> Dict[str, Any]:
+    """
+    Endpoint utilitaire pour calculer les prochaines chaleurs.
+    """
+    try:
+        return {
+            "espece": espece,
+            "date_derniere_chaleur": date_derniere_chaleur,
+            "predictions": SERVICE.predire_prochaines_chaleurs(
+                espece,
+                date_derniere_chaleur,
+            ),
+        }
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Impossible de calculer les prochaines chaleurs: {exc}",
+        )
+
+
+@router.get("/mise-bas")
+def get_mise_bas(
+    espece: str = Query(..., min_length=1),
+    date_saillie: str = Query(..., min_length=1),
+) -> Dict[str, Any]:
+    """
+    Endpoint utilitaire pour calculer la date prévue de mise-bas.
+    """
+    try:
+        return {
+            "espece": espece,
+            "date_saillie": date_saillie,
+            "resultat": SERVICE.calculer_date_mise_bas(espece, date_saillie),
+        }
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Impossible de calculer la date de mise-bas: {exc}",
+        )
 
 
 __all__ = [
-    "EvenementReproduction",
     "ReproTrackService",
     "ReproTrackEventRequest",
     "ReproTrackCalendarResponse",
-    "router",
     "SERVICE",
+    "router",
 ]

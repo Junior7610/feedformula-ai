@@ -36,7 +36,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
-
 from pydantic import BaseModel, Field, field_validator
 
 try:
@@ -71,20 +70,23 @@ except Exception:
 # -----------------------------------------------------------------------------
 # Imports locaux
 # -----------------------------------------------------------------------------
-from langue_detector import detecter_langue, get_prompt_pour_langue
-from nutrition_engine import NutritionEngine
-from database import init_db
-from auth import install_auth_middleware, router as auth_router
-from gamification_api import router as gamification_router
-from vetscan_service import router as vetscan_router
-from audio_service import audio_service as audio_service_instance, router as audio_router
-from reprotrack_service import router as reprotrack_router
-from farmcast_service import router as farmcast_router
 from academy_service import router as academy_router
-from paiement_service import router as paiement_router
+from audio_service import audio_service as audio_service_instance
+from audio_service import router as audio_router
+from auth import install_auth_middleware
+from auth import router as auth_router
+from database import init_db
+from farmcast_service import router as farmcast_router
+from farmmanager_service import router as farmmanager_router
+from gamification_api import router as gamification_router
+from langue_detector import detecter_langue, get_prompt_pour_langue
 from notification_service import router as notification_router
+from nutrition_engine import NutritionEngine
+from paiement_service import router as paiement_router
+from pasturemap_service import router as pasturemap_router
+from reprotrack_service import router as reprotrack_router
 from scraper_prix import router as marche_router
-
+from vetscan_service import router as vetscan_router
 
 # -----------------------------------------------------------------------------
 # Configuration projet / environnement
@@ -145,7 +147,9 @@ def _get_redis_cache_client() -> Any:
 
 def _build_ration_cache_key(payload: Dict[str, Any]) -> str:
     """Construit une clé de cache stable pour une requête ration."""
-    canonical = json.dumps(payload, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+    canonical = json.dumps(
+        payload, sort_keys=True, ensure_ascii=False, separators=(",", ":")
+    )
     digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
     return f"{RATION_CACHE_PREFIX}{digest}"
 
@@ -174,20 +178,27 @@ def _ration_cache_get(cache_key: str) -> Optional[Dict[str, Any]]:
     return value if isinstance(value, dict) else None
 
 
-def _ration_cache_set(cache_key: str, value: Dict[str, Any], ttl_seconds: int = RATION_CACHE_TTL_SECONDS) -> None:
+def _ration_cache_set(
+    cache_key: str, value: Dict[str, Any], ttl_seconds: int = RATION_CACHE_TTL_SECONDS
+) -> None:
     """Stocke une ration dans Redis ou le cache mémoire local."""
     client = _get_redis_cache_client()
     serialized = json.dumps(value, ensure_ascii=False)
 
     if client:
         try:
-            client.setex(cache_key, max(60, int(ttl_seconds or RATION_CACHE_TTL_SECONDS)), serialized)
+            client.setex(
+                cache_key,
+                max(60, int(ttl_seconds or RATION_CACHE_TTL_SECONDS)),
+                serialized,
+            )
         except Exception:
             pass
 
     RATION_CACHE_MEMORY[cache_key] = {
         "value": value,
-        "expires_at": time.time() + max(60, int(ttl_seconds or RATION_CACHE_TTL_SECONDS)),
+        "expires_at": time.time()
+        + max(60, int(ttl_seconds or RATION_CACHE_TTL_SECONDS)),
     }
 
 
@@ -689,6 +700,8 @@ app.include_router(gamification_router)
 app.include_router(vetscan_router)
 app.include_router(audio_router)
 app.include_router(reprotrack_router)
+app.include_router(farmmanager_router)
+app.include_router(pasturemap_router)
 app.include_router(farmcast_router)
 app.include_router(academy_router)
 app.include_router(paiement_router)
@@ -810,7 +823,7 @@ def generer_ration(payload: GenererRationRequest) -> Any:
         # Appel API Afri pour la narration finale.
         try:
             client = _build_afri_client()
-            messages = _construire_prompt_narratif(
+            messages: Any = _construire_prompt_narratif(
                 langue=langue_detectee,
                 espece=espece_label,
                 stade=stade_label,
@@ -826,7 +839,7 @@ def generer_ration(payload: GenererRationRequest) -> Any:
             # Mode non-stream: réponse JSON classique optimisée.
             chat = client.chat.completions.create(
                 model=AFRI_CHAT_MODEL,
-                messages=messages,
+                messages=messages,  # type: ignore[arg-type]
                 temperature=0.1,
                 max_tokens=700,
             )

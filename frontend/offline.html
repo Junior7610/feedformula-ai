@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#1B5E20" />
+    <title>FeedFormula AI — Hors ligne</title>
+    <style>
+      body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f6f7f3;color:#17351a;display:flex;min-height:100vh;align-items:center;justify-content:center;padding:20px}
+      .card{max-width:560px;width:100%;background:#fff;border-radius:24px;padding:24px;box-shadow:0 20px 40px rgba(0,0,0,.12);text-align:center}
+      .btn{border:0;border-radius:16px;padding:16px 20px;font-size:17px;font-weight:700;background:#1B5E20;color:#fff;width:100%}
+      .muted{color:#666}
+      .ration{background:#fafafa;border-radius:14px;padding:12px;margin-top:10px;text-align:left}
+      .aya{font-size:64px;line-height:1}
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="aya">😢</div>
+      <h1>Aya est hors ligne</h1>
+      <p class="muted">Le serveur est momentanément indisponible. Vos dernières rations restent consultables depuis le cache local.</p>
+      <div id="rationList"></div>
+      <button id="retryBtn" class="btn" type="button" style="margin-top:16px">Réessayer la connexion</button>
+    </div>
+    <script>
+      const list = document.querySelector('#rationList');
+      function render() {
+        let data = [];
+        try { data = JSON.parse(localStorage.getItem('feedformula_ration_history_v3') || '[]'); } catch { data = []; }
+        const items = data.slice(0, 3);
+        if (!items.length) { list.innerHTML = '<p class="muted">Aucune ration récente en cache.</p>'; return; }
+        list.innerHTML = items.map((r) => `<div class="ration"><strong>${r.espece || 'Espèce'}</strong><div class="muted">${r.stade || ''}</div><div class="muted">${r.ration || ''}</div></div>`).join('');
+      }
+      document.querySelector('#retryBtn').addEventListener('click', () => location.reload());
+      render();
+    </script>
+  </body>
+</html>

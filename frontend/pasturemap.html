@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+        />
+        <meta name="theme-color" content="#1B5E20" />
+        <meta
+            name="description"
+            content="FeedFormula AI — PastureMap pour dessiner les parcelles et analyser la rotation."
+        />
+        <title>FeedFormula AI — PastureMap</title>
+        <link
+            rel="stylesheet"
+            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"
+        />
+        <style>
+            body {
+                margin: 0;
+                font-family:
+                    system-ui,
+                    -apple-system,
+                    Segoe UI,
+                    Roboto,
+                    sans-serif;
+                background: #f6f7f3;
+                color: #17351a;
+            }
+            .wrap {
+                max-width: 1180px;
+                margin: 0 auto;
+                padding: 16px 16px 120px;
+            }
+            .grid {
+                display: grid;
+                gap: 16px;
+            }
+            .card {
+                background: #fff;
+                border-radius: 20px;
+                padding: 16px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            }
+            .map {
+                height: 420px;
+                border-radius: 18px;
+                overflow: hidden;
+            }
+            .input,
+            .select {
+                width: 100%;
+                border: 1px solid #d8d8d8;
+                border-radius: 14px;
+                padding: 14px;
+                font-size: 16px;
+                box-sizing: border-box;
+            }
+            .btn {
+                border: 0;
+                border-radius: 16px;
+                padding: 16px;
+                font-size: 17px;
+                font-weight: 700;
+                cursor: pointer;
+            }
+            .primary {
+                background: #1b5e20;
+                color: #fff;
+            }
+            .secondary {
+                background: #f0f0f0;
+                color: #222;
+            }
+            .metric {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+            }
+            .box {
+                background: #fafafa;
+                border-radius: 14px;
+                padding: 14px;
+            }
+            .warning {
+                background: #ffebee;
+                color: #b71c1c;
+            }
+            .ok {
+                background: #e8f5e9;
+                color: #1b5e20;
+            }
+            .parcel-item {
+                padding: 10px 0;
+                border-bottom: 1px solid #eee;
+            }
+            .muted {
+                color: #666;
+                font-size: 14px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="wrap">
+            <header class="card">
+                <h1>🗺️ PastureMap</h1>
+                <p class="muted">
+                    Dessinez vos parcelles, estimez la charge animale et recevez
+                    des conseils de rotation.
+                </p>
+            </header>
+
+            <main class="grid">
+                <section class="card">
+                    <div id="map" class="map"></div>
+                    <div style="display: grid; gap: 10px; margin-top: 12px">
+                        <select id="species" class="select">
+                            <option>Vache</option>
+                            <option>Chèvre</option>
+                            <option>Mouton</option>
+                            <option>Porc</option>
+                            <option>Poulet</option>
+                        </select>
+                        <input
+                            id="animals"
+                            class="input"
+                            type="number"
+                            min="1"
+                            value="10"
+                        />
+                        <button id="analyze" class="btn primary" type="button">
+                            Analyser mes pâturages
+                        </button>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <h2>Parcelles dessinées</h2>
+                    <div id="parcels"></div>
+                </section>
+
+                <section class="card">
+                    <h2>Résultat de l’analyse</h2>
+                    <div id="metrics" class="metric"></div>
+                    <div id="analysis"></div>
+                </section>
+            </main>
+        </div>
+
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+        <script>
+            const map = L.map("map").setView([9.5, 2.3], 8);
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                maxZoom: 19,
+                attribution: "&copy; OpenStreetMap",
+            }).addTo(map);
+            const drawn = new L.FeatureGroup().addTo(map);
+            map.addControl(
+                new L.Control.Draw({
+                    edit: { featureGroup: drawn },
+                    draw: {
+                        polyline: false,
+                        circle: false,
+                        circlemarker: false,
+                        marker: false,
+                        rectangle: true,
+                        polygon: true,
+                    },
+                }),
+            );
+            const parcels = [];
+            const parcelsBox = document.querySelector("#parcels");
+            const metricsBox = document.querySelector("#metrics");
+            const analysisBox = document.querySelector("#analysis");
+
+            function areaHa(latlngs) {
+                const R = 6378137;
+                let area = 0;
+                for (let i = 0; i < latlngs.length; i += 1) {
+                    const p1 = latlngs[i];
+                    const p2 = latlngs[(i + 1) % latlngs.length];
+                    area +=
+                        (((p2.lng - p1.lng) * Math.PI) / 180) *
+                        (2 +
+                            Math.sin((p1.lat * Math.PI) / 180) +
+                            Math.sin((p2.lat * Math.PI) / 180));
+                }
+                return Math.abs((area * R * R) / 2) / 10000;
+            }
+
+            function renderParcels() {
+                if (!parcels.length) {
+                    parcelsBox.innerHTML =
+                        '<p class="muted">Aucune parcelle dessinée.</p>';
+                    return;
+                }
+                parcelsBox.innerHTML = parcels
+                    .map(
+                        (p, i) =>
+                            `<div class="parcel-item"><strong>${i + 1}. ${p.name}</strong><div class="muted">${p.area.toFixed(2)} ha</div></div>`,
+                    )
+                    .join("");
+            }
+
+            function stockingRate(species) {
+                const s = (species || "").toLowerCase();
+                if (s.includes("vache")) return 1.2;
+                if (
+                    s.includes("chèvre") ||
+                    s.includes("chevre") ||
+                    s.includes("mouton")
+                )
+                    return 8;
+                if (s.includes("porc")) return 12;
+                if (s.includes("poulet")) return 150;
+                return 5;
+            }
+
+            map.on(L.Draw.Event.CREATED, (e) => {
+                const layer = e.layer;
+                drawn.addLayer(layer);
+                const name =
+                    prompt(
+                        "Nom de la parcelle ?",
+                        `Parcelle ${parcels.length + 1}`,
+                    ) || `Parcelle ${parcels.length + 1}`;
+                const coords = layer.getLatLngs()[0] || layer.getLatLngs();
+                const area = areaHa(coords);
+                parcels.push({
+                    name,
+                    area,
+                    coords: coords.map((c) => [c.lat, c.lng]),
+                });
+                layer.bindPopup(`${name}<br>${area.toFixed(2)} ha`);
+                renderParcels();
+            });
+
+            async function analyze() {
+                const species = document.querySelector("#species").value;
+                const animals = Number(
+                    document.querySelector("#animals").value || 0,
+                );
+                const totalArea = parcels.reduce((sum, p) => sum + p.area, 0);
+                const charge = animals / Math.max(totalArea, 0.01);
+                const recommended = stockingRate(species);
+                const body = {
+                    espece: species,
+                    nombre_animaux: animals,
+                    parcelles: parcels.map((p) => ({
+                        nom: p.name,
+                        superficie_ha: p.area,
+                    })),
+                    objectif: "rotation équilibrée",
+                };
+                const res = await fetch("/pasturemap/analyser", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(body),
+                });
+                const data = await res.json();
+                metricsBox.innerHTML = [
+                    {
+                        label: "Superficie totale",
+                        value: `${totalArea.toFixed(2)} ha`,
+                    },
+                    {
+                        label: "Charge animale",
+                        value: `${charge.toFixed(2)} / ha`,
+                    },
+                    {
+                        label: "Charge conseillée",
+                        value: `${recommended.toFixed(2)} / ha`,
+                    },
+                ]
+                    .map(
+                        (m) =>
+                            `<div class="box"><strong>${m.value}</strong><div class="muted">${m.label}</div></div>`,
+                    )
+                    .join("");
+                analysisBox.innerHTML = `<div class="box ${data.alerte_surpaturage ? "warning" : "ok"}"><strong>${data.alerte_surpaturage ? "Surpâturage possible" : "Charge acceptable"}</strong><p>${data.message || ""}</p><ul>${(data.rotation_recommandee || []).map((r) => `<li>${r}</li>`).join("")}</ul></div>`;
+            }
+
+            document
+                .querySelector("#analyze")
+                .addEventListener("click", analyze);
+            renderParcels();
+        </script>
+    </body>
+</html>

@@ -9,326 +9,364 @@
         <meta name="theme-color" content="#E53935" />
         <meta
             name="description"
-            content="FeedFormula AI — VetScan médical complet avec photo, symptômes, diagnostic et historique."
+            content="FeedFormula AI — VetScan médical complet avec photo, micro et diagnostic backend."
         />
         <title>FeedFormula AI — VetScan</title>
         <link rel="stylesheet" href="style.css" />
-        <script defer src="script.js"></script>
+        <style>
+            body {
+                margin: 0;
+                font-family:
+                    system-ui,
+                    -apple-system,
+                    Segoe UI,
+                    Roboto,
+                    sans-serif;
+                background: #fff7f7;
+                color: #3a1515;
+            }
+            .wrap {
+                max-width: 980px;
+                margin: 0 auto;
+                padding: 16px 16px 120px;
+            }
+            .grid {
+                display: grid;
+                gap: 16px;
+            }
+            .card {
+                background: #fff;
+                border-radius: 20px;
+                padding: 16px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            }
+            .input,
+            .select,
+            .textarea {
+                width: 100%;
+                border: 1px solid #ddd;
+                border-radius: 14px;
+                padding: 14px;
+                font-size: 16px;
+                box-sizing: border-box;
+            }
+            .textarea {
+                min-height: 120px;
+                resize: vertical;
+            }
+            .btn {
+                border: 0;
+                border-radius: 16px;
+                padding: 16px;
+                font-size: 17px;
+                font-weight: 700;
+                cursor: pointer;
+            }
+            .primary {
+                background: #e53935;
+                color: #fff;
+            }
+            .secondary {
+                background: #f2f2f2;
+                color: #222;
+            }
+            .photo {
+                width: 100%;
+                min-height: 220px;
+                border: 2px dashed #e0b3b3;
+                border-radius: 18px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+                background: #fff9f9;
+            }
+            .photo img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            .diag {
+                margin-top: 10px;
+            }
+            .diag-head {
+                display: flex;
+                justify-content: space-between;
+                gap: 10px;
+                font-weight: 700;
+            }
+            .bar {
+                height: 10px;
+                background: #f0e0e0;
+                border-radius: 999px;
+                overflow: hidden;
+                margin-top: 6px;
+            }
+            .bar span {
+                display: block;
+                height: 100%;
+                background: linear-gradient(90deg, #f9a825, #e53935);
+            }
+            .decision {
+                padding: 14px;
+                border-radius: 14px;
+                font-weight: 800;
+                text-align: center;
+                margin-top: 8px;
+            }
+            .safe {
+                background: #e8f5e9;
+                color: #1b5e20;
+            }
+            .urgent {
+                background: #ffebee;
+                color: #b71c1c;
+            }
+            .muted {
+                color: #666;
+                font-size: 14px;
+            }
+            .history-item {
+                padding: 12px 0;
+                border-bottom: 1px solid #eee;
+            }
+        </style>
     </head>
-    <body class="page-vetscan" data-page="vetscan">
-        <!-- En-tête d'urgence médicale -->
-        <header class="app-header vetscan-header">
-            <div class="app-header-inner">
-                <a class="brand" href="index.html" aria-label="Retour à l'accueil">
-                    <img
-                        class="brand-mark"
-                        src="../assets/logo_principal.png"
-                        alt="Logo FeedFormula AI"
-                    />
-                    <div>
-                        <div class="brand-title">🌾 VetScan</div>
-                        <div class="brand-subtitle">Urgence médicale animale</div>
-                    </div>
-                </a>
-
-                <div class="header-actions">
-                    <span class="badge badge-gold">+20 🌟 par diagnostic</span>
-                    <a
-                        class="header-avatar"
-                        href="profil.html"
-                        aria-label="Ouvrir le profil"
-                    >
-                        <img
-                            src="../assets/aya_joie.png"
-                            alt="Avatar utilisateur"
-                        />
-                    </a>
-                </div>
-            </div>
-        </header>
-
-        <main class="page-shell">
-            <!-- Introduction -->
-            <section class="card">
-                <h1 class="section-title">🩺 VetScan</h1>
-                <p class="section-subtitle">
-                    Photographiez l'animal, décrivez les symptômes et obtenez un
-                    diagnostic rapide avec protocole de soins.
+    <body>
+        <div class="wrap">
+            <header class="card">
+                <h1>🩺 VetScan</h1>
+                <p class="muted">
+                    Photo, micro ou texte : obtenez un diagnostic différentiel
+                    depuis le backend.
                 </p>
-            </section>
+            </header>
 
-            <!-- Zone photo -->
-            <section class="card photo-zone" aria-labelledby="photoTitle">
-                <div class="card-head">
-                    <h2 id="photoTitle">Zone photo</h2>
-                    <span class="badge badge-grey">Analyse visuelle</span>
-                </div>
-
-                <input
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    class="hidden"
-                    data-photo-input
-                    aria-label="Importer ou photographier un animal"
-                />
-
-                <button
-                    type="button"
-                    class="btn btn-danger btn-photo"
-                    data-photo-button
-                >
-                    📷 Photographier l'animal
-                </button>
-
-                <div class="photo-preview" data-photo-preview aria-live="polite">
-                    <span>Prévisualisation 200 × 200 px</span>
-                </div>
-
-                <button
-                    type="button"
-                    class="btn btn-secondary btn-analyse"
-                    data-analyse-button
-                >
-                    Analyser cette photo
-                </button>
-            </section>
-
-            <!-- Zone symptômes -->
-            <section class="card symptoms-zone" aria-labelledby="symptomsTitle">
-                <div class="card-head">
-                    <h2 id="symptomsTitle">Zone symptômes</h2>
-                    <span class="badge badge-soft">Voix ou texte</span>
-                </div>
-
-                <button
-                    type="button"
-                    class="btn-mic voice-button"
-                    data-vet-mic
-                    aria-label="Décrire les symptômes à voix haute"
-                >
-                    <span class="mic-wave"></span>
-                    <span class="mic-wave"></span>
-                    <span class="mic-wave"></span>
-                    <span class="mic-core" aria-hidden="true">🎤</span>
-                </button>
-
-                <p class="mic-help">Appuyez et parlez</p>
-
-                <div class="field-group">
-                    <label class="field-label" for="symptomsInput"
-                        >Décrivez les symptômes</label
+            <main class="grid">
+                <section class="card">
+                    <h2>Photo de l’animal</h2>
+                    <input
+                        id="photoInput"
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        hidden
+                    />
+                    <div id="photoPreview" class="photo">
+                        Aperçu de la photo
+                    </div>
+                    <div
+                        style="
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 10px;
+                            margin-top: 12px;
+                        "
                     >
-                    <textarea
-                        id="symptomsInput"
-                        data-symptoms-input
-                        placeholder="Décrivez les symptômes..."
-                    ></textarea>
-                </div>
+                        <button
+                            id="photoBtn"
+                            class="btn secondary"
+                            type="button"
+                        >
+                            📷 Choisir une photo
+                        </button>
+                        <button
+                            id="analyzePhotoBtn"
+                            class="btn primary"
+                            type="button"
+                        >
+                            Analyser la photo
+                        </button>
+                    </div>
+                </section>
 
-                <div class="field-group">
-                    <label class="field-label" for="speciesSelect"
-                        >Espèce animale</label
-                    >
-                    <select id="speciesSelect" data-vet-species>
-                        <option value="">Choisir l'espèce</option>
-                        <option value="poulet">Poulet</option>
-                        <option value="vache">Vache</option>
-                        <option value="chevre">Chèvre</option>
-                        <option value="mouton">Mouton</option>
-                        <option value="porc">Porc</option>
-                        <option value="tilapia">Tilapia</option>
-                        <option value="pintade">Pintade</option>
-                    </select>
-                </div>
-            </section>
+                <section class="card">
+                    <h2>Symptômes et espèce</h2>
+                    <div style="display: grid; gap: 12px">
+                        <button id="micBtn" class="btn secondary" type="button">
+                            🎤 Dicter les symptômes
+                        </button>
+                        <select id="speciesSelect" class="select">
+                            <option value="">Choisir l’espèce</option>
+                            <option>Vache</option>
+                            <option>Chèvre</option>
+                            <option>Mouton</option>
+                            <option>Poulet</option>
+                            <option>Porc</option>
+                            <option>Tilapia</option>
+                            <option>Pintade</option>
+                        </select>
+                        <textarea
+                            id="symptomsInput"
+                            class="textarea"
+                            placeholder="Décrivez les symptômes observés..."
+                        ></textarea>
+                        <button
+                            id="diagnoseBtn"
+                            class="btn primary"
+                            type="button"
+                        >
+                            🔍 Diagnostiquer maintenant
+                        </button>
+                    </div>
+                </section>
 
-            <!-- Bouton de diagnostic -->
-            <section class="card">
-                <button
-                    type="button"
-                    class="btn btn-danger btn-wide btn-main"
-                    data-analyse-button
-                >
-                    🔍 Diagnostiquer maintenant
-                </button>
-            </section>
-
-            <!-- Résultat -->
-            <section class="result-zone hidden" data-vet-result aria-live="polite">
-                <div class="card-head">
+                <section id="resultBox" class="card" hidden>
                     <h2>Résultat du diagnostic</h2>
-                    <span class="badge badge-gold">Analyse terminée</span>
-                </div>
-
-                <div class="diagnostic-result">
-                    <div class="confidence-score" data-confidence-score>
-                        87%
+                    <div id="decisionBox" class="decision safe">
+                        Soins autonomes possibles
                     </div>
-                    <p class="section-subtitle">
-                        Score de confiance sur la base des symptômes et de la
-                        photo.
-                    </p>
-                </div>
+                    <div id="diagnostics"></div>
+                    <h3>Protocole de soins</h3>
+                    <ul id="protocol"></ul>
+                    <p id="urgenceMsg" class="muted"></p>
+                    <p id="preventionMsg" class="muted"></p>
+                    <a
+                        id="vetLink"
+                        class="btn primary"
+                        href="https://www.google.com/maps/search/veterinaire"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        hidden
+                        >📍 Trouver un vétérinaire</a
+                    >
+                </section>
 
-                <div class="diagnostic-list" data-diagnostic-list>
-                    <div class="diagnostic-item">
-                        <div class="line">
-                            <span>Coccidiose probable</span>
-                            <strong>87%</strong>
-                        </div>
-                        <div class="probability-bar">
-                            <span style="width: 87%"></span>
-                        </div>
-                    </div>
-                    <div class="diagnostic-item">
-                        <div class="line">
-                            <span>Déshydratation</span>
-                            <strong>63%</strong>
-                        </div>
-                        <div class="probability-bar">
-                            <span style="width: 63%"></span>
-                        </div>
-                    </div>
-                    <div class="diagnostic-item">
-                        <div class="line">
-                            <span>Stress thermique</span>
-                            <strong>48%</strong>
-                        </div>
-                        <div class="probability-bar">
-                            <span style="width: 48%"></span>
-                        </div>
-                    </div>
-                </div>
+                <section class="card">
+                    <h2>Historique récent</h2>
+                    <div id="history"></div>
+                </section>
+            </main>
+        </div>
 
-                <div class="care-protocol" data-protocol-list>
-                    <div class="protocol-step">
-                        <strong>Étape 1</strong> — Isoler l'animal dans un espace calme.
-                    </div>
-                    <div class="protocol-step">
-                        <strong>Étape 2</strong> — Fournir de l'eau propre et surveiller
-                        l'appétit.
-                    </div>
-                    <div class="protocol-step">
-                        <strong>Étape 3</strong> — Contacter un vétérinaire si les
-                        symptômes persistent.
-                    </div>
-                </div>
+        <script>
+            const $ = (s) => document.querySelector(s);
+            const photoInput = $("#photoInput");
+            const photoBtn = $("#photoBtn");
+            const analyzePhotoBtn = $("#analyzePhotoBtn");
+            const diagnoseBtn = $("#diagnoseBtn");
+            const symptomsInput = $("#symptomsInput");
+            const speciesSelect = $("#speciesSelect");
+            const photoPreview = $("#photoPreview");
+            const resultBox = $("#resultBox");
+            const diagnosticsBox = $("#diagnostics");
+            const protocolBox = $("#protocol");
+            const decisionBox = $("#decisionBox");
+            const urgenceMsg = $("#urgenceMsg");
+            const preventionMsg = $("#preventionMsg");
+            const vetLink = $("#vetLink");
+            const historyBox = $("#history");
+            let selectedFile = null;
 
-                <div class="decision-box safe" data-decision-box>
-                    ✅ Soins autonomes possibles
-                </div>
-
-                <a
-                    class="btn btn-danger btn-vet-find hidden"
-                    href="https://www.google.com/maps/search/veterinaire"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    data-find-vet
-                >
-                    📍 Trouver un vétérinaire
-                </a>
-            </section>
-
-            <!-- Historique -->
-            <section class="card" aria-labelledby="historyTitle">
-                <div class="card-head">
-                    <h2 id="historyTitle">Historique des 5 derniers diagnostics</h2>
-                    <span class="badge badge-soft">Mémoire locale</span>
-                </div>
-
-                <div class="history-list" data-vet-history>
-                    <article class="history-item">
-                        <div class="history-top">
-                            <div>
-                                <strong>Poulet</strong>
-                                <div class="history-meta">29 avr. 2026</div>
-                            </div>
-                            <strong>87%</strong>
-                        </div>
-                        <div class="history-meta">Coccidiose probable</div>
-                    </article>
-
-                    <article class="history-item">
-                        <div class="history-top">
-                            <div>
-                                <strong>Vache</strong>
-                                <div class="history-meta">27 avr. 2026</div>
-                            </div>
-                            <strong>91%</strong>
-                        </div>
-                        <div class="history-meta">Fièvre, déshydratation</div>
-                    </article>
-
-                    <article class="history-item">
-                        <div class="history-top">
-                            <div>
-                                <</head>strong>Chèvre</strong>
-                                <div class="history-meta">25 avr. 2026</div>
-                            </div>
-                            <strong>75%</strong>
-                        </div>
-                        <div class="history-meta">Parasites intestinaux</div>
-                    </article>
-
-                    <article class="history-item">
-                        <div class="history-top">
-                            <div>
-                                <strong>Porc</strong>
-                                <div class="history-meta">22 avr. 2026</div>
-                            </div>
-                            <strong>82%</strong>
-                        </div>
-                        <div class="history-meta">Trouble digestif</div>
-                    </article>
-
-                    <article class="history-item">
-                        <div class="history-top">
-                            <div>
-                                <strong>Pint</title></div></span></select></h2></div></div>ade</strong>
-                                <div class="history-meta">18 avr. 2026</div>
-                            </div>
-                            <strong>78%</strong>
-                        </div>
-                        <div class="history-meta">Stress thermique</div>
-                    </article>
-                </div>
-            </section>
-        </main>
-
-        <!-- Mascotte Aya -->
-        <aside class="aya-floating" aria-label="Mascotte Aya">
-            <div class="aya-bubble is-show" data-aya-bubble>
-                Décrivez les symptômes, je vous aide à décider quoi faire.
-            </div>
-            <img
-                class="aya-image"
-                data-aya-image
-                src="../assets/aya_joie.png"
-                alt="Aya, la mascotte"
-            />
-        </aside>
-
-        <!-- Navigation basse -->
-        <nav class="bottom-nav" aria-label="Navigation principale">
-            <div class="bottom-nav-inner">
-                <a class="nav-item" href="index.html">
-                    <span class="nav-icon">🏠</span>
-                    <span class="nav-text">Accueil</span>
-                </a>
-                <a class="nav-item" href="modules.html">
-                    <span class="nav-icon">📦</span>
-                    <span class="nav-text">Modules</span>
-                </a>
-                <a class="nav-item" href="classement.html">
-                    <span class="nav-icon">🏆</span>
-                    <span class="nav-text">Classement</span>
-                </a>
-                <a class="nav-item" href="profil.html">
-                    <span class="nav-icon">👤</span>
-                    <span class="nav-text">Profil</span>
-                </a>
-            </div>
-        </nav>
+            function getHistory() {
+                try {
+                    return JSON.parse(
+                        localStorage.getItem("feedformula_vet_history_v3") ||
+                            "[]",
+                    );
+                } catch {
+                    return [];
+                }
+            }
+            function setHistory(items) {
+                localStorage.setItem(
+                    "feedformula_vet_history_v3",
+                    JSON.stringify(items),
+                );
+            }
+            function renderHistory() {
+                const items = getHistory().slice(0, 5);
+                if (!items.length) {
+                    historyBox.innerHTML =
+                        '<p class="muted">Aucun diagnostic enregistré.</p>';
+                    return;
+                }
+                historyBox.innerHTML = items
+                    .map(
+                        (item) =>
+                            `<div class="history-item"><strong>${item.espece}</strong><div class="muted">${new Date(item.date).toLocaleString("fr-FR")}</div><div>${item.top}</div></div>`,
+                    )
+                    .join("");
+            }
+            function pushHistory(item) {
+                setHistory([item, ...getHistory()].slice(0, 10));
+                renderHistory();
+            }
+            function renderResult(payload) {
+                const r = payload.resultat || payload;
+                const diags = [
+                    r.diagnostic_1,
+                    r.diagnostic_2,
+                    r.diagnostic_3,
+                ].filter(Boolean);
+                resultBox.hidden = false;
+                diagnosticsBox.innerHTML = diags
+                    .map((d, i) => {
+                        const p = Math.round((d.probabilite || 0) * 100);
+                        return `<div class="diag"><div class="diag-head"><span>${i + 1}. ${d.nom}</span><strong>${p}%</strong></div><div class="bar"><span style="width:${p}%"></span></div><div class="muted">${d.description || ""}</div></div>`;
+                    })
+                    .join("");
+                protocolBox.innerHTML = (r.protocole_soins || [])
+                    .map((step) => `<li>${step}</li>`)
+                    .join("");
+                decisionBox.className = `decision ${r.decision === "urgence" ? "urgent" : "safe"}`;
+                decisionBox.textContent =
+                    r.decision === "urgence"
+                        ? "⚠️ URGENCE VÉTÉRINAIRE"
+                        : "✅ Soins autonomes possibles";
+                urgenceMsg.textContent = r.message_urgence || "";
+                preventionMsg.textContent = r.prevention || "";
+                vetLink.hidden = r.decision !== "urgence";
+                pushHistory({
+                    date: new Date().toISOString(),
+                    espece: speciesSelect.value || "Animal",
+                    top: diags[0]?.nom || "Diagnostic",
+                    result: r,
+                });
+            }
+            photoBtn.addEventListener("click", () => photoInput.click());
+            photoInput.addEventListener("change", () => {
+                selectedFile = photoInput.files?.[0] || null;
+                if (!selectedFile) return;
+                const reader = new FileReader();
+                reader.onload = () => {
+                    photoPreview.innerHTML = `<img src="${reader.result}" alt="Prévisualisation">`;
+                };
+                reader.readAsDataURL(selectedFile);
+            });
+            diagnoseBtn.addEventListener("click", async () => {
+                const payload = {
+                    espece: speciesSelect.value || "Animal",
+                    symptomes: symptomsInput.value || "",
+                    langue: "fr",
+                };
+                const res = await fetch("/vetscan/diagnostiquer", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                });
+                renderResult(await res.json());
+            });
+            analyzePhotoBtn.addEventListener("click", async () => {
+                if (!selectedFile) {
+                    alert("Choisissez d’abord une photo.");
+                    return;
+                }
+                const form = new FormData();
+                form.append("image", selectedFile);
+                form.append("espece", speciesSelect.value || "Animal");
+                form.append("langue", "fr");
+                const res = await fetch("/vetscan/analyser-photo", {
+                    method: "POST",
+                    body: form,
+                });
+                renderResult(await res.json());
+            });
+            micBtn.addEventListener("click", () => {
+                const txt = prompt("Décrivez les symptômes :");
+                if (txt) symptomsInput.value = txt;
+            });
+            renderHistory();
+        </script>
     </body>
-</html></strong></span></strong></span></strong></div></strong></strong></strong></div></div></div></strong></div></strong></strong></div></strong></div></strong></strong></div></strong></div>
+</html>

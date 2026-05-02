@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+        />
+        <meta name="theme-color" content="#1B5E20" />
+        <meta
+            name="description"
+            content="FeedFormula AI — FarmManager pour dicter, structurer et suivre les événements du troupeau."
+        />
+        <title>FeedFormula AI — FarmManager</title>
+        <style>
+            body {
+                margin: 0;
+                font-family:
+                    system-ui,
+                    -apple-system,
+                    Segoe UI,
+                    Roboto,
+                    sans-serif;
+                background: #f6f7f3;
+                color: #17351a;
+            }
+            .wrap {
+                max-width: 1100px;
+                margin: 0 auto;
+                padding: 16px 16px 120px;
+            }
+            .grid {
+                display: grid;
+                gap: 16px;
+            }
+            .card {
+                background: #fff;
+                border-radius: 20px;
+                padding: 16px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            }
+            .btn {
+                border: 0;
+                border-radius: 18px;
+                padding: 16px;
+                font-size: 17px;
+                font-weight: 700;
+                cursor: pointer;
+            }
+            .primary {
+                background: #1b5e20;
+                color: #fff;
+            }
+            .secondary {
+                background: #f0f0f0;
+                color: #222;
+            }
+            .mic {
+                width: 100%;
+                min-height: 120px;
+                border-radius: 22px;
+                background: #1b5e20;
+                color: #fff;
+                font-size: 22px;
+                font-weight: 800;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .input,
+            .textarea {
+                width: 100%;
+                border: 1px solid #ddd;
+                border-radius: 14px;
+                padding: 14px;
+                font-size: 16px;
+                box-sizing: border-box;
+            }
+            .textarea {
+                min-height: 120px;
+                resize: vertical;
+            }
+            .stats {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+            }
+            .box {
+                background: #fafafa;
+                border-radius: 14px;
+                padding: 14px;
+            }
+            .meta {
+                color: #666;
+                font-size: 14px;
+            }
+            .event {
+                padding: 12px 0;
+                border-bottom: 1px solid #eee;
+            }
+            .filters {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="wrap">
+            <header class="card">
+                <h1>🎙️ FarmManager</h1>
+                <p class="meta">
+                    Dictez un événement, l’IA le structure et l’enregistre.
+                </p>
+            </header>
+
+            <main class="grid">
+                <section class="card">
+                    <button id="micBtn" class="mic" type="button">
+                        🎤 Dicter un événement
+                    </button>
+                    <textarea
+                        id="voiceText"
+                        class="textarea"
+                        placeholder="Exemple : Vache 47 traitée pour mammite avec 10 ml d’antibiotique et contrôle dans 3 jours."
+                    ></textarea>
+                    <div
+                        style="
+                            display: grid;
+                            grid-template-columns: repeat(2, 1fr);
+                            gap: 10px;
+                            margin-top: 12px;
+                        "
+                    >
+                        <input
+                            id="animalId"
+                            class="input"
+                            placeholder="Animal (optionnel)"
+                        />
+                        <input
+                            id="eventType"
+                            class="input"
+                            placeholder="Type d’événement"
+                        />
+                    </div>
+                    <button
+                        id="saveBtn"
+                        class="btn primary"
+                        type="button"
+                        style="margin-top: 12px"
+                    >
+                        Enregistrer l’événement
+                    </button>
+                </section>
+
+                <section class="card">
+                    <h2>Événements du jour</h2>
+                    <div class="filters">
+                        <input
+                            id="filterAnimal"
+                            class="input"
+                            placeholder="Filtrer par animal"
+                        />
+                        <input id="filterDate" class="input" type="date" />
+                        <input
+                            id="filterType"
+                            class="input"
+                            placeholder="Filtrer par type"
+                        />
+                    </div>
+                    <button
+                        id="refreshBtn"
+                        class="btn secondary"
+                        type="button"
+                        style="margin-top: 12px"
+                    >
+                        Actualiser
+                    </button>
+                    <div id="events"></div>
+                </section>
+
+                <section class="card">
+                    <h2>Dashboard financier</h2>
+                    <div id="dashboard" class="stats"></div>
+                    <button
+                        id="reportBtn"
+                        class="btn primary"
+                        type="button"
+                        style="margin-top: 12px"
+                    >
+                        Générer rapport mensuel
+                    </button>
+                </section>
+            </main>
+        </div>
+
+        <script>
+            const userId =
+                localStorage.getItem("feedformula_user_id") || "demo-user";
+            const $ = (s) => document.querySelector(s);
+            const voiceText = $("#voiceText");
+            const animalId = $("#animalId");
+            const eventType = $("#eventType");
+            const eventsBox = $("#events");
+            const dash = $("#dashboard");
+            const filterAnimal = $("#filterAnimal");
+            const filterDate = $("#filterDate");
+            const filterType = $("#filterType");
+
+            function renderEvents(items) {
+                if (!items.length) {
+                    eventsBox.innerHTML =
+                        '<p class="meta">Aucun événement.</p>';
+                    return;
+                }
+                eventsBox.innerHTML = items
+                    .map(
+                        (e) =>
+                            `<div class="event"><strong>${e.event?.type_evenement || e.event?.type || "Événement"}</strong><div class="meta">${e.event?.animal_id || ""} — ${e.created_at || ""}</div><div class="meta">${e.event?.details || ""}</div></div>`,
+                    )
+                    .join("");
+            }
+
+            function renderDashboard(data) {
+                const d = data.dashboard_financier || {};
+                dash.innerHTML = [
+                    {
+                        label: "Coût alimentation",
+                        value: `${d.cout_total_alimentation_mois || 0} FCFA`,
+                    },
+                    {
+                        label: "Revenus",
+                        value: `${d.revenus_ventes_animaux || 0} FCFA`,
+                    },
+                    {
+                        label: "Marge nette",
+                        value: `${d.marge_nette_estimee || 0} FCFA`,
+                    },
+                ]
+                    .map(
+                        (m) =>
+                            `<div class="box"><strong>${m.value}</strong><div class="meta">${m.label}</div></div>`,
+                    )
+                    .join("");
+            }
+
+            async function loadEvents() {
+                const params = new URLSearchParams();
+                if (filterAnimal.value)
+                    params.set("animal_id", filterAnimal.value);
+                if (filterDate.value)
+                    params.set("date_filtre", filterDate.value);
+                if (filterType.value)
+                    params.set("type_evenement", filterType.value);
+                const cal = await fetch(
+                    `/farmmanager/evenements/${encodeURIComponent(userId)}?${params.toString()}`,
+                ).then((r) => r.json());
+                const stats = await fetch(
+                    `/farmmanager/stats/${encodeURIComponent(userId)}`,
+                ).then((r) => r.json());
+                renderEvents(cal.evenements || []);
+                renderDashboard(stats || {});
+            }
+
+            $("#micBtn").addEventListener("click", () => {
+                const txt = prompt("Dictez l’événement à enregistrer :");
+                if (txt) voiceText.value = txt;
+            });
+            $("#saveBtn").addEventListener("click", async () => {
+                const payload = {
+                    texte: voiceText.value || "",
+                    user_id: userId,
+                };
+                const res = await fetch("/farmmanager/evenement-vocal", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    alert(data.detail || "Erreur");
+                    return;
+                }
+                if (!animalId.value && data.event?.event?.animal_id)
+                    animalId.value = data.event.event.animal_id;
+                if (!eventType.value && data.event?.event?.type_evenement)
+                    eventType.value = data.event.event.type_evenement;
+                await loadEvents();
+            });
+            $("#reportBtn").addEventListener("click", async () => {
+                const month = prompt(
+                    "Mois au format YYYY-MM",
+                    new Date().toISOString().slice(0, 7),
+                );
+                if (!month) return;
+                const res = await fetch(
+                    `/farmmanager/rapport-mensuel/${encodeURIComponent(userId)}?mois=${encodeURIComponent(month)}`,
+                );
+                if (!res.ok) {
+                    alert("Impossible de générer le rapport.");
+                    return;
+                }
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `rapport-farmmanager-${month}.pdf`;
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+            $("#refreshBtn").addEventListener("click", loadEvents);
+            loadEvents();
+        </script>
+    </body>
+</html>
