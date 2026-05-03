@@ -63,6 +63,13 @@ assets/videos/*.mp4
 assets/raw/
 
 # ================================================
+# CONTENU GÉNÉRÉ PAR L'APPLICATION
+# ================================================
+data/academy_certificats/
+data/farmcast/
+static/farmcast/
+
+# ================================================
 # VERCEL ET CLOUDFLARE
 # ================================================
 .vercel

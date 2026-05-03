@@ -25,7 +25,7 @@ import os
 import random
 import re
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 # ---------------------------------------------------------------------------
 # Imports locaux
@@ -440,7 +440,7 @@ def inscription(
         )
 
     # Création utilisateur.
-    user = create_user(
+    create_user(
         db=db,
         telephone=payload.telephone,
         prenom=payload.prenom,
@@ -512,10 +512,12 @@ def verifier_otp_endpoint(
         )
 
     # Mise à jour dernière connexion.
-    user = update_user_last_login(db, user.id) or user
+    user_any = cast(Any, user)
+    user = update_user_last_login(db, str(user_any.id)) or user
 
     # Génération JWT 30 jours.
-    token = creer_jwt_utilisateur(user.id, user.telephone)
+    user_any = cast(Any, user)
+    token = creer_jwt_utilisateur(str(user_any.id), str(user_any.telephone))
 
     return {
         "access_token": token,
