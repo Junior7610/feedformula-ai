@@ -1,391 +1,593 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+# pyright: reportGeneralTypeIssues=false
 """
-Service FarmAcademy de FeedFormula AI.
+FarmAcademy complet de FeedFormula AI.
 
-Objectifs :
-- Exposer le catalogue des formations
-- Fournir une leçon détaillée
-- Générer un quiz simple pour chaque formation
-- Fournir un routeur FastAPI prêt à être branché dans `main.py`
+Fonctionnalités :
+- Catalogue de 5 formations et 18 leçons
+- Génération de contenu pédagogique en français simple
+- Quiz interactif à 3 questions par leçon
+- Suivi de progression par utilisateur
+- Certificat PDF téléchargeable lorsque 100 % des leçons sont complétées
+- Endpoints FastAPI prêts à brancher dans `main.py`
 
-Le module privilégie :
-- des structures simples et lisibles
-- des réponses JSON stables pour le frontend
-- des libellés en français
-- un mode MVP sans dépendance externe obligatoire
+Le module fonctionne de manière déterministe hors API externe,
+mais peut utiliser GPT si une clé compatible est disponible.
 """
 
 from __future__ import annotations
 
+import io
+import os
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, status
+from database import (
+    create_formation_completee,
+    get_db,
+    list_user_formations_completees,
+    serialize_formation_completee,
+)
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field, field_validator
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import cm
+from reportlab.pdfgen import canvas
+from sqlalchemy.orm import Session
 
-
-# -----------------------------------------------------------------------------
-# Routeur FastAPI
-# -----------------------------------------------------------------------------
 router = APIRouter(prefix="/academy", tags=["FarmAcademy"])
 
+ROOT_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = ROOT_DIR / "data"
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+CERTIFICATS_DIR = DATA_DIR / "academy_certificats"
+CERTIFICATS_DIR.mkdir(parents=True, exist_ok=True)
 
-# -----------------------------------------------------------------------------
-# Données pédagogiques
-# -----------------------------------------------------------------------------
-ACADEMY_FORMATIONS: List[Dict[str, Any]] = [
+AFRI_BASE_URL = (
+    os.getenv("AFRI_BASE_URL")
+    or os.getenv("AFRI_API_BASE_URL")
+    or "https://build.lewisnote.com/v1"
+).strip()
+AFRI_API_KEY = (os.getenv("AFRI_API_KEY") or "").strip()
+AFRI_MODEL = (os.getenv("AFRI_CHAT_MODEL") or "gpt-5.5").strip()
+
+ACCES_POINTS_PAR_BONNE_REPONSE = 30
+
+FORMATIONS: List[Dict[str, Any]] = [
     {
-        "id": "volailles",
+        "code": "alimentation-volailles",
         "titre": "Alimentation des volailles",
-        "niveau": "Débutant",
-        "duree": "5 leçons",
+        "resume": "Apprendre à nourrir les poulets avec des ingrédients locaux, des rations équilibrées et des bons réflexes pour réduire les coûts.",
         "icone": "🐔",
-        "resume": "Comprendre l'énergie, les protéines et les bonnes pratiques pour poulets et pondeuses.",
+        "ordre": 1,
         "lecons": [
             {
-                "id": "volailles-1",
-                "titre": "Bases énergétiques",
-                "contenu": (
-                    "Les volailles ont besoin d'une énergie stable, d'une eau propre et d'un aliment "
-                    "facile à consommer. Le maïs reste une base fréquente dans les rations."
-                ),
-                "quiz": [
-                    {
-                        "question": "Quel ingrédient apporte souvent l'énergie principale ?",
-                        "choix": ["Maïs", "Sable", "Pierre"],
-                        "bonne_reponse": 0,
-                    }
-                ],
+                "numero": 1,
+                "titre": "Les besoins nutritionnels des poulets",
+                "focus": "besoins nutritionnels, eau, énergie, protéines, vitamines",
             },
             {
-                "id": "volailles-2",
-                "titre": "Sources de protéines",
-                "contenu": (
-                    "Le soja, la farine de poisson et certains tourteaux améliorent la croissance "
-                    "et la production d'œufs."
-                ),
-                "quiz": [
-                    {
-                        "question": "Quelle source est riche en protéines ?",
-                        "choix": ["Soja", "Eau", "Paille"],
-                        "bonne_reponse": 0,
-                    }
-                ],
+                "numero": 2,
+                "titre": "Les matières premières disponibles au Bénin",
+                "focus": "maïs, son, soja, drêches, tourteaux, disponibilité locale",
+            },
+            {
+                "numero": 3,
+                "titre": "Formuler une ration équilibrée",
+                "focus": "équilibre, formulation, mélange, proportions, adaptation",
+            },
+            {
+                "numero": 4,
+                "titre": "Réduire les coûts d alimentation",
+                "focus": "coût de revient, achat groupé, stockage, valorisation locale",
+            },
+            {
+                "numero": 5,
+                "titre": "Erreurs fréquentes à éviter",
+                "focus": "erreurs, contamination, surdosage, eau sale, changement brusque",
             },
         ],
     },
     {
-        "id": "bovins",
-        "titre": "Santé bovine",
-        "niveau": "Intermédiaire",
-        "duree": "4 leçons",
+        "code": "sante-prevention",
+        "titre": "Santé et prévention",
+        "resume": "Reconnaître les maladies courantes, protéger l élevage avec la vaccination et renforcer la biosécurité.",
+        "icone": "🩺",
+        "ordre": 2,
+        "lecons": [
+            {
+                "numero": 1,
+                "titre": "Les maladies courantes des volailles",
+                "focus": "maladies, signes, diarrhée, toux, abattement, mortalité",
+            },
+            {
+                "numero": 2,
+                "titre": "Programme de vaccination",
+                "focus": "vaccin, calendrier, rappels, conservation, respect des doses",
+            },
+            {
+                "numero": 3,
+                "titre": "Biosécurité de l élevage",
+                "focus": "désinfection, barrières, visiteurs, pédiluve, quarantaine",
+            },
+            {
+                "numero": 4,
+                "titre": "Premiers secours vétérinaires",
+                "focus": "isoler, hydrater, alerter, surveiller, gestes d urgence",
+            },
+        ],
+    },
+    {
+        "code": "reproduction-bovine",
+        "titre": "Gestion reproduction bovine",
+        "resume": "Suivre le cycle reproductif de la vache, détecter les chaleurs et améliorer le taux de conception.",
         "icone": "🐄",
-        "resume": "Observer l'appétit, la rumination et les signes d'alerte chez les bovins.",
+        "ordre": 3,
         "lecons": [
             {
-                "id": "bovins-1",
-                "titre": "Observation quotidienne",
-                "contenu": (
-                    "Un bovin doit être observé chaque jour pour détecter les changements de comportement, "
-                    "de consommation d'eau ou d'alimentation."
-                ),
-                "quiz": [
-                    {
-                        "question": "Que faut-il observer en priorité ?",
-                        "choix": ["Comportement", "Téléphone", "Chaussures"],
-                        "bonne_reponse": 0,
-                    }
-                ],
-            }
+                "numero": 1,
+                "titre": "Le cycle reproductif de la vache",
+                "focus": "cycle, phase, chaleur, ovulation, gestation",
+            },
+            {
+                "numero": 2,
+                "titre": "Détecter les chaleurs",
+                "focus": "signes, comportement, mucus, agitation, monte",
+            },
+            {
+                "numero": 3,
+                "titre": "Optimiser le taux de conception",
+                "focus": "saillie, nutrition, santé, timing, suivi",
+            },
         ],
     },
     {
-        "id": "reproduction",
-        "titre": "Gestion de la reproduction",
-        "niveau": "Intermédiaire",
-        "duree": "3 leçons",
-        "icone": "🩷",
-        "resume": "Suivre les chaleurs, les saillies, les gestations et les mises-bas.",
-        "lecons": [
-            {
-                "id": "repro-1",
-                "titre": "Cycles et planification",
-                "contenu": (
-                    "Le suivi des cycles améliore la fertilité et permet de mieux prévoir les périodes "
-                    "de saillie et de mise-bas."
-                ),
-                "quiz": [
-                    {
-                        "question": "La reproduction concerne surtout ?",
-                        "choix": ["Cycles", "Couleurs", "Prix"],
-                        "bonne_reponse": 0,
-                    }
-                ],
-            }
-        ],
-    },
-    {
-        "id": "finance",
+        "code": "finance-agricole",
         "titre": "Finance agricole",
-        "niveau": "Débutant",
-        "duree": "3 leçons",
+        "resume": "Maîtriser le coût de revient, fixer un bon prix de vente et comprendre les subventions agricoles.",
         "icone": "💰",
-        "resume": "Apprendre à calculer une marge, suivre les coûts et prendre de meilleures décisions.",
+        "ordre": 4,
         "lecons": [
             {
-                "id": "finance-1",
-                "titre": "Calcul des marges",
-                "contenu": (
-                    "La marge correspond généralement au prix de vente moins les coûts. "
-                    "Suivre cette valeur aide à améliorer la rentabilité."
-                ),
-                "quiz": [
-                    {
-                        "question": "La marge est égale à ?",
-                        "choix": ["Vente - coût", "Coût + impôt", "Prix × 2"],
-                        "bonne_reponse": 0,
-                    }
-                ],
-            }
+                "numero": 1,
+                "titre": "Calculer le coût de revient",
+                "focus": "charges, amortissement, main d œuvre, marge, calcul",
+            },
+            {
+                "numero": 2,
+                "titre": "Fixer le bon prix de vente",
+                "focus": "prix, marché, concurrence, marge, stratégie",
+            },
+            {
+                "numero": 3,
+                "titre": "Accéder aux subventions agricoles",
+                "focus": "dossier, mairie, projets, formalités, financement",
+            },
         ],
     },
     {
-        "id": "paturage",
+        "code": "paturages-durables",
         "titre": "Pâturages durables",
-        "niveau": "Avancé",
-        "duree": "3 leçons",
+        "resume": "Comprendre la charge animale, planifier les rotations et restaurer un pâturage dégradé.",
         "icone": "🌿",
-        "resume": "Préserver les sols, gérer la rotation et réduire la pression sur les pâturages.",
+        "ordre": 5,
         "lecons": [
             {
-                "id": "pat-1",
-                "titre": "Rotation des parcelles",
-                "contenu": (
-                    "La rotation des pâturages aide à préserver la végétation, limiter l'érosion "
-                    "et répartir la pression de pâture."
-                ),
-                "quiz": [
-                    {
-                        "question": "La rotation sert à ?",
-                        "choix": ["Préserver", "Casser", "Vendre"],
-                        "bonne_reponse": 0,
-                    }
-                ],
-            }
+                "numero": 1,
+                "titre": "Comprendre la charge animale",
+                "focus": "charge animale, pression, capacité, saison, sol",
+            },
+            {
+                "numero": 2,
+                "titre": "Planifier les rotations",
+                "focus": "rotation, parcelles, repos, calendrier, herbe",
+            },
+            {
+                "numero": 3,
+                "titre": "Restaurer un pâturage dégradé",
+                "focus": "restauration, semis, repos, fertilité, protection",
+            },
         ],
     },
 ]
 
-
-# -----------------------------------------------------------------------------
-# Utilitaires
-# -----------------------------------------------------------------------------
-def _trouver_formation(formation_id: str) -> Dict[str, Any]:
-    """Retourne une formation par identifiant ou lève une erreur 404."""
-    fid = (formation_id or "").strip().lower()
-    if not fid:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="L'identifiant de formation est obligatoire.",
-        )
-
-    for formation in ACADEMY_FORMATIONS:
-        if formation["id"] == fid:
-            return formation
-
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail="Formation introuvable.",
-    )
+# Index rapide
+FORMATION_BY_CODE = {f["code"]: f for f in FORMATIONS}
+LESSON_BY_KEY: Dict[str, Dict[str, Any]] = {}
+for formation in FORMATIONS:
+    for lecon in formation["lecons"]:
+        key = f"{formation['code']}::{lecon['numero']}"
+        LESSON_BY_KEY[key] = {
+            **lecon,
+            "formation_code": formation["code"],
+            "formation_titre": formation["titre"],
+        }
 
 
-def _trouver_lecon(formation: Dict[str, Any], lesson_id: Optional[str] = None, index: Optional[int] = None) -> Dict[str, Any]:
-    """Retourne une leçon d'une formation."""
-    lecons = formation.get("lecons", [])
-    if not lecons:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Aucune leçon disponible pour cette formation.",
-        )
+class QuizSubmissionRequest(BaseModel):
+    user_id: str = Field(..., min_length=3)
+    formation_code: str = Field(..., min_length=3)
+    numero: int = Field(..., ge=1)
+    reponses: List[int] = Field(default_factory=list)
 
-    if lesson_id:
-        lid = lesson_id.strip().lower()
-        for lecon in lecons:
-            if lecon.get("id", "").lower() == lid:
-                return lecon
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Leçon introuvable.",
-        )
-
-    if index is None:
-        index = 0
-
-    if index < 0 or index >= len(lecons):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Index de leçon invalide.",
-        )
-
-    return lecons[index]
-
-
-def _quiz_pour_lecon(lecon: Dict[str, Any]) -> Dict[str, Any]:
-    """Construit un quiz compatible frontend."""
-    quiz = lecon.get("quiz", [])
-    return {
-        "lesson_id": lecon.get("id"),
-        "titre": lecon.get("titre"),
-        "total_questions": len(quiz),
-        "questions": quiz,
-    }
-
-
-# -----------------------------------------------------------------------------
-# Schémas Pydantic
-# -----------------------------------------------------------------------------
-class AcademyLessonRequest(BaseModel):
-    """Entrée du endpoint /academy/lecon."""
-
-    formation_id: str = Field(..., min_length=2, description="Identifiant de la formation")
-    lesson_id: Optional[str] = Field(default=None, description="Identifiant de la leçon")
-    lesson_index: Optional[int] = Field(default=None, ge=0, description="Index de la leçon")
-
-    @field_validator("formation_id", "lesson_id")
+    @field_validator("user_id", "formation_code")
     @classmethod
-    def _strip(cls, value: Optional[str]) -> Optional[str]:
-        if value is None:
-            return value
-        txt = value.strip()
-        return txt or None
+    def _strip(cls, value: str) -> str:
+        txt = (value or "").strip()
+        if not txt:
+            raise ValueError("Champ vide.")
+        return txt
 
 
-class AcademyQuizRequest(BaseModel):
-    """Entrée du endpoint /academy/quiz."""
+class LessonQueryRequest(BaseModel):
+    formation_code: str = Field(..., min_length=3)
+    numero: Optional[int] = Field(default=None, ge=1)
 
-    formation_id: str = Field(..., min_length=2, description="Identifiant de la formation")
-    lesson_id: Optional[str] = Field(default=None, description="Identifiant de la leçon")
-    lesson_index: Optional[int] = Field(default=None, ge=0, description="Index de la leçon")
-
-    @field_validator("formation_id", "lesson_id")
+    @field_validator("formation_code")
     @classmethod
-    def _strip(cls, value: Optional[str]) -> Optional[str]:
-        if value is None:
-            return value
-        txt = value.strip()
-        return txt or None
+    def _strip_code(cls, value: str) -> str:
+        txt = (value or "").strip()
+        if not txt:
+            raise ValueError("Champ vide.")
+        return txt
 
 
-# -----------------------------------------------------------------------------
-# Endpoints
-# -----------------------------------------------------------------------------
-@router.get("/formations")
-def lire_formations() -> Dict[str, Any]:
-    """
-    Retourne le catalogue complet des formations FarmAcademy.
-    """
-    return {
-        "total": len(ACADEMY_FORMATIONS),
-        "formations": [
-            {
-                "id": formation["id"],
-                "titre": formation["titre"],
-                "niveau": formation["niveau"],
-                "duree": formation["duree"],
-                "icone": formation["icone"],
-                "resume": formation["resume"],
-                "total_lecons": len(formation.get("lecons", [])),
+def _normalize(text: str) -> str:
+    return " ".join((text or "").strip().split())
+
+
+def _ensure_formation(code: str) -> Dict[str, Any]:
+    formation = FORMATION_BY_CODE.get((code or "").strip())
+    if not formation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Formation introuvable."
+        )
+    return formation
+
+
+def _ensure_lesson(formation_code: str, numero: int) -> Dict[str, Any]:
+    formation = _ensure_formation(formation_code)
+    for lecon in formation["lecons"]:
+        if int(lecon["numero"]) == int(numero):
+            return {
+                **lecon,
+                "formation_code": formation_code,
+                "formation_titre": formation["titre"],
             }
-            for formation in ACADEMY_FORMATIONS
-        ],
-    }
-
-
-@router.post("/lecon")
-def lire_lecon(payload: AcademyLessonRequest) -> Dict[str, Any]:
-    """
-    Retourne le détail d'une leçon FarmAcademy.
-    """
-    formation = _trouver_formation(payload.formation_id)
-    lecon = _trouver_lecon(
-        formation=formation,
-        lesson_id=payload.lesson_id,
-        index=payload.lesson_index,
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND, detail="Leçon introuvable."
     )
 
+
+def _lesson_wording(formation: Dict[str, Any], lecon: Dict[str, Any]) -> str:
+    focus = lecon["focus"]
+    titre = lecon["titre"]
+    formation_titre = formation["titre"]
+    return (
+        f"{titre} appartient à la formation {formation_titre}.\n\n"
+        f"Dans cette leçon, on parle de {focus}. Le but est de vous donner des idées simples, concrètes et faciles à appliquer dans une ferme africaine.\n\n"
+        f"Commencez par observer vos animaux et votre contexte. Sur le terrain, la réussite dépend souvent de petits gestes répétés chaque jour : eau propre, aliments bien conservés, matériel nettoyé, surveillance des signes de stress, et respect du calendrier.\n\n"
+        f"Ensuite, adaptez les conseils à vos moyens. Une bonne pratique n est pas forcément la plus chère. Ce qui compte, c est la régularité, la qualité des ingrédients et la capacité à repérer les erreurs avant qu elles ne deviennent coûteuses.\n\n"
+        f"Enfin, gardez une logique de suivi. Notez les quantités, les dates, les incidents et les résultats. Quand vous comparez les chiffres semaine après semaine, vous pouvez ajuster plus vite.\n\n"
+        f"En appliquant cette leçon, vous améliorez la santé des animaux, vous réduisez les pertes et vous gagnez en autonomie. Le plus important est de commencer petit, de tester, puis d améliorer progressivement vos pratiques selon vos réalités locales.\n\n"
+        f"Rappel pratique : {focus}. Répétez l essentiel à votre équipe, vérifiez les détails chaque jour et corrigez rapidement les écarts."
+    )
+
+
+def _generate_gpt_content(
+    formation: Dict[str, Any], lecon: Dict[str, Any]
+) -> Optional[str]:
+    if not AFRI_API_KEY:
+        return None
+    try:
+        from openai import OpenAI  # type: ignore
+    except Exception:
+        return None
+    try:
+        client = OpenAI(api_key=AFRI_API_KEY, base_url=AFRI_BASE_URL)
+        prompt = (
+            "Tu es un pédagogue agricole africain. Écris un contenu en français simple de 500 à 800 mots, "
+            "structuré en paragraphes courts, avec exemples concrets, sans jargon inutile. "
+            "Sujet: " + lecon["titre"] + ". Focus: " + lecon["focus"] + ". "
+            "Respecte le contexte: " + formation["titre"] + "."
+        )
+        response = client.chat.completions.create(
+            model=AFRI_MODEL,
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Tu es un expert en vulgarisation agricole africaine.",
+                },
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.4,
+            max_tokens=1200,
+        )
+        content = getattr(response.choices[0].message, "content", "")
+        if isinstance(content, str) and content.strip():
+            return content.strip()
+    except Exception:
+        return None
+    return None
+
+
+def _build_quiz(formation_code: str, numero: int, focus: str) -> List[Dict[str, Any]]:
+
+    questions = [
+        {
+            "question": f"Selon la leçon {numero}, quel réflexe est le plus utile pour {focus} ?",
+            "choix": [
+                "Observer et ajuster",
+                "Ignorer les signes",
+                "Attendre sans suivre",
+                "Changer tout d un coup",
+            ],
+            "bonne_reponse": 0,
+            "explication": f"La leçon insiste sur une logique d observation, de suivi et d ajustement progressif autour de {focus}.",
+            "points_gagnes": ACCES_POINTS_PAR_BONNE_REPONSE,
+        },
+        {
+            "question": f"Quel comportement aide le mieux à réussir sur le thème {formation_code} ?",
+            "choix": [
+                "Appliquer des gestes simples chaque jour",
+                "Acheter au hasard",
+                "Négliger les coûts",
+                "Oublier les contrôles",
+            ],
+            "bonne_reponse": 0,
+            "explication": "La réussite vient d habitudes régulières, pas d actions improvisées.",
+            "points_gagnes": ACCES_POINTS_PAR_BONNE_REPONSE,
+        },
+        {
+            "question": "Quel choix réduit le plus les erreurs sur le terrain ?",
+            "choix": [
+                "Noter, comparer et corriger",
+                "Faire sans mesurer",
+                "Copier sans comprendre",
+                "Attendre la panne",
+            ],
+            "bonne_reponse": 0,
+            "explication": "Le suivi permet de comparer les résultats et de corriger rapidement les écarts.",
+            "points_gagnes": ACCES_POINTS_PAR_BONNE_REPONSE,
+        },
+    ]
+    return questions
+
+
+def _build_lesson_payload(formation_code: str, numero: int) -> Dict[str, Any]:
+    formation = _ensure_formation(formation_code)
+    lecon = _ensure_lesson(formation_code, numero)
+    texte = _generate_gpt_content(formation, lecon) or _lesson_wording(formation, lecon)
+    quiz = _build_quiz(formation_code, numero, lecon["focus"])
+    total_points = len(quiz) * ACCES_POINTS_PAR_BONNE_REPONSE
     return {
         "formation": {
-            "id": formation["id"],
+            "code": formation["code"],
             "titre": formation["titre"],
-            "niveau": formation["niveau"],
-            "duree": formation["duree"],
+            "resume": formation["resume"],
             "icone": formation["icone"],
+            "ordre": formation["ordre"],
+            "total_lecons": len(formation["lecons"]),
         },
         "lecon": {
-            "id": lecon.get("id"),
-            "titre": lecon.get("titre"),
-            "contenu": lecon.get("contenu"),
+            "numero": lecon["numero"],
+            "titre": lecon["titre"],
+            "contenu": texte,
+            "points_gagnes": total_points,
+            "focus": lecon["focus"],
         },
-        "progression": {
-            "total_lecons": len(formation.get("lecons", [])),
-            "lecon_courante": (
-                next(
-                    (i for i, item in enumerate(formation.get("lecons", [])) if item.get("id") == lecon.get("id")),
-                    0,
-                )
-                + 1
-            ),
+        "quiz": {
+            "total_questions": len(quiz),
+            "questions": quiz,
+        },
+        "navigation": {
+            "precedente": lecon["numero"] - 1 if lecon["numero"] > 1 else None,
+            "suivante": lecon["numero"] + 1
+            if lecon["numero"] < len(formation["lecons"])
+            else None,
         },
     }
 
 
-@router.post("/quiz")
-def lire_quiz(payload: AcademyQuizRequest) -> Dict[str, Any]:
-    """
-    Retourne le quiz associé à une formation ou à une leçon précise.
-    """
-    formation = _trouver_formation(payload.formation_id)
-    lecon = _trouver_lecon(
-        formation=formation,
-        lesson_id=payload.lesson_id,
-        index=payload.lesson_index,
+def _progress_for_user(db: Session, user_id: str) -> Dict[str, Any]:
+    completions = list_user_formations_completees(db, user_id, limit=500)
+    completed_keys = {
+        (str(x.formation_code), int(getattr(x, "lecon_numero", 0) or 0))
+        for x in completions
+    }
+    formations_progress = []
+    total_lecons = sum(len(f["lecons"]) for f in FORMATIONS)
+    total_completees = 0
+    for formation in FORMATIONS:
+        done = 0
+        for lecon in formation["lecons"]:
+            if (formation["code"], int(lecon["numero"])) in completed_keys:
+                done += 1
+        total_completees += done
+        total = len(formation["lecons"])
+        formations_progress.append(
+            {
+                "code": formation["code"],
+                "titre": formation["titre"],
+                "total_lecons": total,
+                "lecons_completees": done,
+                "pourcentage": round((done / total) * 100, 2) if total else 0.0,
+            }
+        )
+    pourcentage_global = (
+        round((total_completees / total_lecons) * 100, 2) if total_lecons else 0.0
     )
-
     return {
-        "formation_id": formation["id"],
-        "formation_titre": formation["titre"],
-        "quiz": _quiz_pour_lecon(lecon),
+        "user_id": user_id,
+        "total_lecons": total_lecons,
+        "lecons_completees": total_completees,
+        "pourcentage_global": pourcentage_global,
+        "formations": formations_progress,
+        "completions": [serialize_formation_completee(x) for x in completions],
     }
 
 
-@router.get("/formations/{formation_id}")
-def lire_formation(formation_id: str) -> Dict[str, Any]:
-    """
-    Retourne une formation détaillée avec l'ensemble de ses leçons.
-    """
-    formation = _trouver_formation(formation_id)
+def _write_certificat_pdf(user_id: str, progress: Dict[str, Any]) -> str:
+    filename = f"certificat_{user_id}_{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}.pdf"
+    path = CERTIFICATS_DIR / filename
+    buffer = io.BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+    pdf.setTitle("Certificat FarmAcademy")
+    pdf.setFont("Helvetica-Bold", 20)
+    pdf.drawString(2 * cm, height - 2.5 * cm, "FeedFormula AI - Certificat FarmAcademy")
+    pdf.setFont("Helvetica", 12)
+    pdf.drawString(2 * cm, height - 3.8 * cm, f"Utilisateur: {user_id}")
+    pdf.drawString(
+        2 * cm,
+        height - 4.6 * cm,
+        f"Progression globale: {progress['pourcentage_global']} %",
+    )
+    y = height - 6 * cm
+    for formation in progress["formations"]:
+        pdf.drawString(
+            2 * cm,
+            y,
+            f"- {formation['titre']}: {formation['lecons_completees']}/{formation['total_lecons']} leçons",
+        )
+        y -= 0.8 * cm
+    pdf.drawString(2 * cm, 3 * cm, "Certificat délivré par FeedFormula AI")
+    pdf.showPage()
+    pdf.save()
+    path.write_bytes(buffer.getvalue())
+    return f"/static/academy_certificats/{filename}"
+
+
+@router.get("/formations")
+def get_formations() -> Dict[str, Any]:
     return {
-        "id": formation["id"],
+        "total": len(FORMATIONS),
+        "formations": [
+            {
+                "code": f["code"],
+                "titre": f["titre"],
+                "resume": f["resume"],
+                "icone": f["icone"],
+                "ordre": f["ordre"],
+                "total_lecons": len(f["lecons"]),
+            }
+            for f in FORMATIONS
+        ],
+    }
+
+
+@router.get("/formation/{code}")
+def get_formation(code: str) -> Dict[str, Any]:
+    formation = _ensure_formation(code)
+    return {
+        "code": formation["code"],
         "titre": formation["titre"],
-        "niveau": formation["niveau"],
-        "duree": formation["duree"],
-        "icone": formation["icone"],
         "resume": formation["resume"],
+        "icone": formation["icone"],
+        "ordre": formation["ordre"],
+        "total_lecons": len(formation["lecons"]),
         "lecons": [
             {
-                "id": lecon.get("id"),
-                "titre": lecon.get("titre"),
-                "contenu": lecon.get("contenu"),
+                "numero": lecon["numero"],
+                "titre": lecon["titre"],
+                "focus": lecon["focus"],
             }
-            for lecon in formation.get("lecons", [])
+            for lecon in formation["lecons"]
         ],
+    }
+
+
+@router.get("/lecon/{formation_code}/{numero}")
+def get_lecon(formation_code: str, numero: int) -> Dict[str, Any]:
+    return _build_lesson_payload(formation_code, numero)
+
+
+@router.post("/quiz/soumettre")
+def soumettre_quiz(
+    payload: QuizSubmissionRequest, db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    _ensure_lesson(payload.formation_code, payload.numero)
+    lesson_payload = _build_lesson_payload(payload.formation_code, payload.numero)
+    quiz = lesson_payload["quiz"]["questions"]
+    score = 0
+    details = []
+    for idx, question in enumerate(quiz):
+        bonne = int(question["bonne_reponse"])
+        reponse = payload.reponses[idx] if idx < len(payload.reponses) else None
+        ok = reponse == bonne
+        if ok:
+            score += int(question["points_gagnes"])
+        details.append(
+            {
+                "question": question["question"],
+                "choix": question["choix"],
+                "bonne_reponse": bonne,
+                "reponse_utilisateur": reponse,
+                "correct": ok,
+                "explication": question["explication"],
+                "points_gagnes": question["points_gagnes"] if ok else 0,
+            }
+        )
+    create_formation_completee(
+        db, payload.user_id, payload.formation_code, payload.numero, score_quiz=score
+    )
+    progression = _progress_for_user(db, payload.user_id)
+    complet = progression["pourcentage_global"] == 100.0
+    certificat_url = (
+        _write_certificat_pdf(payload.user_id, progression) if complet else None
+    )
+    return {
+        "user_id": payload.user_id,
+        "formation_code": payload.formation_code,
+        "numero": payload.numero,
+        "score": score,
+        "score_max": len(quiz) * ACCES_POINTS_PAR_BONNE_REPONSE,
+        "points_gagnes": score,
+        "details": details,
+        "reussi": score == len(quiz) * ACCES_POINTS_PAR_BONNE_REPONSE,
+        "progression": progression,
+        "certificat_url": certificat_url,
+    }
+
+
+@router.get("/progression/{user_id}")
+def get_progression(user_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
+    return _progress_for_user(db, user_id)
+
+
+@router.get("/certifications/{user_id}")
+def get_certifications(user_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
+    progress = _progress_for_user(db, user_id)
+    certifications: List[Dict[str, Any]] = []
+    for formation in FORMATIONS:
+        total = len(formation["lecons"])
+        done = next(
+            (x for x in progress["formations"] if x["code"] == formation["code"]), None
+        )
+        if done and done["lecons_completees"] == total:
+            certifications.append(
+                {
+                    "formation_code": formation["code"],
+                    "titre": formation["titre"],
+                    "total_lecons": total,
+                    "lecons_completees": done["lecons_completees"],
+                    "pourcentage": 100.0,
+                    "certificat_url": _write_certificat_pdf(user_id, progress),
+                }
+            )
+    return {
+        "user_id": user_id,
+        "total": len(certifications),
+        "certifications": certifications,
+        "progression": progress,
     }
 
 
 __all__ = [
     "router",
-    "ACADEMY_FORMATIONS",
-    "AcademyLessonRequest",
-    "AcademyQuizRequest",
+    "FORMATIONS",
+    "LessonQueryRequest",
+    "QuizSubmissionRequest",
 ]

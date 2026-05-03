@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+# pyright: reportGeneralTypeIssues=false
 """
 Module base de données de FeedFormula AI.
 
@@ -53,7 +53,9 @@ DEFAULT_SQLITE_PATH = DATA_DIR / "feedformula.db"
 DEFAULT_DATABASE_URL = f"sqlite:///{DEFAULT_SQLITE_PATH.as_posix()}"
 
 # Possibilité de surcharger via variable d'environnement.
-DATABASE_URL = os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL).strip() or DEFAULT_DATABASE_URL
+DATABASE_URL = (
+    os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL).strip() or DEFAULT_DATABASE_URL
+)
 
 # Option nécessaire pour SQLite en environnement web multithread.
 connect_args: Dict[str, Any] = {}
@@ -61,13 +63,16 @@ if DATABASE_URL.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
 
 engine = create_engine(DATABASE_URL, future=True, connect_args=connect_args)
-SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, expire_on_commit=False, future=True)
+SessionLocal = sessionmaker(
+    bind=engine, autoflush=False, autocommit=False, expire_on_commit=False, future=True
+)
 Base = declarative_base()
 
 
 # ---------------------------------------------------------------------------
 # Helpers internes
 # ---------------------------------------------------------------------------
+
 
 def _uuid_str() -> str:
     """Retourne un UUID v4 sous forme de chaîne."""
@@ -106,6 +111,7 @@ def _niveau_depuis_points(points_total: int) -> int:
 # Modèles ORM
 # ---------------------------------------------------------------------------
 
+
 class User(Base):
     """
     Table users.
@@ -133,12 +139,31 @@ class User(Base):
     region = Column(String(120), nullable=False, default="Bénin")
 
     # Relations
-    rations = relationship("Ration", back_populates="user", cascade="all, delete-orphan")
-    trophees = relationship("TropheeUtilisateur", back_populates="user", cascade="all, delete-orphan")
-    completions_defis = relationship("CompletionDefi", back_populates="user", cascade="all, delete-orphan")
-    diagnostics_vetscan = relationship("DiagnosticVetScan", back_populates="user", cascade="all, delete-orphan")
-    evenements_reproduction = relationship("EvenementReproduction", back_populates="user", cascade="all, delete-orphan")
-    formations_completees = relationship("FormationCompletee", back_populates="user", cascade="all, delete-orphan")
+    rations = relationship(
+        "Ration", back_populates="user", cascade="all, delete-orphan"
+    )
+    trophees = relationship(
+        "TropheeUtilisateur", back_populates="user", cascade="all, delete-orphan"
+    )
+    completions_defis = relationship(
+        "CompletionDefi", back_populates="user", cascade="all, delete-orphan"
+    )
+    diagnostics_vetscan = relationship(
+        "DiagnosticVetScan", back_populates="user", cascade="all, delete-orphan"
+    )
+    evenements_reproduction = relationship(
+        "EvenementReproduction", back_populates="user", cascade="all, delete-orphan"
+    )
+    formations_completees = relationship(
+        "FormationCompletee", back_populates="user", cascade="all, delete-orphan"
+    )
+    posts = relationship("Post", back_populates="user", cascade="all, delete-orphan")
+    commentaires = relationship(
+        "Commentaire", back_populates="user", cascade="all, delete-orphan"
+    )
+    annonces_marche = relationship(
+        "AnnonceMarche", back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class Ration(Base):
@@ -149,17 +174,24 @@ class Ration(Base):
     __tablename__ = "rations"
 
     id = Column(String(36), primary_key=True, default=_uuid_str)
-    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(
+        String(36),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     espece = Column(String(80), nullable=False)
     stade = Column(String(80), nullable=False)
-    ingredients_saisis = Column(Text, nullable=False)   # JSON texte
+    ingredients_saisis = Column(Text, nullable=False)  # JSON texte
     ration_generee = Column(Text, nullable=False)
-    composition_json = Column(Text, nullable=False)     # JSON texte
+    composition_json = Column(Text, nullable=False)  # JSON texte
     cout_fcfa_kg = Column(Float, nullable=False, default=0.0)
     cout_7_jours = Column(Float, nullable=False, default=0.0)
     langue = Column(String(20), nullable=False, default="fr")
     points_gagnes = Column(Integer, nullable=False, default=0)
-    date_creation = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    date_creation = Column(
+        DateTime, nullable=False, default=datetime.utcnow, index=True
+    )
 
     user = relationship("User", back_populates="rations")
 
@@ -175,7 +207,12 @@ class TropheeUtilisateur(Base):
     )
 
     id = Column(String(36), primary_key=True, default=_uuid_str)
-    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(
+        String(36),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     trophee_code = Column(String(120), nullable=False, index=True)
     date_obtention = Column(DateTime, nullable=False, default=datetime.utcnow)
 
@@ -195,7 +232,9 @@ class DefiQuotidien(Base):
     defi_2 = Column(Text, nullable=False)  # JSON texte
     defi_3 = Column(Text, nullable=False)  # JSON texte
 
-    completions = relationship("CompletionDefi", back_populates="defi", cascade="all, delete-orphan")
+    completions = relationship(
+        "CompletionDefi", back_populates="defi", cascade="all, delete-orphan"
+    )
 
 
 class CompletionDefi(Base):
@@ -205,12 +244,24 @@ class CompletionDefi(Base):
 
     __tablename__ = "completions_defis"
     __table_args__ = (
-        UniqueConstraint("user_id", "defi_id", "defi_numero", name="uq_completion_unique"),
+        UniqueConstraint(
+            "user_id", "defi_id", "defi_numero", name="uq_completion_unique"
+        ),
     )
 
     id = Column(String(36), primary_key=True, default=_uuid_str)
-    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    defi_id = Column(String(36), ForeignKey("defis_quotidiens.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(
+        String(36),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    defi_id = Column(
+        String(36),
+        ForeignKey("defis_quotidiens.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     defi_numero = Column(Integer, nullable=False)  # 1, 2 ou 3
     date_completion = Column(DateTime, nullable=False, default=datetime.utcnow)
     points_gagnes = Column(Integer, nullable=False, default=0)
@@ -229,7 +280,9 @@ class PrixMarche(Base):
     id = Column(String(36), primary_key=True, default=_uuid_str)
     ingredient = Column(String(120), nullable=False, index=True)
     prix_fcfa_kg = Column(Float, nullable=False)
-    date_mise_a_jour = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    date_mise_a_jour = Column(
+        DateTime, nullable=False, default=datetime.utcnow, index=True
+    )
     source = Column(String(120), nullable=True)
     region = Column(String(120), nullable=False, default="Bénin")
 
@@ -250,7 +303,9 @@ class OtpCode(Base):
     max_attempts = Column(Integer, nullable=False, default=5)
     expires_at = Column(DateTime, nullable=False, index=True)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = Column(
+        DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
 
 
 class UserActionLog(Base):
@@ -263,7 +318,12 @@ class UserActionLog(Base):
     __tablename__ = "user_action_logs"
 
     id = Column(String(36), primary_key=True, default=_uuid_str)
-    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(
+        String(36),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     action = Column(String(120), nullable=False, index=True)
     points_awarded = Column(Integer, nullable=False, default=0)
     meta_json = Column(Text, nullable=False, default="{}")
@@ -274,6 +334,7 @@ class UserActionLog(Base):
 # Modèles métier complémentaires demandés
 # ---------------------------------------------------------------------------
 
+
 class DiagnosticVetScan(Base):
     """
     Table diagnostics_vetscan.
@@ -282,7 +343,12 @@ class DiagnosticVetScan(Base):
     __tablename__ = "diagnostics_vetscan"
 
     id = Column(String(36), primary_key=True, default=_uuid_str)
-    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(
+        String(36),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     espece = Column(String(80), nullable=False, index=True)
     symptomes_decrits = Column(Text, nullable=False)
     photo_path = Column(String(255), nullable=True)
@@ -295,7 +361,9 @@ class DiagnosticVetScan(Base):
     protocole_soins = Column(Text, nullable=False)
     decision_triage = Column(String(50), nullable=False, default="autonome")
     points_gagnes = Column(Integer, nullable=False, default=0)
-    date_creation = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    date_creation = Column(
+        DateTime, nullable=False, default=datetime.utcnow, index=True
+    )
 
     user = relationship("User", back_populates="diagnostics_vetscan")
 
@@ -308,14 +376,21 @@ class EvenementReproduction(Base):
     __tablename__ = "evenements_reproduction"
 
     id = Column(String(36), primary_key=True, default=_uuid_str)
-    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(
+        String(36),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     animal_id = Column(String(120), nullable=False, index=True)
     espece = Column(String(80), nullable=False, index=True)
     type_evenement = Column(String(80), nullable=False, index=True)
     date_evenement = Column(DateTime, nullable=False, index=True)
     date_prevue_prochain = Column(DateTime, nullable=True, index=True)
     notes = Column(Text, nullable=True)
-    date_creation = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    date_creation = Column(
+        DateTime, nullable=False, default=datetime.utcnow, index=True
+    )
 
     user = relationship("User", back_populates="evenements_reproduction")
 
@@ -327,21 +402,118 @@ class FormationCompletee(Base):
 
     __tablename__ = "formations_completees"
     __table_args__ = (
-        UniqueConstraint("user_id", "formation_code", "lecon_numero", name="uq_formation_lecon_unique"),
+        UniqueConstraint(
+            "user_id",
+            "formation_code",
+            "lecon_numero",
+            name="uq_formation_lecon_unique",
+        ),
     )
 
     id = Column(String(36), primary_key=True, default=_uuid_str)
-    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(
+        String(36),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     formation_code = Column(String(120), nullable=False, index=True)
     lecon_numero = Column(Integer, nullable=False, default=1)
     score_quiz = Column(Integer, nullable=True)
-    date_completion = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    date_completion = Column(
+        DateTime, nullable=False, default=datetime.utcnow, index=True
+    )
 
     user = relationship("User", back_populates="formations_completees")
+
+
+class Post(Base):
+    """
+    Table posts.
+    """
+
+    __tablename__ = "posts"
+
+    id = Column(String(36), primary_key=True, default=_uuid_str)
+    user_id = Column(
+        String(36),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    contenu = Column(Text, nullable=False)
+    type = Column(String(50), nullable=False, default="texte")
+    likes = Column(Integer, nullable=False, default=0)
+    date_creation = Column(
+        DateTime, nullable=False, default=datetime.utcnow, index=True
+    )
+
+    user = relationship("User", back_populates="posts")
+    commentaires = relationship(
+        "Commentaire", back_populates="post", cascade="all, delete-orphan"
+    )
+
+
+class Commentaire(Base):
+    """
+    Table commentaires.
+    """
+
+    __tablename__ = "commentaires"
+
+    id = Column(String(36), primary_key=True, default=_uuid_str)
+    post_id = Column(
+        String(36),
+        ForeignKey("posts.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    user_id = Column(
+        String(36),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    contenu = Column(Text, nullable=False)
+    date_creation = Column(
+        DateTime, nullable=False, default=datetime.utcnow, index=True
+    )
+
+    post = relationship("Post", back_populates="commentaires")
+    user = relationship("User", back_populates="commentaires")
+
+
+class AnnonceMarche(Base):
+    """
+    Table annonces_marche.
+    """
+
+    __tablename__ = "annonces_marche"
+
+    id = Column(String(36), primary_key=True, default=_uuid_str)
+    user_id = Column(
+        String(36),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    type = Column(String(20), nullable=False)
+    espece = Column(String(120), nullable=False, index=True)
+    quantite = Column(String(50), nullable=False)
+    prix = Column(String(50), nullable=False)
+    localisation = Column(String(120), nullable=False)
+    statut = Column(String(30), nullable=False, default="active")
+    date_creation = Column(
+        DateTime, nullable=False, default=datetime.utcnow, index=True
+    )
+
+    user = relationship("User", back_populates="annonces_marche")
+
 
 # ---------------------------------------------------------------------------
 # Initialisation et session DB
 # ---------------------------------------------------------------------------
+
 
 def init_db() -> None:
     """
@@ -367,6 +539,7 @@ def get_db() -> Generator[Session, None, None]:
 # ---------------------------------------------------------------------------
 # CRUD - USERS
 # ---------------------------------------------------------------------------
+
 
 def create_user(
     db: Session,
@@ -437,7 +610,9 @@ def upsert_otp_code(
 
 def get_otp_by_telephone(db: Session, telephone: str) -> Optional[OtpCode]:
     """Retourne l'OTP actif (persisté) pour un numéro."""
-    return db.query(OtpCode).filter(OtpCode.telephone == (telephone or "").strip()).first()
+    return (
+        db.query(OtpCode).filter(OtpCode.telephone == (telephone or "").strip()).first()
+    )
 
 
 def verify_otp_code(db: Session, telephone: str, code_saisi: str) -> bool:
@@ -483,7 +658,9 @@ def clear_otp_by_telephone(db: Session, telephone: str) -> None:
         db.commit()
 
 
-def update_user_last_login(db: Session, user_id: str, dt: Optional[datetime] = None) -> Optional[User]:
+def update_user_last_login(
+    db: Session, user_id: str, dt: Optional[datetime] = None
+) -> Optional[User]:
     """Met à jour la dernière connexion."""
     user = get_user_by_id(db, user_id)
     if not user:
@@ -506,7 +683,9 @@ def add_points_to_user(db: Session, user_id: str, points: int) -> Optional[User]
     return user
 
 
-def update_user_streak(db: Session, user_id: str, serie_actuelle: int) -> Optional[User]:
+def update_user_streak(
+    db: Session, user_id: str, serie_actuelle: int
+) -> Optional[User]:
     """Met à jour la série actuelle et la meilleure série."""
     user = get_user_by_id(db, user_id)
     if not user:
@@ -522,7 +701,12 @@ def update_user_streak(db: Session, user_id: str, serie_actuelle: int) -> Option
 def list_top_users_by_points(db: Session, limit: int = 50) -> List[User]:
     """Retourne le top utilisateurs trié par points."""
     n = max(1, min(int(limit or 50), 500))
-    return db.query(User).order_by(desc(User.points_total), User.date_inscription).limit(n).all()
+    return (
+        db.query(User)
+        .order_by(desc(User.points_total), User.date_inscription)
+        .limit(n)
+        .all()
+    )
 
 
 def log_user_action(
@@ -580,7 +764,9 @@ def count_user_actions_last_24h(db: Session, user_id: str) -> int:
     )
 
 
-def get_user_action_counts(db: Session, user_id: str, days: int = 365) -> Dict[str, int]:
+def get_user_action_counts(
+    db: Session, user_id: str, days: int = 365
+) -> Dict[str, int]:
     """
     Retourne le volume d'actions par type pour un utilisateur sur une période.
     """
@@ -607,6 +793,7 @@ def get_user_action_counts(db: Session, user_id: str, days: int = 365) -> Dict[s
 # ---------------------------------------------------------------------------
 # CRUD - RATIONS
 # ---------------------------------------------------------------------------
+
 
 def create_ration(
     db: Session,
@@ -656,7 +843,10 @@ def list_user_rations(db: Session, user_id: str, limit: int = 10) -> List[Ration
 # CRUD - TROPHÉES
 # ---------------------------------------------------------------------------
 
-def create_trophee_for_user(db: Session, user_id: str, trophee_code: str) -> Optional[TropheeUtilisateur]:
+
+def create_trophee_for_user(
+    db: Session, user_id: str, trophee_code: str
+) -> Optional[TropheeUtilisateur]:
     """
     Attribue un trophée à un utilisateur.
     Si déjà présent, ne crée pas de doublon.
@@ -696,6 +886,7 @@ def list_user_trophees(db: Session, user_id: str) -> List[TropheeUtilisateur]:
 # ---------------------------------------------------------------------------
 # CRUD - DÉFIS QUOTIDIENS
 # ---------------------------------------------------------------------------
+
 
 def create_or_update_defi_quotidien(
     db: Session,
@@ -766,7 +957,9 @@ def complete_defi(
     return completion
 
 
-def list_user_completions_defis(db: Session, user_id: str, limit: int = 100) -> List[CompletionDefi]:
+def list_user_completions_defis(
+    db: Session, user_id: str, limit: int = 100
+) -> List[CompletionDefi]:
     """Liste l'historique des défis complétés par un utilisateur."""
     n = max(1, min(int(limit or 100), 500))
     return (
@@ -781,6 +974,7 @@ def list_user_completions_defis(db: Session, user_id: str, limit: int = 100) -> 
 # ---------------------------------------------------------------------------
 # CRUD - PRIX MARCHÉ
 # ---------------------------------------------------------------------------
+
 
 def add_prix_marche(
     db: Session,
@@ -810,7 +1004,9 @@ def get_latest_prix_for_ingredient(
     region: Optional[str] = None,
 ) -> Optional[PrixMarche]:
     """Retourne le dernier prix connu d'un ingrédient (optionnellement par région)."""
-    q = db.query(PrixMarche).filter(PrixMarche.ingredient == (ingredient or "").strip().lower())
+    q = db.query(PrixMarche).filter(
+        PrixMarche.ingredient == (ingredient or "").strip().lower()
+    )
     if region:
         q = q.filter(PrixMarche.region == region.strip())
     return q.order_by(desc(PrixMarche.date_mise_a_jour)).first()
@@ -819,6 +1015,7 @@ def get_latest_prix_for_ingredient(
 # ---------------------------------------------------------------------------
 # CRUD - DIAGNOSTICS VETSCAN
 # ---------------------------------------------------------------------------
+
 
 def create_diagnostic_vetscan(
     db: Session,
@@ -858,7 +1055,9 @@ def create_diagnostic_vetscan(
     return row
 
 
-def list_user_diagnostics_vetscan(db: Session, user_id: str, limit: int = 10) -> List[DiagnosticVetScan]:
+def list_user_diagnostics_vetscan(
+    db: Session, user_id: str, limit: int = 10
+) -> List[DiagnosticVetScan]:
     """Retourne les derniers diagnostics VetScan d'un utilisateur."""
     n = max(1, min(int(limit or 10), 200))
     return (
@@ -873,6 +1072,7 @@ def list_user_diagnostics_vetscan(db: Session, user_id: str, limit: int = 10) ->
 # ---------------------------------------------------------------------------
 # CRUD - EVENEMENTS REPRODUCTION
 # ---------------------------------------------------------------------------
+
 
 def create_evenement_reproduction(
     db: Session,
@@ -890,8 +1090,12 @@ def create_evenement_reproduction(
         animal_id=(animal_id or "").strip(),
         espece=(espece or "").strip(),
         type_evenement=(type_evenement or "").strip(),
-        date_evenement=date_evenement if isinstance(date_evenement, datetime) else datetime.utcnow(),
-        date_prevue_prochain=date_prevue_prochain if isinstance(date_prevue_prochain, datetime) else None,
+        date_evenement=date_evenement
+        if isinstance(date_evenement, datetime)
+        else datetime.utcnow(),
+        date_prevue_prochain=date_prevue_prochain
+        if isinstance(date_prevue_prochain, datetime)
+        else None,
         notes=(notes or "").strip() or None,
     )
     if not isinstance(date_evenement, datetime):
@@ -902,7 +1106,9 @@ def create_evenement_reproduction(
     return row
 
 
-def list_user_evenements_reproduction(db: Session, user_id: str, limit: int = 50) -> List[EvenementReproduction]:
+def list_user_evenements_reproduction(
+    db: Session, user_id: str, limit: int = 50
+) -> List[EvenementReproduction]:
     """Retourne les événements de reproduction d'un utilisateur."""
     n = max(1, min(int(limit or 50), 500))
     return (
@@ -917,6 +1123,7 @@ def list_user_evenements_reproduction(db: Session, user_id: str, limit: int = 50
 # ---------------------------------------------------------------------------
 # CRUD - FORMATIONS COMPLÉTÉES
 # ---------------------------------------------------------------------------
+
 
 def create_formation_completee(
     db: Session,
@@ -938,7 +1145,134 @@ def create_formation_completee(
     return row
 
 
-def list_user_formations_completees(db: Session, user_id: str, limit: int = 100) -> List[FormationCompletee]:
+# ---------------------------------------------------------------------------
+# CRUD - COMMUNITY
+# ---------------------------------------------------------------------------
+
+
+def create_post(
+    db: Session,
+    user_id: str,
+    contenu: str,
+    type_contenu: str = "texte",
+    likes: int = 0,
+    date_creation: Optional[datetime] = None,
+) -> Post:
+    """Crée un post communautaire."""
+    row = Post(
+        user_id=user_id,
+        contenu=(contenu or "").strip(),
+        type=(type_contenu or "texte").strip().lower(),
+        likes=max(0, int(likes or 0)),
+        date_creation=date_creation or datetime.utcnow(),
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return row
+
+
+def list_posts(db: Session, limit: int = 50) -> List[Post]:
+    """Liste les derniers posts."""
+    n = max(1, min(int(limit or 50), 500))
+    return db.query(Post).order_by(desc(Post.date_creation)).limit(n).all()
+
+
+def like_post(db: Session, post_id: str) -> Optional[Post]:
+    """Incrémente les likes d'un post."""
+    post = db.query(Post).filter(Post.id == (post_id or "").strip()).first()
+    if not post:
+        return None
+    post.likes = int(post.likes or 0) + 1
+    db.commit()
+    db.refresh(post)
+    return post
+
+
+def create_commentaire(
+    db: Session,
+    post_id: str,
+    user_id: str,
+    contenu: str,
+    date_creation: Optional[datetime] = None,
+) -> Commentaire:
+    """Crée un commentaire sur un post."""
+    row = Commentaire(
+        post_id=post_id,
+        user_id=user_id,
+        contenu=(contenu or "").strip(),
+        date_creation=date_creation or datetime.utcnow(),
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return row
+
+
+def list_commentaires_for_post(
+    db: Session, post_id: str, limit: int = 50
+) -> List[Commentaire]:
+    """Liste les commentaires d'un post."""
+    n = max(1, min(int(limit or 50), 500))
+    return (
+        db.query(Commentaire)
+        .filter(Commentaire.post_id == (post_id or "").strip())
+        .order_by(desc(Commentaire.date_creation))
+        .limit(n)
+        .all()
+    )
+
+
+def create_annonce_marche(
+    db: Session,
+    user_id: str,
+    type_annonce: str,
+    espece: str,
+    quantite: str,
+    prix: str,
+    localisation: str,
+    statut: str = "active",
+    date_creation: Optional[datetime] = None,
+) -> AnnonceMarche:
+    """Crée une annonce marketplace."""
+    row = AnnonceMarche(
+        user_id=user_id,
+        type=(type_annonce or "vente").strip().lower(),
+        espece=(espece or "").strip(),
+        quantite=(quantite or "").strip(),
+        prix=(prix or "").strip(),
+        localisation=(localisation or "").strip(),
+        statut=(statut or "active").strip().lower(),
+        date_creation=date_creation or datetime.utcnow(),
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return row
+
+
+def list_annonces_marche(
+    db: Session,
+    type_annonce: Optional[str] = None,
+    espece: Optional[str] = None,
+    localisation: Optional[str] = None,
+    limit: int = 50,
+) -> List[AnnonceMarche]:
+    """Liste les annonces marketplace avec filtres optionnels."""
+    q = db.query(AnnonceMarche)
+    if type_annonce:
+        q = q.filter(AnnonceMarche.type == type_annonce.strip().lower())
+    if espece:
+        q = q.filter(AnnonceMarche.espece == espece.strip())
+    if localisation:
+        q = q.filter(AnnonceMarche.localisation == localisation.strip())
+    n = max(1, min(int(limit or 50), 500))
+    return q.order_by(desc(AnnonceMarche.date_creation)).limit(n).all()
+
+
+def list_user_formations_completees(
+    db: Session, user_id: str, limit: int = 100
+) -> List[FormationCompletee]:
     """Retourne les formations/leçons complétées d'un utilisateur."""
     n = max(1, min(int(limit or 100), 500))
     return (
@@ -954,6 +1288,7 @@ def list_user_formations_completees(db: Session, user_id: str, limit: int = 100)
 # Sérialisation (utile pour les API)
 # ---------------------------------------------------------------------------
 
+
 def serialize_user(user: User) -> Dict[str, Any]:
     """Transforme un User ORM en dictionnaire JSON-compatible."""
     return {
@@ -963,8 +1298,12 @@ def serialize_user(user: User) -> Dict[str, Any]:
         "langue_preferee": user.langue_preferee,
         "espece_principale": user.espece_principale,
         "departement": getattr(user, "departement", ""),
-        "date_inscription": user.date_inscription.isoformat() if user.date_inscription else None,
-        "derniere_connexion": user.derniere_connexion.isoformat() if user.derniere_connexion else None,
+        "date_inscription": user.date_inscription.isoformat()
+        if user.date_inscription
+        else None,
+        "derniere_connexion": user.derniere_connexion.isoformat()
+        if user.derniere_connexion
+        else None,
         "points_total": int(user.points_total or 0),
         "niveau_actuel": int(user.niveau_actuel or 1),
         "serie_actuelle": int(user.serie_actuelle or 0),
@@ -1008,7 +1347,9 @@ def serialize_evenement_reproduction(e: EvenementReproduction) -> Dict[str, Any]
         "espece": e.espece,
         "type_evenement": e.type_evenement,
         "date_evenement": e.date_evenement.isoformat() if e.date_evenement else None,
-        "date_prevue_prochain": e.date_prevue_prochain.isoformat() if e.date_prevue_prochain else None,
+        "date_prevue_prochain": e.date_prevue_prochain.isoformat()
+        if e.date_prevue_prochain
+        else None,
         "notes": e.notes,
         "date_creation": e.date_creation.isoformat() if e.date_creation else None,
     }
@@ -1083,9 +1424,49 @@ def serialize_prix_marche(p: PrixMarche) -> Dict[str, Any]:
         "id": p.id,
         "ingredient": p.ingredient,
         "prix_fcfa_kg": float(p.prix_fcfa_kg or 0.0),
-        "date_mise_a_jour": p.date_mise_a_jour.isoformat() if p.date_mise_a_jour else None,
+        "date_mise_a_jour": p.date_mise_a_jour.isoformat()
+        if p.date_mise_a_jour
+        else None,
         "source": p.source,
         "region": p.region,
+    }
+
+
+def serialize_post(p: Post) -> Dict[str, Any]:
+    """Transforme un post en dictionnaire JSON-compatible."""
+    return {
+        "id": p.id,
+        "user_id": p.user_id,
+        "contenu": p.contenu,
+        "type": p.type,
+        "likes": int(p.likes or 0),
+        "date_creation": p.date_creation.isoformat() if p.date_creation else None,
+    }
+
+
+def serialize_commentaire(c: Commentaire) -> Dict[str, Any]:
+    """Transforme un commentaire en dictionnaire JSON-compatible."""
+    return {
+        "id": c.id,
+        "post_id": c.post_id,
+        "user_id": c.user_id,
+        "contenu": c.contenu,
+        "date_creation": c.date_creation.isoformat() if c.date_creation else None,
+    }
+
+
+def serialize_annonce_marche(a: AnnonceMarche) -> Dict[str, Any]:
+    """Transforme une annonce marketplace en dictionnaire JSON-compatible."""
+    return {
+        "id": a.id,
+        "user_id": a.user_id,
+        "type": a.type,
+        "espece": a.espece,
+        "quantite": a.quantite,
+        "prix": a.prix,
+        "localisation": a.localisation,
+        "statut": a.statut,
+        "date_creation": a.date_creation.isoformat() if a.date_creation else None,
     }
 
 
@@ -1138,6 +1519,16 @@ __all__ = [
     "DiagnosticVetScan",
     "EvenementReproduction",
     "FormationCompletee",
+    "Post",
+    "Commentaire",
+    "AnnonceMarche",
+    "create_post",
+    "list_posts",
+    "like_post",
+    "create_commentaire",
+    "list_commentaires_for_post",
+    "create_annonce_marche",
+    "list_annonces_marche",
     "create_diagnostic_vetscan",
     "list_user_diagnostics_vetscan",
     "create_evenement_reproduction",
@@ -1147,4 +1538,7 @@ __all__ = [
     "serialize_diagnostic_vetscan",
     "serialize_evenement_reproduction",
     "serialize_formation_completee",
+    "serialize_post",
+    "serialize_commentaire",
+    "serialize_annonce_marche",
 ]

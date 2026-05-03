@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FarmCast | FeedFormula AI</title>
+  <style>
+    body{font-family:Arial,sans-serif;margin:0;background:#f6f8fb;color:#16212d}
+    header,main{max-width:1200px;margin:auto;padding:20px}
+    .card{background:#fff;border-radius:18px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,.08);margin-bottom:16px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+    input,select,textarea{width:100%;padding:11px;border:1px solid #d6dce3;border-radius:10px;margin-top:6px}
+    button{border:none;border-radius:12px;padding:11px 16px;background:#1769ff;color:#fff;cursor:pointer}
+    .muted{color:#60708a}
+    .gallery img,.gallery .stub{width:100%;min-height:160px;object-fit:cover;border-radius:14px;background:#edf4ff;display:flex;align-items:center;justify-content:center}
+    .pill{display:inline-block;padding:4px 10px;border-radius:999px;background:#e8f0ff;color:#1b4fb8;font-size:12px}
+    .history-item{border-bottom:1px solid #edf0f5;padding:10px 0}
+    audio{width:100%}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>FarmCast</h1>
+    <p class="muted">Créer un script court, une voix, des images et une fiche PDF partageable.</p>
+  </header>
+  <main>
+    <section class="card">
+      <h2>Créer mon contenu</h2>
+      <div class="grid">
+        <label>Thème<input id="theme" placeholder="Ex: Vaccination des poulets"></label>
+        <label>Langue<select id="langue"><option>fr</option><option>fon</option><option>en</option></select></label>
+        <label>Format<select id="format"><option>audio</option><option>video</option><option>fiche</option></select></label>
+        <label>Public cible<input id="public" placeholder="Ex: éleveurs de volailles"></label>
+      </div>
+      <button style="margin-top:12px" onclick="createContent()">Créer mon contenu</button>
+    </section>
+
+    <section class="card">
+      <h2>Prévisualisation</h2>
+      <div id="preview" class="muted">Aucun contenu généré pour le moment.</div>
+    </section>
+
+    <section class="card">
+      <h2>Galerie des images</h2>
+      <div id="gallery" class="grid gallery"></div>
+    </section>
+
+    <section class="card">
+      <h2>Partager</h2>
+      <div class="grid">
+        <button id="waBtn" onclick="share('whatsapp')">WhatsApp</button>
+        <button id="ytBtn" onclick="share('youtube')">YouTube</button>
+        <button id="ttBtn" onclick="share('tiktok')">TikTok</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Historique des 10 derniers contenus</h2>
+      <label>Utilisateur ID<input id="userId" placeholder="ID utilisateur"></label>
+      <button style="margin-top:12px" onclick="loadHistory()">Charger l historique</button>
+      <div id="history"></div>
+    </section>
+  </main>
+
+  <script>
+    const api = (window.API_BASE || '').replace(/\/$/, '');
+    let currentContent = null;
+    async function jget(url){ const r = await fetch(api + url); return await r.json(); }
+    async function jpost(url, data){ const r = await fetch(api + url, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)}); return await r.json(); }
+
+    async function createContent(){
+      const payload = {
+        theme: document.getElementById('theme').value,
+        langue: document.getElementById('langue').value,
+        format_souhaite: document.getElementById('format').value,
+        public_cible: document.getElementById('public').value,
+      };
+      const data = await jpost('/farmcast/creer', payload);
+      currentContent = data;
+      document.getElementById('preview').innerHTML = `
+        <span class="pill">${data.langue}</span>
+        <h3>Script</h3>
+        <p>${data.script.replace(/\n/g,'<br>')}</p>
+        <audio controls src="${api + data.audio_url}"></audio>
+        <p><a href="${api + data.fiche_pdf_url}" download>Télécharger la fiche PDF</a></p>
+      `;
+      document.getElementById('gallery').innerHTML = data.images_urls.map(u => `<div class="stub"><span>${u}</span></div>`).join('');
+    }
+
+    async function loadHistory(){
+      const userId = document.getElementById('userId').value.trim();
+      if(!userId) return alert('Entrez un ID utilisateur');
+      const data = await jget(`/farmcast/contenus/${encodeURIComponent(userId)}`);
+      document.getElementById('history').innerHTML = data.contenus.map(item => `
+        <div class="history-item">
+          <strong>${item.theme}</strong><br>
+          <span class="muted">${item.date_creation} • ${item.duree_secondes}s</span><br>
+          <a href="${api + item.audio_url}" target="_blank">Audio</a> ·
+          <a href="${api + item.fiche_pdf_url}" target="_blank">PDF</a>
+        </div>
+      `).join('');
+    }
+
+    async function share(kind){
+      if(!currentContent) return alert('Générez un contenu d abord');
+      // share URLs are provided by the backend /partager endpoint
+      const res = await jget(`/farmcast/partager/${currentContent.id}`);
+      const url = kind === 'youtube' ? res.youtube_url : kind === 'tiktok' ? res.tiktok_url : res.whatsapp_url;
+      window.open(url, '_blank');
+    }
+  </script>
+</body>
+</html>

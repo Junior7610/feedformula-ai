@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+# pyright: reportGeneralTypeIssues=false
 """
 Serveur FastAPI principal de FeedFormula AI.
 
@@ -75,6 +75,7 @@ from audio_service import audio_service as audio_service_instance
 from audio_service import router as audio_router
 from auth import install_auth_middleware
 from auth import router as auth_router
+from community_service import router as community_router
 from database import init_db
 from farmcast_service import router as farmcast_router
 from farmmanager_service import router as farmmanager_router
@@ -101,6 +102,7 @@ load_dotenv(ENV_PATH)
 
 APP_NAME = "FeedFormula AI"
 APP_VERSION = "1.0.0"
+APP_ENV = (os.getenv("APP_ENV", "development") or "development").strip().lower()
 
 AFRI_BASE_URL = (
     os.getenv("AFRI_BASE_URL")
@@ -673,7 +675,8 @@ if os.path.exists(frontend_path):
     app.mount("/app", StaticFiles(directory=frontend_path, html=True), name="frontend")
 
 # Initialisation base de données au démarrage.
-init_db()
+if os.getenv("SKIP_DB_INIT", "0").strip() != "1" and APP_ENV not in {"test", "testing"}:
+    init_db()
 
 # CORS permissif en phase de dev (index.html local + serveurs locaux).
 # En production, remplacez par une liste explicite d'origines.
@@ -703,6 +706,7 @@ app.include_router(reprotrack_router)
 app.include_router(farmmanager_router)
 app.include_router(pasturemap_router)
 app.include_router(farmcast_router)
+app.include_router(community_router)
 app.include_router(academy_router)
 app.include_router(paiement_router)
 app.include_router(notification_router)

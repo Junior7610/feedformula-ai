@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FarmCommunity | FeedFormula AI</title>
+  <style>
+    body{font-family:Arial,sans-serif;margin:0;background:#f7fbf8;color:#173126}
+    header,main{max-width:1200px;margin:auto;padding:20px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+    .card{background:#fff;border-radius:18px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,.08)}
+    input,select,textarea{width:100%;padding:11px;border:1px solid #d9e6dd;border-radius:10px;margin-top:6px}
+    button{border:none;border-radius:12px;padding:10px 14px;background:#19733f;color:#fff;cursor:pointer}
+    .muted{color:#60786d}
+    .post{border:1px solid #e4eee7;border-radius:14px;padding:12px;margin-bottom:12px}
+    .like{background:#e8f7ee;color:#176c3c}
+    .wa{background:#25d366}
+    .expert{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #edf0f2;padding:10px 0}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>FarmCommunity</h1>
+    <p class="muted">Fil d actualité, échanges entre éleveurs et marketplace locale.</p>
+  </header>
+  <main>
+    <section class="grid">
+      <div class="card">
+        <h2>Créer un post</h2>
+        <label>Utilisateur ID<input id="postUser" placeholder="ID utilisateur"></label>
+        <label>Contenu<textarea id="postContent" rows="4" placeholder="Partagez une astuce, une question, une photo..."></textarea></label>
+        <label>Photo<input id="postPhoto" type="file" accept="image/*"></label>
+        <button onclick="createPost()">Publier</button>
+      </div>
+      <div class="card">
+        <h2>Marketplace</h2>
+        <label>Espèce<input id="filterEspece" placeholder="poulet, vache..."></label>
+        <label>Région<input id="filterRegion" placeholder="Atlantique, Borgou..."></label>
+        <label>Type<select id="filterType"><option value="">Tous</option><option>vente</option><option>achat</option></select></label>
+        <button onclick="loadMarketplace()">Filtrer</button>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:16px">
+      <h2>Fil d actualité</h2>
+      <div id="posts"></div>
+    </section>
+
+    <section class="card" style="margin-top:16px">
+      <h2>Marketplace</h2>
+      <div id="market"></div>
+    </section>
+
+    <section class="card" style="margin-top:16px">
+      <h2>Experts en ligne</h2>
+      <div class="expert"><span>Dr. A. Bio</span><button>Contacter</button></div>
+      <div class="expert"><span>Conseiller nutrition</span><button>Contacter</button></div>
+      <div class="expert"><span>Vétérinaire terrain</span><button>Contacter</button></div>
+    </section>
+  </main>
+
+  <script>
+    const api = (window.API_BASE || '').replace(/\/$/, '');
+    async function jget(url){ const r = await fetch(api + url); return await r.json(); }
+    async function jpost(url, data){ const r = await fetch(api + url, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)}); return await r.json(); }
+
+    async function loadPosts(){
+      const data = await jget('/community/posts');
+      document.getElementById('posts').innerHTML = data.posts.map(p => `
+        <div class="post">
+          <strong>${p.user_id}</strong> · ${p.date_creation}<br>
+          <p>${p.contenu}</p>
+          <button class="like" onclick="likePost('${p.id}')">👍 ${p.likes}</button>
+          <form onsubmit="return addComment(event, '${p.id}')" style="margin-top:10px">
+            <input name="comment" placeholder="Ajouter un commentaire">
+            <button type="submit">Commenter</button>
+          </form>
+          <div style="margin-top:8px">${(p.commentaires || []).map(c => `<div class='muted'>${c.user_id}: ${c.contenu}</div>`).join('')}</div>
+        </div>
+      `).join('');
+    }
+
+    async function createPost(){
+      const form = new FormData();
+      form.append('user_id', document.getElementById('postUser').value.trim());
+      form.append('contenu', document.getElementById('postContent').value.trim());
+      form.append('type', 'texte');
+      const photo = document.getElementById('postPhoto').files[0];
+      if(photo) form.append('photo', photo);
+      await fetch(api + '/community/posts', {method:'POST', body: form});
+      loadPosts();
+    }
+
+    async function likePost(id){ await jpost(`/community/posts/${id}/like`, {}); loadPosts(); }
+
+    async function addComment(event, postId){
+      event.preventDefault();
+      const input = event.target.querySelector('input[name="comment"]');
+      await jpost(`/community/posts/${postId}/commentaires`, {user_id: document.getElementById('postUser').value.trim() || 'anonymous', contenu: input.value});
+      loadPosts();
+      return false;
+    }
+
+    async function loadMarketplace(){
+      const params = new URLSearchParams();
+      const t = document.getElementById('filterType').value;
+      const e = document.getElementById('filterEspece').value.trim();
+      const r = document.getElementById('filterRegion').value.trim();
+      if(t) params.set('type', t);
+      if(e) params.set('espece', e);
+      if(r) params.set('localisation', r);
+      const data = await jget('/community/marche' + (params.toString() ? '?' + params.toString() : ''));
+      document.getElementById('market').innerHTML = data.annonces.map(a => `
+        <div class="post">
+          <strong>${a.espece}</strong> · ${a.type}<br>
+          ${a.quantite} · ${a.prix} · ${a.localisation}
+          <div><a class="wa" style="display:inline-block;padding:8px 10px;border-radius:10px;color:#fff;text-decoration:none;margin-top:8px" href="https://wa.me/?text=${encodeURIComponent(a.espece + ' ' + a.prix + ' ' + a.localisation)}" target="_blank">Contacter via WhatsApp</a></div>
+        </div>
+      `).join('');
+    }
+
+    loadPosts();
+    loadMarketplace();
+  </script>
+</body>
+</html>
