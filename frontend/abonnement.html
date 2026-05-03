@@ -5,55 +5,68 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Abonnement | FeedFormula AI</title>
         <style>
+            :root {
+                --green: #198754;
+                --gold: #d4af37;
+                --bg: #f7f9fc;
+                --card: #fff;
+                --text: #15202b;
+                --muted: #607086;
+            }
+            * {
+                box-sizing: border-box;
+            }
             body {
-                font-family: Arial, sans-serif;
                 margin: 0;
-                background: #f7f9fc;
-                color: #15202b;
+                font-family: Arial, sans-serif;
+                background: var(--bg);
+                color: var(--text);
             }
             header,
             main {
-                max-width: 1200px;
+                max-width: 1300px;
                 margin: auto;
                 padding: 20px;
+            }
+            .hero {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 16px;
+                flex-wrap: wrap;
+            }
+            .banner {
+                background: linear-gradient(135deg, #effbf3, #fff8e8);
+                border: 1px solid #d9eedf;
+                border-radius: 24px;
+                padding: 16px 18px;
+                display: flex;
+                align-items: center;
+                gap: 14px;
+            }
+            .aya {
+                width: 64px;
+                height: 64px;
+                border-radius: 50%;
+                display: grid;
+                place-items: center;
+                font-size: 32px;
+                background: linear-gradient(135deg, #ffd166, #ff8fab);
+                box-shadow: 0 10px 26px rgba(0, 0, 0, 0.12);
+            }
+            .card {
+                background: var(--card);
+                border-radius: 18px;
+                padding: 16px;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            }
+            .muted {
+                color: var(--muted);
             }
             .grid {
                 display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
                 gap: 14px;
-            }
-            .card {
-                background: #fff;
-                border-radius: 18px;
-                padding: 16px;
-                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-            }
-            .price {
-                font-size: 30px;
-                font-weight: 800;
-                color: #1769ff;
-            }
-            input {
-                width: 100%;
-                padding: 11px;
-                border: 1px solid #d7dee8;
-                border-radius: 10px;
-                margin-top: 6px;
-            }
-            button {
-                border: none;
-                border-radius: 12px;
-                padding: 10px 14px;
-                background: #1769ff;
-                color: #fff;
-                cursor: pointer;
-            }
-            button.secondary {
-                background: #e9f1ff;
-                color: #174da0;
-            }
-            .muted {
-                color: #607086;
             }
             table {
                 width: 100%;
@@ -66,99 +79,284 @@
             td {
                 padding: 12px;
                 border-bottom: 1px solid #edf1f5;
+                text-align: center;
+            }
+            th:first-child,
+            td:first-child {
                 text-align: left;
             }
-            .success,
-            .error {
-                padding: 12px;
-                border-radius: 14px;
-                margin-top: 12px;
+            th {
+                background: #f8fbff;
             }
-            .success {
-                background: #e9fbef;
-                color: #167a3e;
+            .premium {
+                border: 2px solid var(--gold);
+                box-shadow: 0 10px 30px rgba(212, 175, 55, 0.18);
             }
-            .error {
-                background: #fff1f1;
+            .check {
+                color: #198754;
+                font-weight: 700;
+            }
+            .cross {
+                color: #c0392b;
+                font-weight: 700;
+            }
+            input,
+            select {
+                width: 100%;
+                padding: 11px;
+                border: 1px solid #d7dee8;
+                border-radius: 10px;
+                margin-top: 6px;
+            }
+            button {
+                border: none;
+                border-radius: 12px;
+                padding: 11px 16px;
+                background: var(--green);
+                color: #fff;
+                cursor: pointer;
+            }
+            button.secondary {
+                background: #e9f1ff;
+                color: #174da0;
+            }
+            .logos {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+                margin-top: 8px;
+            }
+            .logo {
+                padding: 8px 12px;
+                border-radius: 999px;
+                background: #f2f6fa;
+                border: 1px solid #dce5ef;
+                font-weight: 700;
+            }
+            .total {
+                font-size: 30px;
+                font-weight: 800;
+                color: var(--green);
+            }
+            .status {
+                display: none;
+                margin-top: 14px;
+                border-radius: 18px;
+                padding: 14px 16px;
+            }
+            .status.ok {
+                display: block;
+                background: #e8fff1;
+                color: #16663d;
+            }
+            .status.err {
+                display: block;
+                background: #fff0f0;
                 color: #b03333;
+            }
+            .confetti {
+                position: fixed;
+                inset: 0;
+                pointer-events: none;
+                overflow: hidden;
+                z-index: 9999;
+            }
+            .confetti span {
+                position: absolute;
+                width: 10px;
+                height: 18px;
+                opacity: 0.9;
+                animation: fall 1.8s linear forwards;
+            }
+            @keyframes fall {
+                from {
+                    transform: translateY(-10vh) rotate(0deg);
+                }
+                to {
+                    transform: translateY(110vh) rotate(540deg);
+                    opacity: 0;
+                }
+            }
+            .two-col {
+                display: grid;
+                grid-template-columns: 1.2fr 0.8fr;
+                gap: 16px;
+            }
+            @media (max-width: 980px) {
+                .two-col {
+                    grid-template-columns: 1fr;
+                }
+            }
+            .resultScreen {
+                display: none;
+            }
+            .resultScreen.show {
+                display: block;
             }
         </style>
     </head>
     <body>
+        <div id="confetti" class="confetti"></div>
         <header>
-            <h1>Abonnements FeedFormula AI</h1>
-            <p class="muted">
-                Choisissez une offre, saisissez votre téléphone et lancez le
-                paiement Mobile Money via FedaPay.
-            </p>
+            <div class="hero">
+                <div>
+                    <h1>Abonnements FeedFormula AI</h1>
+                    <p class="muted">
+                        Comparez les offres, choisissez votre durée et activez
+                        Mobile Money.
+                    </p>
+                </div>
+                <div class="banner">
+                    <div class="aya">💳</div>
+                    <div>
+                        <strong>Aya vous guide vers la bonne offre</strong>
+                        <div class="muted">
+                            Paiement rapide, confirmation et accès instantané.
+                        </div>
+                    </div>
+                </div>
+            </div>
         </header>
         <main>
             <section class="card">
                 <h2>Comparatif des 5 offres</h2>
-                <div class="grid" id="plans"></div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fonctionnalité</th>
+                            <th>Free</th>
+                            <th>Standard</th>
+                            <th class="premium">Premium</th>
+                            <th>VIP</th>
+                            <th>Gold</th>
+                        </tr>
+                    </thead>
+                    <tbody id="compareRows"></tbody>
+                </table>
+                <p class="muted">
+                    L’offre <strong>Premium</strong> est mise en avant pour les
+                    éleveurs qui veulent un excellent rapport valeur/prix.
+                </p>
             </section>
 
-            <section class="card" style="margin-top: 16px">
-                <h2>Paiement Mobile Money</h2>
-                <div class="grid">
-                    <label
-                        >Utilisateur ID<input
-                            id="userId"
-                            placeholder="ID utilisateur"
-                    /></label>
-                    <label
-                        >Prénom<input id="prenom" placeholder="Votre prénom"
-                    /></label>
-                    <label
-                        >Téléphone<input
-                            id="telephone"
-                            placeholder="229xxxxxxxx"
-                    /></label>
-                    <label
-                        >Plan sélectionné<input
-                            id="selectedPlan"
-                            readonly
-                            value="standard"
-                    /></label>
-                </div>
-                <button style="margin-top: 12px" onclick="createPayment()">
-                    S abonner
-                </button>
-                <div id="paymentState"></div>
-                <div
-                    id="paymentLinkZone"
-                    style="margin-top: 12px"
-                    class="muted"
-                ></div>
-            </section>
+            <section class="two-col" style="margin-top: 16px">
+                <section class="card">
+                    <h2>Formulaire de souscription</h2>
+                    <div class="grid">
+                        <label
+                            >Utilisateur ID<input
+                                id="userId"
+                                placeholder="ID utilisateur"
+                        /></label>
+                        <label
+                            >Prénom<input
+                                id="prenom"
+                                placeholder="Votre prénom"
+                        /></label>
+                        <label
+                            >Téléphone Mobile Money<input
+                                id="telephone"
+                                placeholder="229xxxxxxxx"
+                        /></label>
+                        <label
+                            >Offre<select id="abonnement">
+                                <option value="free">Free</option>
+                                <option value="standard">Standard</option>
+                                <option value="premium" selected>
+                                    Premium
+                                </option>
+                                <option value="vip">VIP</option>
+                                <option value="gold">Gold</option>
+                            </select></label
+                        >
+                        <label
+                            >Durée<select id="duree">
+                                <option value="mensuel">Mensuel</option>
+                                <option value="trimestriel">Trimestriel</option>
+                                <option value="annuel">Annuel</option>
+                            </select></label
+                        >
+                    </div>
+                    <div class="logos">
+                        <span class="logo">MTN Money</span
+                        ><span class="logo">Moov Money</span>
+                    </div>
+                    <p class="muted">Montant total</p>
+                    <div class="total" id="totalAmount">0 FCFA</div>
+                    <button style="margin-top: 12px" onclick="createPayment()">
+                        Payer avec Mobile Money
+                    </button>
+                    <div id="payStatus" class="status"></div>
+                </section>
 
-            <section class="card" style="margin-top: 16px">
-                <h2>Suivi de paiement</h2>
-                <label
-                    >Transaction ID<input
-                        id="txId"
-                        placeholder="Transaction id"
-                /></label>
-                <button
-                    style="margin-top: 12px"
-                    class="secondary"
-                    onclick="checkStatus()"
-                >
-                    Vérifier le statut
-                </button>
-                <div id="statusZone"></div>
+                <section class="card resultScreen" id="successScreen">
+                    <h2>Succès</h2>
+                    <div class="banner">
+                        <div class="aya">🎉</div>
+                        <div>
+                            <strong id="successTitle">Paiement confirmé</strong>
+                            <div class="muted" id="successText">
+                                Votre abonnement est actif.
+                            </div>
+                        </div>
+                    </div>
+                    <p id="successSummary"></p>
+                    <button class="secondary" onclick="location.href = '/'">
+                        Retour accueil
+                    </button>
+                </section>
+
+                <section class="card resultScreen" id="errorScreen">
+                    <h2>Échec</h2>
+                    <div class="banner">
+                        <div class="aya">😔</div>
+                        <div>
+                            <strong>Paiement non confirmé</strong>
+                            <div class="muted">
+                                Aya vous propose de réessayer ou de choisir une
+                                autre offre.
+                            </div>
+                        </div>
+                    </div>
+                    <p id="errorText"></p>
+                    <button onclick="createPayment()">Réessayer</button>
+                    <button
+                        class="secondary"
+                        style="margin-left: 8px"
+                        onclick="document.getElementById('abonnement').focus()"
+                    >
+                        Choisir autre offre
+                    </button>
+                </section>
             </section>
         </main>
 
         <script>
-            const api = (window.API_BASE || "").replace(/\/$/, "");
+            const API_BASE = window.API_BASE || "http://127.0.0.1:8000";
+            const api = API_BASE.replace(/\/$/, "");
             const plans = {
-                free: { label: "Free", price: 0, note: "Découverte" },
-                standard: { label: "Standard", price: 2000, note: "Essentiel" },
-                premium: { label: "Premium", price: 8000, note: "Avancé" },
-                vip: { label: "VIP", price: 25000, note: "Expert" },
-                gold: { label: "Gold", price: 75000, note: "Elite" },
+                free: { label: "Free", price: 0 },
+                standard: { label: "Standard", price: 2000 },
+                premium: { label: "Premium", price: 8000 },
+                vip: { label: "VIP", price: 25000 },
+                gold: { label: "Gold", price: 75000 },
             };
+            const features = [
+                [
+                    "Rations / mois",
+                    ["5", "illimité", "illimité", "illimité", "illimité"],
+                ],
+                [
+                    "Diagnostics",
+                    ["3", "10", "illimité", "illimité", "illimité"],
+                ],
+                ["Langues", ["3", "50", "50", "50", "illimité"]],
+                ["VetScan", ["❌", "✅", "✅", "✅", "✅"]],
+                ["ReproTrack", ["❌", "✅", "✅", "✅", "✅"]],
+                ["FarmAcademy", ["❌", "❌", "✅", "✅", "✅"]],
+                ["Multi-users", ["❌", "❌", "❌", "5", "illimité"]],
+                ["FarmCast illimité", ["❌", "❌", "❌", "❌", "✅"]],
+            ];
             async function jget(url) {
                 const r = await fetch(api + url);
                 return await r.json();
@@ -172,60 +370,114 @@
                 return await r.json();
             }
 
-            function setPlan(code) {
-                document.getElementById("selectedPlan").value = code;
-            }
-            function renderPlans() {
-                const box = document.getElementById("plans");
-                box.innerHTML = Object.entries(plans)
+            function renderCompare() {
+                document.getElementById("compareRows").innerHTML = features
                     .map(
-                        ([code, p]) => `
-        <div class="card">
-          <h3>${p.label}</h3>
-          <div class="price">${p.price} FCFA</div>
-          <p class="muted">${p.note}</p>
-          <button onclick="setPlan('${code}')">Sélectionner</button>
-        </div>
-      `,
+                        ([label, vals]) => `
+                    <tr>
+                        <td>${label}</td>
+                        ${vals.map((v, i) => `<td class="${i === 2 ? "premium" : ""}">${v === "✅" ? '<span class="check">✅</span>' : v === "❌" ? '<span class="cross">❌</span>' : v}</td>`).join("")}
+                    </tr>`,
                     )
                     .join("");
+            }
+
+            function calcAmount() {
+                const code = document.getElementById("abonnement").value;
+                const duree = document.getElementById("duree").value;
+                const base = plans[code].price;
+                let amount = base;
+                if (duree === "trimestriel")
+                    amount = Math.round(base * 3 * 0.9);
+                if (duree === "annuel") amount = Math.round(base * 12 * 0.8);
+                document.getElementById("totalAmount").textContent =
+                    amount.toLocaleString("fr-FR") + " FCFA";
+                return amount;
+            }
+
+            function burst() {
+                const host = document.getElementById("confetti");
+                host.innerHTML = "";
+                const colors = [
+                    "#198754",
+                    "#d4af37",
+                    "#10b981",
+                    "#60a5fa",
+                    "#f472b6",
+                ];
+                for (let i = 0; i < 44; i++) {
+                    const s = document.createElement("span");
+                    s.style.left = Math.random() * 100 + "vw";
+                    s.style.background = colors[i % colors.length];
+                    s.style.animationDuration = 1.2 + Math.random() * 1.6 + "s";
+                    host.appendChild(s);
+                }
+                setTimeout(() => {
+                    host.innerHTML = "";
+                }, 2600);
             }
 
             async function createPayment() {
                 const payload = {
                     user_id: document.getElementById("userId").value.trim(),
-                    prenom:
-                        document.getElementById("prenom").value.trim() ||
-                        "Client",
+                    abonnement: document.getElementById("abonnement").value,
+                    duree: document.getElementById("duree").value,
                     telephone: document
                         .getElementById("telephone")
                         .value.trim(),
-                    abonnement: document
-                        .getElementById("selectedPlan")
-                        .value.trim(),
+                    prenom:
+                        document.getElementById("prenom").value.trim() ||
+                        "Client",
                 };
+                if (!payload.user_id || !payload.telephone)
+                    return alert("ID utilisateur et téléphone requis");
                 const data = await jpost("/paiement/creer", payload);
-                document.getElementById("txId").value = data.transaction_id;
-                document.getElementById("paymentLinkZone").innerHTML =
-                    `<a href="${data.lien_paiement}" target="_blank">Ouvrir le lien de paiement</a>`;
-                document.getElementById("paymentState").innerHTML =
-                    `<div class="success">Transaction créée pour ${data.montant} FCFA.</div>`;
-                window.open(data.lien_paiement, "_blank");
-            }
-
-            async function checkStatus() {
-                const tx = document.getElementById("txId").value.trim();
-                if (!tx) return alert("Transaction ID requis");
-                const data = await jget(
-                    `/paiement/statut/${encodeURIComponent(tx)}`,
-                );
-                document.getElementById("statusZone").innerHTML =
+                document.getElementById("payStatus").className =
+                    "status " + (data.statut === "paid" ? "ok" : "err");
+                document.getElementById("payStatus").style.display = "block";
+                document.getElementById("payStatus").textContent =
                     data.statut === "paid"
-                        ? '<div class="success">Paiement confirmé. Abonnement activé.</div>'
-                        : '<div class="error">Paiement en attente ou refusé. Réessayez.</div>';
+                        ? "Paiement validé. Abonnement activé."
+                        : "Transaction créée. Ouvrez le lien de paiement pour finaliser.";
+                document
+                    .getElementById("successScreen")
+                    .classList.remove("show");
+                document.getElementById("errorScreen").classList.remove("show");
+                if (data.statut === "paid") {
+                    burst();
+                    document.getElementById("successTitle").textContent =
+                        "Bravo " + (payload.prenom || "Client") + " !";
+                    document.getElementById("successText").textContent =
+                        "Votre abonnement " +
+                        payload.abonnement +
+                        " est actif.";
+                    document.getElementById("successSummary").textContent =
+                        "Transaction " +
+                        data.transaction_id +
+                        " • " +
+                        data.montant +
+                        " FCFA";
+                    document
+                        .getElementById("successScreen")
+                        .classList.add("show");
+                } else {
+                    document.getElementById("errorText").textContent =
+                        "Le paiement est en attente ou a échoué. Réessayez ou choisissez une autre offre.";
+                    document
+                        .getElementById("errorScreen")
+                        .classList.add("show");
+                }
+                return data;
             }
 
-            renderPlans();
+            document
+                .getElementById("abonnement")
+                .addEventListener("change", calcAmount);
+            document
+                .getElementById("duree")
+                .addEventListener("change", calcAmount);
+            renderCompare();
+            calcAmount();
         </script>
     </body>
 </html>

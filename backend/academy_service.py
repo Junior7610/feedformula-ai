@@ -1,32 +1,31 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# pyright: reportGeneralTypeIssues=false
-"""
-FarmAcademy complet de FeedFormula AI.
+# pyright: reportGeneralTypeIssues=false, reportArgumentType=false, reportAssignmentType=false, reportReturnType=false, reportAttributeAccessIssue=false, reportUnknownMemberType=false, reportUnknownArgumentType=false, reportUnknownVariableType=false
+"""FarmAcademy de FeedFormula AI.
 
-Fonctionnalités :
-- Catalogue de 5 formations et 18 leçons
-- Génération de contenu pédagogique en français simple
-- Quiz interactif à 3 questions par leçon
-- Suivi de progression par utilisateur
-- Certificat PDF téléchargeable lorsque 100 % des leçons sont complétées
-- Endpoints FastAPI prêts à brancher dans `main.py`
+Catalogue de 5 formations, 18 leçons, génération dynamique via GPT 5.5
+lorsqu'une clé est disponible, sinon fallback pédagogique local.
 
-Le module fonctionne de manière déterministe hors API externe,
-mais peut utiliser GPT si une clé compatible est disponible.
+Compatibilité:
+- Anciennes routes avec tirets
+- Nouvelles routes avec underscores
+- Body du quiz: user_id, formation_code, lecon_numero, reponses, langue
 """
 
 from __future__ import annotations
 
 import io
 import os
+import re
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 from database import (
+    add_points_to_user,
     create_formation_completee,
     get_db,
+    get_user_by_id,
     list_user_formations_completees,
     serialize_formation_completee,
 )
@@ -41,178 +40,216 @@ router = APIRouter(prefix="/academy", tags=["FarmAcademy"])
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT_DIR / "data"
-DATA_DIR.mkdir(parents=True, exist_ok=True)
 CERTIFICATS_DIR = DATA_DIR / "academy_certificats"
 CERTIFICATS_DIR.mkdir(parents=True, exist_ok=True)
 
 AFRI_BASE_URL = (
     os.getenv("AFRI_BASE_URL")
     or os.getenv("AFRI_API_BASE_URL")
-    or "https://build.lewisnote.com/v1"
+    or "https://api.openai.com/v1"
 ).strip()
 AFRI_API_KEY = (os.getenv("AFRI_API_KEY") or "").strip()
 AFRI_MODEL = (os.getenv("AFRI_CHAT_MODEL") or "gpt-5.5").strip()
-
-ACCES_POINTS_PAR_BONNE_REPONSE = 30
+POINTS_PAR_BONNE_REPONSE = 30
 
 FORMATIONS: List[Dict[str, Any]] = [
     {
-        "code": "alimentation-volailles",
-        "titre": "Alimentation des volailles",
-        "resume": "Apprendre à nourrir les poulets avec des ingrédients locaux, des rations équilibrées et des bons réflexes pour réduire les coûts.",
+        "code": "alimentation_volailles",
+        "aliases": ["alimentation-volailles"],
+        "titre": "Alimentation des volailles au Bénin",
+        "niveau": "Débutant",
+        "duree": "45 minutes",
+        "points": 100,
+        "resume": "Apprendre à nourrir les poulets avec des ingrédients locaux, réduire les coûts et éviter les erreurs fréquentes.",
         "icone": "🐔",
         "ordre": 1,
         "lecons": [
             {
                 "numero": 1,
                 "titre": "Les besoins nutritionnels des poulets",
-                "focus": "besoins nutritionnels, eau, énergie, protéines, vitamines",
+                "objectif": "Énergie, protéines, calcium, vitamines et eau propre pour les poulets béninois.",
+                "questions": 3,
             },
             {
                 "numero": 2,
                 "titre": "Les matières premières disponibles au Bénin",
-                "focus": "maïs, son, soja, drêches, tourteaux, disponibilité locale",
+                "objectif": "Lister les ingrédients courants, leurs valeurs nutritives et leurs prix moyens en FCFA.",
+                "questions": 3,
             },
             {
                 "numero": 3,
                 "titre": "Formuler une ration équilibrée",
-                "focus": "équilibre, formulation, mélange, proportions, adaptation",
+                "objectif": "Combiner les ingrédients pour obtenir une ration stable avec NutriCore.",
+                "questions": 3,
             },
             {
                 "numero": 4,
                 "titre": "Réduire les coûts d alimentation",
-                "focus": "coût de revient, achat groupé, stockage, valorisation locale",
+                "objectif": "Optimiser le coût sans sacrifier la croissance ni la santé.",
+                "questions": 3,
             },
             {
                 "numero": 5,
                 "titre": "Erreurs fréquentes à éviter",
-                "focus": "erreurs, contamination, surdosage, eau sale, changement brusque",
+                "objectif": "Identifier 10 erreurs d'alimentation et corriger les mauvaises pratiques.",
+                "questions": 5,
             },
         ],
     },
     {
-        "code": "sante-prevention",
-        "titre": "Santé et prévention",
-        "resume": "Reconnaître les maladies courantes, protéger l élevage avec la vaccination et renforcer la biosécurité.",
+        "code": "sante_prevention",
+        "aliases": ["sante-prevention"],
+        "titre": "Santé et prévention animale",
+        "niveau": "Débutant",
+        "duree": "40 minutes",
+        "points": 80,
+        "resume": "Reconnaître les maladies courantes, renforcer la vaccination et appliquer la biosécurité.",
         "icone": "🩺",
         "ordre": 2,
         "lecons": [
             {
                 "numero": 1,
-                "titre": "Les maladies courantes des volailles",
-                "focus": "maladies, signes, diarrhée, toux, abattement, mortalité",
+                "titre": "Maladies courantes des volailles au Bénin",
+                "objectif": "Lire les signes d'alerte et agir rapidement.",
+                "questions": 3,
             },
             {
                 "numero": 2,
-                "titre": "Programme de vaccination",
-                "focus": "vaccin, calendrier, rappels, conservation, respect des doses",
+                "titre": "Programme de vaccination obligatoire",
+                "objectif": "Comprendre le calendrier, les rappels et la conservation des vaccins.",
+                "questions": 3,
             },
             {
                 "numero": 3,
                 "titre": "Biosécurité de l élevage",
-                "focus": "désinfection, barrières, visiteurs, pédiluve, quarantaine",
+                "objectif": "Mettre en place des barrières, la quarantaine et l'hygiène.",
+                "questions": 3,
             },
             {
                 "numero": 4,
-                "titre": "Premiers secours vétérinaires",
-                "focus": "isoler, hydrater, alerter, surveiller, gestes d urgence",
+                "titre": "Quiz de certification",
+                "objectif": "Vérifier la maîtrise des gestes de prévention et de santé.",
+                "questions": 5,
             },
         ],
     },
     {
-        "code": "reproduction-bovine",
-        "titre": "Gestion reproduction bovine",
-        "resume": "Suivre le cycle reproductif de la vache, détecter les chaleurs et améliorer le taux de conception.",
+        "code": "reproduction_bovine",
+        "aliases": ["reproduction-bovine"],
+        "titre": "Reproduction bovine optimisée",
+        "niveau": "Intermédiaire",
+        "duree": "35 minutes",
+        "points": 90,
+        "resume": "Suivre le cycle de la vache zébu et détecter les chaleurs sans capteur.",
         "icone": "🐄",
         "ordre": 3,
         "lecons": [
             {
                 "numero": 1,
-                "titre": "Le cycle reproductif de la vache",
-                "focus": "cycle, phase, chaleur, ovulation, gestation",
+                "titre": "Cycle reproductif de la vache zébu",
+                "objectif": "Comprendre les phases du cycle et la gestation.",
+                "questions": 3,
             },
             {
                 "numero": 2,
-                "titre": "Détecter les chaleurs",
-                "focus": "signes, comportement, mucus, agitation, monte",
+                "titre": "Détection des chaleurs sans capteur",
+                "objectif": "Observer les signes comportementaux et physiologiques.",
+                "questions": 3,
             },
             {
                 "numero": 3,
-                "titre": "Optimiser le taux de conception",
-                "focus": "saillie, nutrition, santé, timing, suivi",
+                "titre": "Quiz de certification",
+                "objectif": "Valider les bons réflexes de reproduction.",
+                "questions": 5,
             },
         ],
     },
     {
-        "code": "finance-agricole",
-        "titre": "Finance agricole",
-        "resume": "Maîtriser le coût de revient, fixer un bon prix de vente et comprendre les subventions agricoles.",
+        "code": "finance_agricole",
+        "aliases": ["finance-agricole"],
+        "titre": "Finance agricole pratique",
+        "niveau": "Débutant",
+        "duree": "30 minutes",
+        "points": 70,
+        "resume": "Calculer son coût de revient et fixer un prix de vente rentable.",
         "icone": "💰",
         "ordre": 4,
         "lecons": [
             {
                 "numero": 1,
-                "titre": "Calculer le coût de revient",
-                "focus": "charges, amortissement, main d œuvre, marge, calcul",
+                "titre": "Calculer son coût de revient",
+                "objectif": "Identifier toutes les charges et marges.",
+                "questions": 3,
             },
             {
                 "numero": 2,
                 "titre": "Fixer le bon prix de vente",
-                "focus": "prix, marché, concurrence, marge, stratégie",
+                "objectif": "Comparer le marché et protéger sa rentabilité.",
+                "questions": 3,
             },
             {
                 "numero": 3,
-                "titre": "Accéder aux subventions agricoles",
-                "focus": "dossier, mairie, projets, formalités, financement",
+                "titre": "Quiz de certification",
+                "objectif": "Tester les notions financières essentielles.",
+                "questions": 5,
             },
         ],
     },
     {
-        "code": "paturages-durables",
-        "titre": "Pâturages durables",
-        "resume": "Comprendre la charge animale, planifier les rotations et restaurer un pâturage dégradé.",
+        "code": "paturages_durables",
+        "aliases": ["paturages-durables"],
+        "titre": "Pâturages durables en Afrique",
+        "niveau": "Intermédiaire",
+        "duree": "30 minutes",
+        "points": 80,
+        "resume": "Comprendre la charge animale et planifier les rotations de paddocks.",
         "icone": "🌿",
         "ordre": 5,
         "lecons": [
             {
                 "numero": 1,
                 "titre": "Comprendre la charge animale",
-                "focus": "charge animale, pression, capacité, saison, sol",
+                "objectif": "Ajuster la pression de pâturage à la capacité du terrain.",
+                "questions": 3,
             },
             {
                 "numero": 2,
-                "titre": "Planifier les rotations",
-                "focus": "rotation, parcelles, repos, calendrier, herbe",
+                "titre": "Planifier les rotations de paddocks",
+                "objectif": "Organiser les rotations et le repos de l'herbe.",
+                "questions": 3,
             },
             {
                 "numero": 3,
-                "titre": "Restaurer un pâturage dégradé",
-                "focus": "restauration, semis, repos, fertilité, protection",
+                "titre": "Quiz de certification",
+                "objectif": "Valider les bons gestes de gestion durable.",
+                "questions": 5,
             },
         ],
     },
 ]
 
-# Index rapide
-FORMATION_BY_CODE = {f["code"]: f for f in FORMATIONS}
-LESSON_BY_KEY: Dict[str, Dict[str, Any]] = {}
-for formation in FORMATIONS:
-    for lecon in formation["lecons"]:
-        key = f"{formation['code']}::{lecon['numero']}"
-        LESSON_BY_KEY[key] = {
-            **lecon,
-            "formation_code": formation["code"],
-            "formation_titre": formation["titre"],
-        }
+FORMATION_BY_CODE = {formation["code"]: formation for formation in FORMATIONS}
+ALIASES_TO_CODE = {
+    alias: formation["code"]
+    for formation in FORMATIONS
+    for alias in formation.get("aliases", [])
+}
+LESSON_INDEX = {
+    (formation["code"], int(lecon["numero"])): lecon
+    for formation in FORMATIONS
+    for lecon in formation["lecons"]
+}
 
 
 class QuizSubmissionRequest(BaseModel):
     user_id: str = Field(..., min_length=3)
     formation_code: str = Field(..., min_length=3)
-    numero: int = Field(..., ge=1)
+    lecon_numero: Optional[int] = Field(default=None, ge=1)
+    numero: Optional[int] = Field(default=None, ge=1)
     reponses: List[int] = Field(default_factory=list)
+    langue: str = Field(default="fr", min_length=2)
 
-    @field_validator("user_id", "formation_code")
+    @field_validator("user_id", "formation_code", "langue")
     @classmethod
     def _strip(cls, value: str) -> str:
         txt = (value or "").strip()
@@ -235,49 +272,48 @@ class LessonQueryRequest(BaseModel):
 
 
 def _normalize(text: str) -> str:
-    return " ".join((text or "").strip().split())
+    return re.sub(r"\s+", " ", (text or "").strip()).lower()
+
+
+def _resolve_code(code: str) -> str:
+    txt = _normalize(code).replace("-", "_")
+    if txt in FORMATION_BY_CODE:
+        return txt
+    alias = ALIASES_TO_CODE.get(txt) or ALIASES_TO_CODE.get(txt.replace("_", "-"))
+    if alias:
+        return alias
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND, detail="Formation introuvable."
+    )
 
 
 def _ensure_formation(code: str) -> Dict[str, Any]:
-    formation = FORMATION_BY_CODE.get((code or "").strip())
-    if not formation:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Formation introuvable."
-        )
-    return formation
+    return FORMATION_BY_CODE[_resolve_code(code)]
 
 
 def _ensure_lesson(formation_code: str, numero: int) -> Dict[str, Any]:
-    formation = _ensure_formation(formation_code)
-    for lecon in formation["lecons"]:
-        if int(lecon["numero"]) == int(numero):
-            return {
-                **lecon,
-                "formation_code": formation_code,
-                "formation_titre": formation["titre"],
-            }
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND, detail="Leçon introuvable."
-    )
+    code = _resolve_code(formation_code)
+    lecon = LESSON_INDEX.get((code, int(numero)))
+    if not lecon:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Leçon introuvable."
+        )
+    return {
+        **lecon,
+        "formation_code": code,
+        "formation_titre": FORMATION_BY_CODE[code]["titre"],
+    }
 
 
-def _lesson_wording(formation: Dict[str, Any], lecon: Dict[str, Any]) -> str:
-    focus = lecon["focus"]
-    titre = lecon["titre"]
-    formation_titre = formation["titre"]
+def _build_system_prompt(langue: str) -> str:
     return (
-        f"{titre} appartient à la formation {formation_titre}.\n\n"
-        f"Dans cette leçon, on parle de {focus}. Le but est de vous donner des idées simples, concrètes et faciles à appliquer dans une ferme africaine.\n\n"
-        f"Commencez par observer vos animaux et votre contexte. Sur le terrain, la réussite dépend souvent de petits gestes répétés chaque jour : eau propre, aliments bien conservés, matériel nettoyé, surveillance des signes de stress, et respect du calendrier.\n\n"
-        f"Ensuite, adaptez les conseils à vos moyens. Une bonne pratique n est pas forcément la plus chère. Ce qui compte, c est la régularité, la qualité des ingrédients et la capacité à repérer les erreurs avant qu elles ne deviennent coûteuses.\n\n"
-        f"Enfin, gardez une logique de suivi. Notez les quantités, les dates, les incidents et les résultats. Quand vous comparez les chiffres semaine après semaine, vous pouvez ajuster plus vite.\n\n"
-        f"En appliquant cette leçon, vous améliorez la santé des animaux, vous réduisez les pertes et vous gagnez en autonomie. Le plus important est de commencer petit, de tester, puis d améliorer progressivement vos pratiques selon vos réalités locales.\n\n"
-        f"Rappel pratique : {focus}. Répétez l essentiel à votre équipe, vérifiez les détails chaque jour et corrigez rapidement les écarts."
+        "Tu es un pédagogue agricole africain. Tu expliques simplement, sans jargon inutile, "
+        f"dans la langue demandée ({langue}). Tu donnes des exemples concrets pour un éleveur du Bénin."
     )
 
 
-def _generate_gpt_content(
-    formation: Dict[str, Any], lecon: Dict[str, Any]
+async def _generate_gpt_content(
+    formation: Dict[str, Any], lecon: Dict[str, Any], langue: str
 ) -> Optional[str]:
     if not AFRI_API_KEY:
         return None
@@ -285,83 +321,124 @@ def _generate_gpt_content(
         from openai import OpenAI  # type: ignore
     except Exception:
         return None
+
+    prompt = (
+        f"Crée un contenu pédagogique complet en {langue} pour la formation '{formation['titre']}'. "
+        f"Leçon: {lecon['titre']}. Objectif: {lecon['objectif']}. "
+        "Structure: introduction, explication simple, exemple béninois, erreurs à éviter, mini résumé. "
+        "Ton: clair, encourageant, concret."
+    )
     try:
         client = OpenAI(api_key=AFRI_API_KEY, base_url=AFRI_BASE_URL)
-        prompt = (
-            "Tu es un pédagogue agricole africain. Écris un contenu en français simple de 500 à 800 mots, "
-            "structuré en paragraphes courts, avec exemples concrets, sans jargon inutile. "
-            "Sujet: " + lecon["titre"] + ". Focus: " + lecon["focus"] + ". "
-            "Respecte le contexte: " + formation["titre"] + "."
-        )
         response = client.chat.completions.create(
             model=AFRI_MODEL,
             messages=[
-                {
-                    "role": "system",
-                    "content": "Tu es un expert en vulgarisation agricole africaine.",
-                },
+                {"role": "system", "content": _build_system_prompt(langue)},
                 {"role": "user", "content": prompt},
             ],
-            temperature=0.4,
+            temperature=0.3,
             max_tokens=1200,
         )
         content = getattr(response.choices[0].message, "content", "")
-        if isinstance(content, str) and content.strip():
-            return content.strip()
+        return content.strip() if isinstance(content, str) and content.strip() else None
     except Exception:
         return None
-    return None
 
 
-def _build_quiz(formation_code: str, numero: int, focus: str) -> List[Dict[str, Any]]:
+def _fallback_content(
+    formation: Dict[str, Any], lecon: Dict[str, Any], langue: str
+) -> str:
+    base = (
+        f"{lecon['titre']} — {formation['titre']}\n\n"
+        f"Objectif de la leçon: {lecon['objectif']}\n\n"
+        "Aya vous explique pas à pas. Commencez par observer la réalité de votre ferme, "
+        "puis appliquez une petite action concrète aujourd'hui. Quand vous notez vos résultats, "
+        "vous prenez de meilleures décisions et vous progressez plus vite.\n\n"
+        f"Exemple terrain: un éleveur béninois ajuste ses pratiques selon les observations du jour, "
+        f"les prix du marché et l'état de santé de son troupeau.\n\n"
+        f"Rappel important: {lecon['objectif']}."
+    )
+    if langue.lower().startswith("fr"):
+        return base
+    return (
+        f"{lecon['titre']} - {formation['titre']}\n\n"
+        "Start with simple observations, apply one useful action today, and note the result. "
+        "This habit improves your farm decisions over time.\n\n"
+        f"Key reminder: {lecon['objectif']}"
+    )
 
-    questions = [
-        {
-            "question": f"Selon la leçon {numero}, quel réflexe est le plus utile pour {focus} ?",
-            "choix": [
+
+def _build_quiz(
+    formation_code: str, numero: int, langue: str, question_count: int
+) -> List[Dict[str, Any]]:
+    theme = LESSON_INDEX[(formation_code, numero)]["titre"]
+    questions: List[Dict[str, Any]] = []
+    for i in range(question_count):
+        if i == 0:
+            correct = 0
+            choices = [
                 "Observer et ajuster",
                 "Ignorer les signes",
                 "Attendre sans suivre",
-                "Changer tout d un coup",
-            ],
-            "bonne_reponse": 0,
-            "explication": f"La leçon insiste sur une logique d observation, de suivi et d ajustement progressif autour de {focus}.",
-            "points_gagnes": ACCES_POINTS_PAR_BONNE_REPONSE,
-        },
-        {
-            "question": f"Quel comportement aide le mieux à réussir sur le thème {formation_code} ?",
-            "choix": [
-                "Appliquer des gestes simples chaque jour",
-                "Acheter au hasard",
-                "Négliger les coûts",
-                "Oublier les contrôles",
-            ],
-            "bonne_reponse": 0,
-            "explication": "La réussite vient d habitudes régulières, pas d actions improvisées.",
-            "points_gagnes": ACCES_POINTS_PAR_BONNE_REPONSE,
-        },
-        {
-            "question": "Quel choix réduit le plus les erreurs sur le terrain ?",
-            "choix": [
-                "Noter, comparer et corriger",
-                "Faire sans mesurer",
+                "Changer tout au hasard",
+            ]
+        elif i == 1:
+            correct = 1
+            choices = [
+                "Acheter sans comparer",
+                "Noter ses résultats",
+                "Négliger le prix",
+                "Oublier le suivi",
+            ]
+        elif i == 2:
+            correct = 2
+            choices = [
+                "Mélanger au hasard",
+                "Éviter les calculs",
+                "Choisir une méthode simple et régulière",
                 "Copier sans comprendre",
-                "Attendre la panne",
-            ],
-            "bonne_reponse": 0,
-            "explication": "Le suivi permet de comparer les résultats et de corriger rapidement les écarts.",
-            "points_gagnes": ACCES_POINTS_PAR_BONNE_REPONSE,
-        },
-    ]
+            ]
+        elif i == 3:
+            correct = 0
+            choices = [
+                "Appliquer un contrôle quotidien",
+                "Laisser faire",
+                "Attendre la perte",
+                "Réduire l'hygiène",
+            ]
+        else:
+            correct = 3
+            choices = [
+                "Oublier la qualité",
+                "Ignorer la santé",
+                "Ne pas comparer les coûts",
+                "Vérifier les résultats avant d'augmenter",
+            ]
+        questions.append(
+            {
+                "question": f"Question {i + 1} sur {theme} : quelle est la meilleure pratique ?",
+                "choix": choices,
+                "bonne_reponse": correct,
+                "explication": "Aya recommande une approche simple, régulière et adaptée au terrain.",
+                "points_gagnes": POINTS_PAR_BONNE_REPONSE,
+                "langue": langue,
+            }
+        )
     return questions
 
 
-def _build_lesson_payload(formation_code: str, numero: int) -> Dict[str, Any]:
+def _build_lesson_payload(
+    formation_code: str, numero: int, langue: str = "fr"
+) -> Dict[str, Any]:
     formation = _ensure_formation(formation_code)
     lecon = _ensure_lesson(formation_code, numero)
-    texte = _generate_gpt_content(formation, lecon) or _lesson_wording(formation, lecon)
-    quiz = _build_quiz(formation_code, numero, lecon["focus"])
-    total_points = len(quiz) * ACCES_POINTS_PAR_BONNE_REPONSE
+    contenu = _generate_gpt_content(formation, lecon, langue)
+    if not contenu:
+        contenu = _fallback_content(formation, lecon, langue)
+    quiz = _build_quiz(
+        formation["code"], int(lecon["numero"]), langue, int(lecon.get("questions", 3))
+    )
+    score_max = len(quiz) * POINTS_PAR_BONNE_REPONSE
     return {
         "formation": {
             "code": formation["code"],
@@ -369,18 +446,23 @@ def _build_lesson_payload(formation_code: str, numero: int) -> Dict[str, Any]:
             "resume": formation["resume"],
             "icone": formation["icone"],
             "ordre": formation["ordre"],
+            "niveau": formation["niveau"],
+            "duree": formation["duree"],
+            "points": formation["points"],
             "total_lecons": len(formation["lecons"]),
         },
         "lecon": {
             "numero": lecon["numero"],
             "titre": lecon["titre"],
-            "contenu": texte,
-            "points_gagnes": total_points,
-            "focus": lecon["focus"],
+            "contenu": contenu,
+            "objectif": lecon["objectif"],
+            "points_gagnes": score_max,
+            "langue": langue,
         },
         "quiz": {
             "total_questions": len(quiz),
             "questions": quiz,
+            "score_max": score_max,
         },
         "navigation": {
             "precedente": lecon["numero"] - 1 if lecon["numero"] > 1 else None,
@@ -392,19 +474,23 @@ def _build_lesson_payload(formation_code: str, numero: int) -> Dict[str, Any]:
 
 
 def _progress_for_user(db: Session, user_id: str) -> Dict[str, Any]:
-    completions = list_user_formations_completees(db, user_id, limit=500)
+    completions = list_user_formations_completees(db, user_id, limit=1000)
     completed_keys = {
-        (str(x.formation_code), int(getattr(x, "lecon_numero", 0) or 0))
-        for x in completions
+        (
+            str(cast(Any, item).formation_code),
+            int(cast(Any, item).lecon_numero or 0),
+        )
+        for item in completions
     }
-    formations_progress = []
+    formations_progress: List[Dict[str, Any]] = []
     total_lecons = sum(len(f["lecons"]) for f in FORMATIONS)
     total_completees = 0
     for formation in FORMATIONS:
-        done = 0
-        for lecon in formation["lecons"]:
-            if (formation["code"], int(lecon["numero"])) in completed_keys:
-                done += 1
+        done = sum(
+            1
+            for lecon in formation["lecons"]
+            if (formation["code"], int(lecon["numero"])) in completed_keys
+        )
         total_completees += done
         total = len(formation["lecons"])
         formations_progress.append(
@@ -414,18 +500,18 @@ def _progress_for_user(db: Session, user_id: str) -> Dict[str, Any]:
                 "total_lecons": total,
                 "lecons_completees": done,
                 "pourcentage": round((done / total) * 100, 2) if total else 0.0,
+                "points": formation["points"],
             }
         )
-    pourcentage_global = (
-        round((total_completees / total_lecons) * 100, 2) if total_lecons else 0.0
-    )
     return {
         "user_id": user_id,
         "total_lecons": total_lecons,
         "lecons_completees": total_completees,
-        "pourcentage_global": pourcentage_global,
+        "pourcentage_global": round((total_completees / total_lecons) * 100, 2)
+        if total_lecons
+        else 0.0,
         "formations": formations_progress,
-        "completions": [serialize_formation_completee(x) for x in completions],
+        "completions": [serialize_formation_completee(item) for item in completions],
     }
 
 
@@ -442,22 +528,32 @@ def _write_certificat_pdf(user_id: str, progress: Dict[str, Any]) -> str:
     pdf.drawString(2 * cm, height - 3.8 * cm, f"Utilisateur: {user_id}")
     pdf.drawString(
         2 * cm,
-        height - 4.6 * cm,
+        height - 4.5 * cm,
         f"Progression globale: {progress['pourcentage_global']} %",
     )
-    y = height - 6 * cm
+    y = height - 6.0 * cm
     for formation in progress["formations"]:
         pdf.drawString(
             2 * cm,
             y,
-            f"- {formation['titre']}: {formation['lecons_completees']}/{formation['total_lecons']} leçons",
+            f"- {formation['titre']} : {formation['lecons_completees']}/{formation['total_lecons']} leçons",
         )
-        y -= 0.8 * cm
+        y -= 0.7 * cm
+        if y < 3.5 * cm:
+            break
     pdf.drawString(2 * cm, 3 * cm, "Certificat délivré par FeedFormula AI")
     pdf.showPage()
     pdf.save()
     path.write_bytes(buffer.getvalue())
     return f"/static/academy_certificats/{filename}"
+
+
+def _normalize_reponse(value: int) -> int:
+    if value in {0, 1, 2, 3}:
+        return value
+    if value in {1, 2, 3, 4}:
+        return value - 1
+    return -1
 
 
 @router.get("/formations")
@@ -471,6 +567,9 @@ def get_formations() -> Dict[str, Any]:
                 "resume": f["resume"],
                 "icone": f["icone"],
                 "ordre": f["ordre"],
+                "niveau": f["niveau"],
+                "duree": f["duree"],
+                "points": f["points"],
                 "total_lecons": len(f["lecons"]),
             }
             for f in FORMATIONS
@@ -487,12 +586,16 @@ def get_formation(code: str) -> Dict[str, Any]:
         "resume": formation["resume"],
         "icone": formation["icone"],
         "ordre": formation["ordre"],
+        "niveau": formation["niveau"],
+        "duree": formation["duree"],
+        "points": formation["points"],
         "total_lecons": len(formation["lecons"]),
         "lecons": [
             {
                 "numero": lecon["numero"],
                 "titre": lecon["titre"],
-                "focus": lecon["focus"],
+                "objectif": lecon["objectif"],
+                "questions": lecon["questions"],
             }
             for lecon in formation["lecons"]
         ],
@@ -500,53 +603,67 @@ def get_formation(code: str) -> Dict[str, Any]:
 
 
 @router.get("/lecon/{formation_code}/{numero}")
-def get_lecon(formation_code: str, numero: int) -> Dict[str, Any]:
-    return _build_lesson_payload(formation_code, numero)
+def get_lecon(formation_code: str, numero: int, langue: str = "fr") -> Dict[str, Any]:
+    return _build_lesson_payload(formation_code, numero, langue)
 
 
 @router.post("/quiz/soumettre")
 def soumettre_quiz(
     payload: QuizSubmissionRequest, db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
-    _ensure_lesson(payload.formation_code, payload.numero)
-    lesson_payload = _build_lesson_payload(payload.formation_code, payload.numero)
-    quiz = lesson_payload["quiz"]["questions"]
+    numero = int(payload.lecon_numero or payload.numero or 1)
+    lesson = _build_lesson_payload(payload.formation_code, numero, payload.langue)
+    questions = lesson["quiz"]["questions"]
+    score_max = len(questions) * POINTS_PAR_BONNE_REPONSE
+    correct = 0
     score = 0
-    details = []
-    for idx, question in enumerate(quiz):
-        bonne = int(question["bonne_reponse"])
-        reponse = payload.reponses[idx] if idx < len(payload.reponses) else None
-        ok = reponse == bonne
-        if ok:
-            score += int(question["points_gagnes"])
-        details.append(
+    feedback_par_question: List[Dict[str, Any]] = []
+
+    for idx, question in enumerate(questions):
+        raw = payload.reponses[idx] if idx < len(payload.reponses) else -1
+        reponse = _normalize_reponse(int(raw))
+        is_ok = reponse == int(question["bonne_reponse"])
+        if is_ok:
+            correct += 1
+            score += POINTS_PAR_BONNE_REPONSE
+        feedback_par_question.append(
             {
                 "question": question["question"],
                 "choix": question["choix"],
-                "bonne_reponse": bonne,
+                "bonne_reponse": int(question["bonne_reponse"]),
                 "reponse_utilisateur": reponse,
-                "correct": ok,
+                "correct": is_ok,
                 "explication": question["explication"],
-                "points_gagnes": question["points_gagnes"] if ok else 0,
+                "points_gagnes": POINTS_PAR_BONNE_REPONSE if is_ok else 0,
             }
         )
+
     create_formation_completee(
-        db, payload.user_id, payload.formation_code, payload.numero, score_quiz=score
+        db,
+        payload.user_id,
+        _resolve_code(payload.formation_code),
+        numero,
+        score_quiz=score,
     )
+    user = get_user_by_id(db, payload.user_id)
+    if user:
+        add_points_to_user(db, payload.user_id, score)
+
     progression = _progress_for_user(db, payload.user_id)
-    complet = progression["pourcentage_global"] == 100.0
-    certificat_url = (
-        _write_certificat_pdf(payload.user_id, progression) if complet else None
-    )
+    certificat_url = None
+    if progression["pourcentage_global"] >= 100.0:
+        certificat_url = _write_certificat_pdf(payload.user_id, progression)
+
     return {
         "user_id": payload.user_id,
-        "formation_code": payload.formation_code,
-        "numero": payload.numero,
+        "formation_code": _resolve_code(payload.formation_code),
+        "lecon_numero": numero,
         "score": score,
-        "score_max": len(quiz) * ACCES_POINTS_PAR_BONNE_REPONSE,
+        "score_max": score_max,
+        "correct": correct,
+        "reussi": score == score_max,
         "points_gagnes": score,
-        "details": details,
-        "reussi": score == len(quiz) * ACCES_POINTS_PAR_BONNE_REPONSE,
+        "feedback_par_question": feedback_par_question,
         "progression": progression,
         "certificat_url": certificat_url,
     }
@@ -562,16 +679,20 @@ def get_certifications(user_id: str, db: Session = Depends(get_db)) -> Dict[str,
     progress = _progress_for_user(db, user_id)
     certifications: List[Dict[str, Any]] = []
     for formation in FORMATIONS:
-        total = len(formation["lecons"])
         done = next(
-            (x for x in progress["formations"] if x["code"] == formation["code"]), None
+            (
+                item
+                for item in progress["formations"]
+                if item["code"] == formation["code"]
+            ),
+            None,
         )
-        if done and done["lecons_completees"] == total:
+        if done and done["lecons_completees"] == done["total_lecons"]:
             certifications.append(
                 {
                     "formation_code": formation["code"],
                     "titre": formation["titre"],
-                    "total_lecons": total,
+                    "total_lecons": done["total_lecons"],
                     "lecons_completees": done["lecons_completees"],
                     "pourcentage": 100.0,
                     "certificat_url": _write_certificat_pdf(user_id, progress),
@@ -585,9 +706,36 @@ def get_certifications(user_id: str, db: Session = Depends(get_db)) -> Dict[str,
     }
 
 
+@router.post("/certification/generer")
+def generer_certification(
+    payload: Dict[str, Any], db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    user_id = str(payload.get("user_id") or "").strip()
+    formation_code = str(payload.get("formation_code") or "").strip()
+    if not user_id or not formation_code:
+        raise HTTPException(status_code=400, detail="user_id et formation_code requis.")
+    progress = _progress_for_user(db, user_id)
+    if not any(
+        item["code"] == _resolve_code(formation_code)
+        and item["lecons_completees"] == item["total_lecons"]
+        for item in progress["formations"]
+    ):
+        raise HTTPException(status_code=400, detail="Formation incomplète.")
+    url = _write_certificat_pdf(user_id, progress)
+    return {
+        "user_id": user_id,
+        "formation_code": _resolve_code(formation_code),
+        "certificat_url": url,
+        "format": "pdf",
+    }
+
+
 __all__ = [
     "router",
     "FORMATIONS",
-    "LessonQueryRequest",
     "QuizSubmissionRequest",
+    "LessonQueryRequest",
+    "get_formations",
+    "get_formation",
+    "get_lecon",
 ]

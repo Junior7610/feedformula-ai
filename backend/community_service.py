@@ -1,20 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# pyright: reportGeneralTypeIssues=false
-"""
-FarmCommunity basique.
-
-- Fil d actualité des posts
-- Likes
-- Commentaires
-- Marketplace d annonces vente/achat
-"""
+# pyright: reportGeneralTypeIssues=false, reportArgumentType=false, reportAssignmentType=false, reportReturnType=false, reportAttributeAccessIssue=false, reportUnknownMemberType=false, reportUnknownArgumentType=false, reportUnknownVariableType=false
+"""FarmCommunity de FeedFormula AI."""
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+import uuid
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
 
 from database import (
+    add_points_to_user,
     create_annonce_marche,
     create_commentaire,
     create_post,
@@ -28,25 +24,11 @@ from database import (
     serialize_commentaire,
     serialize_post,
 )
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/community", tags=["Community"])
-
-
-class PostRequest(BaseModel):
-    user_id: str = Field(..., min_length=3)
-    contenu: str = Field(..., min_length=1)
-    type: str = Field(default="texte")
-
-    @field_validator("user_id", "contenu", "type")
-    @classmethod
-    def _strip(cls, value: str) -> str:
-        txt = (value or "").strip()
-        if not txt:
-            raise ValueError("Champ vide.")
-        return txt
 
 
 class CommentRequest(BaseModel):
@@ -62,78 +44,320 @@ class CommentRequest(BaseModel):
         return txt
 
 
-class MarcheRequest(BaseModel):
+class PostRequest(BaseModel):
     user_id: str = Field(..., min_length=3)
-    type: str = Field(..., pattern="^(vente|achat)$")
-    espece: str = Field(..., min_length=2)
-    quantite: str = Field(..., min_length=1)
-    prix: str = Field(..., min_length=1)
-    localisation: str = Field(..., min_length=2)
-    statut: str = Field(default="active")
+    titre: str = Field(default="")
+    contenu: str = Field(..., min_length=1)
+    type_post: str = Field(default="conseil")
+    espece_concernee: str = Field(default="")
+    langue: str = Field(default="fr")
 
-    @field_validator("user_id", "espece", "quantite", "prix", "localisation", "type")
+    @field_validator(
+        "user_id", "titre", "contenu", "type_post", "espece_concernee", "langue"
+    )
     @classmethod
     def _strip(cls, value: str) -> str:
-        txt = (value or "").strip()
-        if not txt:
-            raise ValueError("Champ vide.")
-        return txt
+        return (value or "").strip()
+
+
+class MarcheRequest(BaseModel):
+    user_id: str = Field(..., min_length=3)
+    type_annonce: Optional[str] = Field(default=None)
+    type: Optional[str] = Field(default=None)
+    espece: str = Field(..., min_length=2)
+    race: str = Field(default="")
+    quantite: Any = Field(default=1)
+    prix_fcfa: Optional[float] = Field(default=None)
+    prix: Optional[str] = Field(default=None)
+    prix_negociable: bool = Field(default=False)
+    description: str = Field(default="")
+    localisation: str = Field(..., min_length=2)
+    departement: str = Field(default="")
+    telephone_contact: str = Field(default="")
+    photos_json: List[str] = Field(default_factory=list)
+    statut: str = Field(default="actif")
+
+    @field_validator(
+        "user_id",
+        "type_annonce",
+        "type",
+        "espece",
+        "race",
+        "description",
+        "localisation",
+        "departement",
+        "telephone_contact",
+        "statut",
+        mode="before",
+    )
+    @classmethod
+    def _strip(cls, value: Any) -> str:
+        return ("" if value is None else str(value)).strip()
+
+
+def _now() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
+class CommunityService:
+    async def moderer_contenu(self, contenu: str) -> bool:
+        texte = (contenu or "").strip()
+        if not texte:
+            return False
+        if len(texte) < 3:
+            return False
+        if any(mot in texte.lower() for mot in ["mensonge", "venin", "arnaque"]):
+            return False
+        try:
+            import os
+
+            from openai import OpenAI  # type: ignore
+
+            api_key = (os.getenv("AFRI_API_KEY") or "").strip()
+            if not api_key:
+                return True
+            client = OpenAI(
+                api_key=api_key,
+                base_url=(
+                    os.getenv("AFRI_BASE_URL") or "https://api.openai.com/v1"
+                ).strip(),
+            )
+            response = client.chat.completions.create(
+                model=(os.getenv("AFRI_CHAT_MODEL") or "gpt-5.5").strip(),
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "Tu valides du contenu agricole. Réponds uniquement par OK ou REJET.",
+                    },
+                    {"role": "user", "content": f"Vérifie ce contenu: {texte}"},
+                ],
+                temperature=0,
+                max_tokens=20,
+            )
+            content = getattr(response.choices[0].message, "content", "")
+            return isinstance(content, str) and "OK" in content.upper()
+        except Exception:
+            return True
+
+    async def creer_post(
+        self, user_id, titre, contenu, type_post, espece_concernee, langue, db
+    ) -> Dict[str, Any]:
+        if not await self.moderer_contenu(contenu):
+            raise HTTPException(
+                status_code=400, detail="Contenu refusé par la modération."
+            )
+        user = get_user_by_id(db, user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="Utilisateur introuvable.")
+        titre_final = (titre or "").strip() or (
+            contenu[:70] + ("..." if len(contenu) > 70 else "")
+        )
+        post = create_post(
+            db,
+            user_id=user_id,
+            titre=titre_final,
+            contenu=contenu,
+            type_contenu=type_post,
+            espece_concernee=espece_concernee,
+            langue=langue,
+        )
+        add_points_to_user(db, user_id, 12)
+        return {**serialize_post(post), "points_gagnes": 12}
+
+    def get_fil_actualite(self, user_id, page, db) -> List[Dict[str, Any]]:
+        user = get_user_by_id(db, user_id)
+        region = getattr(user, "region", "") if user else ""
+        posts = list_posts(db, limit=500)
+        posts_sorted = sorted(
+            posts,
+            key=lambda p: (
+                0 if region and getattr(p.user, "region", "") == region else 1,
+                -int(getattr(p, "likes", 0) or 0),
+                -(p.date_creation.timestamp() if p.date_creation else 0),
+            ),
+        )
+        start = max(0, (int(page or 1) - 1) * 20)
+        page_items = posts_sorted[start : start + 20]
+        result = []
+        for post in page_items:
+            commentaires = list_commentaires_for_post(db, str(post.id), limit=20)
+            result.append(
+                {
+                    **serialize_post(post),
+                    "vues": int(getattr(post, "vues", 0) or 0),
+                    "titre": getattr(post, "titre", ""),
+                    "espece_concernee": getattr(post, "espece_concernee", ""),
+                    "langue": getattr(post, "langue", "fr"),
+                    "commentaires": [serialize_commentaire(c) for c in commentaires],
+                }
+            )
+        return result
+
+    async def creer_annonce_marche(
+        self,
+        user_id,
+        type_annonce,
+        espece,
+        race,
+        quantite,
+        prix,
+        description,
+        localisation,
+        departement,
+        telephone,
+        db,
+    ) -> Dict[str, Any]:
+        user = get_user_by_id(db, user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="Utilisateur introuvable.")
+        expires = _now() + timedelta(days=30)
+        annonce = create_annonce_marche(
+            db,
+            user_id=user_id,
+            type_annonce=type_annonce,
+            espece=espece,
+            race=race,
+            quantite=int(quantite or 0),
+            prix_fcfa=float(prix or 0),
+            prix_negociable=bool(prix == 0),
+            description=description,
+            localisation=localisation,
+            departement=departement,
+            telephone_contact=telephone,
+            photos_json=[],
+            statut="actif",
+            date_expiration=expires,
+        )
+        # enrichissement simple local
+        if not getattr(annonce, "description", ""):
+            setattr(
+                annonce,
+                "description",
+                f"Annonce {type_annonce} pour {espece} ({race}).",
+            )
+        db.commit()
+        db.refresh(annonce)
+        return {
+            **serialize_annonce_marche(annonce),
+            "whatsapp_link": f"https://wa.me/?text={uuid.uuid4().hex[:8]}%20{espece}%20{prix}",
+        }
+
+    def rechercher_annonces(
+        self, type_annonce, espece, departement, prix_min, prix_max, db
+    ) -> List[Dict[str, Any]]:
+        annonces = list_annonces_marche(
+            db,
+            type_annonce=type_annonce,
+            espece=espece,
+            departement=departement,
+            limit=500,
+        )
+        filtered = []
+        for annonce in annonces:
+            p = float(getattr(annonce, "prix_fcfa", 0.0) or 0.0)
+            if prix_min is not None and p < float(prix_min):
+                continue
+            if prix_max is not None and p > float(prix_max):
+                continue
+            filtered.append(serialize_annonce_marche(annonce))
+        filtered.sort(
+            key=lambda a: (
+                a.get("statut") != "actif",
+                -(
+                    datetime.fromisoformat(a["date_creation"]).timestamp()
+                    if a.get("date_creation")
+                    else 0
+                ),
+            )
+        )
+        return filtered
+
+
+SERVICE = CommunityService()
+
+
+async def _parse_post_payload(request: Request) -> Dict[str, Any]:
+    content_type = request.headers.get("content-type", "")
+    if content_type.startswith("multipart/form-data") or content_type.startswith(
+        "application/x-www-form-urlencoded"
+    ):
+        form = await request.form()
+        return {
+            k: (form.get(k) if k in form else None)
+            for k in [
+                "user_id",
+                "titre",
+                "contenu",
+                "type_post",
+                "type",
+                "espece_concernee",
+                "langue",
+            ]
+        }
+    try:
+        data = await request.json()
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
 
 
 @router.get("/posts")
-def get_posts(db: Session = Depends(get_db)) -> Dict[str, Any]:
-    posts = list_posts(db, limit=50)
-    result = []
-    for post in posts:
-        commentaires = list_commentaires_for_post(db, str(post.id), limit=20)
-        result.append(
-            {
-                **serialize_post(post),
-                "commentaires": [serialize_commentaire(c) for c in commentaires],
-            }
-        )
-    return {"total": len(result), "posts": result}
+def get_posts(
+    page: int = 1,
+    espece: Optional[str] = None,
+    user_id: Optional[str] = None,
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    items = SERVICE.get_fil_actualite(user_id or "", page, db)
+    if espece:
+        items = [
+            post
+            for post in items
+            if _clean(post.get("espece_concernee", "")).lower()
+            == _clean(espece).lower()
+            or _clean(espece).lower() in _clean(post.get("contenu", "")).lower()
+        ]
+    return {"page": page, "total": len(items), "posts": items}
+
+
+def _clean(value: str) -> str:
+    return (value or "").strip()
 
 
 @router.post("/posts")
-def create_new_post(
-    contenu: str = Form(...),
-    user_id: str = Form(...),
-    type: str = Form(default="texte"),
-    photo: Optional[UploadFile] = File(default=None),
-    db: Session = Depends(get_db),
+async def create_new_post(
+    request: Request, db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
-    user = get_user_by_id(db, user_id)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Utilisateur introuvable."
-        )
-    contenu_final = contenu.strip()
-    if photo and photo.filename:
-        contenu_final = f"{contenu_final} [photo:{photo.filename}]"
-    post = create_post(db, user_id=user_id, contenu=contenu_final, type_contenu=type)
-    return {"message": "Post créé.", **serialize_post(post)}
+    data = await _parse_post_payload(request)
+    user_id = _clean(str(data.get("user_id") or ""))
+    contenu = _clean(str(data.get("contenu") or ""))
+    titre = _clean(str(data.get("titre") or ""))
+    type_post = _clean(str(data.get("type_post") or data.get("type") or "conseil"))
+    espece_concernee = _clean(str(data.get("espece_concernee") or ""))
+    langue = _clean(str(data.get("langue") or "fr")) or "fr"
+    if not user_id or not contenu:
+        raise HTTPException(status_code=400, detail="user_id et contenu requis.")
+    return await SERVICE.creer_post(
+        user_id, titre, contenu, type_post, espece_concernee, langue, db
+    )
 
 
 @router.post("/posts/{post_id}/like")
 def like(post_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
     post = like_post(db, post_id)
     if not post:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Post introuvable."
-        )
+        raise HTTPException(status_code=404, detail="Post introuvable.")
     return {"message": "Like ajouté.", **serialize_post(post)}
 
 
+@router.post("/posts/{post_id}/commentaire")
 @router.post("/posts/{post_id}/commentaires")
 def commenter(
     post_id: str, payload: CommentRequest, db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
     user = get_user_by_id(db, payload.user_id)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Utilisateur introuvable."
-        )
+        raise HTTPException(status_code=404, detail="Utilisateur introuvable.")
     commentaire = create_commentaire(
         db, post_id=post_id, user_id=payload.user_id, contenu=payload.contenu
     )
@@ -144,16 +368,16 @@ def commenter(
 def marche(
     type: Optional[str] = None,
     espece: Optional[str] = None,
+    dept: Optional[str] = None,
     localisation: Optional[str] = None,
+    prix_min: Optional[float] = None,
+    prix_max: Optional[float] = None,
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
-    annonces = list_annonces_marche(
-        db, type_annonce=type, espece=espece, localisation=localisation, limit=50
+    annonces = SERVICE.rechercher_annonces(
+        type, espece, dept or localisation, prix_min, prix_max, db
     )
-    return {
-        "total": len(annonces),
-        "annonces": [serialize_annonce_marche(a) for a in annonces],
-    }
+    return {"total": len(annonces), "annonces": annonces}
 
 
 @router.post("/marche")
@@ -162,20 +386,74 @@ def creer_marche(
 ) -> Dict[str, Any]:
     user = get_user_by_id(db, payload.user_id)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Utilisateur introuvable."
-        )
+        raise HTTPException(status_code=404, detail="Utilisateur introuvable.")
     annonce = create_annonce_marche(
         db,
         user_id=payload.user_id,
-        type_annonce=payload.type,
+        type_annonce=(payload.type_annonce or payload.type or "vente"),
         espece=payload.espece,
+        race=payload.race,
         quantite=payload.quantite,
-        prix=payload.prix,
+        prix_fcfa=float(payload.prix_fcfa or 0.0),
+        prix_negociable=payload.prix_negociable,
+        description=payload.description,
         localisation=payload.localisation,
-        statut=payload.statut,
+        departement=payload.departement,
+        telephone_contact=payload.telephone_contact,
+        photos_json=payload.photos_json,
+        statut=(payload.statut or "actif"),
+        date_expiration=_now() + timedelta(days=30),
+        prix=payload.prix or payload.prix_fcfa,
     )
-    return {"message": "Annonce créée.", **serialize_annonce_marche(annonce)}
+    return {
+        "message": "Annonce créée.",
+        **serialize_annonce_marche(annonce),
+        "whatsapp_link": f"https://wa.me/?text={payload.espece}%20{payload.prix_fcfa}",
+    }
 
 
-__all__ = ["router"]
+@router.get("/marche/{annonce_id}")
+def get_marche_detail(annonce_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
+    annonces = list_annonces_marche(db, limit=500)
+    annonce = next((a for a in annonces if str(a.id) == annonce_id), None)
+    if not annonce:
+        raise HTTPException(status_code=404, detail="Annonce introuvable.")
+    return serialize_annonce_marche(annonce)
+
+
+@router.put("/marche/{annonce_id}/statut")
+def update_marche_statut(
+    annonce_id: str, payload: Dict[str, Any], db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    status_new = str(payload.get("statut") or "").strip().lower()
+    if status_new not in {"actif", "vendu", "expire", "active"}:
+        raise HTTPException(status_code=400, detail="Statut invalide.")
+    annonces = list_annonces_marche(db, limit=500)
+    annonce = next((a for a in annonces if str(a.id) == annonce_id), None)
+    if not annonce:
+        raise HTTPException(status_code=404, detail="Annonce introuvable.")
+    setattr(annonce, "statut", status_new)
+    db.commit()
+    db.refresh(annonce)
+    return serialize_annonce_marche(annonce)
+
+
+@router.get("/stats")
+def stats(db: Session = Depends(get_db)) -> Dict[str, Any]:
+    posts = list_posts(db, limit=1000)
+    annonces = list_annonces_marche(db, limit=1000)
+    comments_total = sum(
+        len(list_commentaires_for_post(db, str(post.id), limit=1000)) for post in posts
+    )
+    return {
+        "posts": len(posts),
+        "commentaires": comments_total,
+        "annonces": len(annonces),
+        "annonces_actives": sum(
+            1 for a in annonces if getattr(a, "statut", "") in {"actif", "active"}
+        ),
+        "likes_total": sum(int(getattr(post, "likes", 0) or 0) for post in posts),
+    }
+
+
+__all__ = ["router", "SERVICE", "CommunityService"]

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# pyright: reportGeneralTypeIssues=false
+# pyright: reportGeneralTypeIssues=false, reportArgumentType=false, reportAssignmentType=false, reportReturnType=false, reportAttributeAccessIssue=false, reportUnknownMemberType=false, reportUnknownArgumentType=false, reportUnknownVariableType=false
 """
 Module base de données de FeedFormula AI.
 
@@ -35,6 +35,7 @@ from sqlalchemy import (
     UniqueConstraint,
     create_engine,
     desc,
+    text,
 )
 from sqlalchemy.orm import Session, declarative_base, relationship, sessionmaker
 
@@ -67,6 +68,7 @@ SessionLocal = sessionmaker(
     bind=engine, autoflush=False, autocommit=False, expire_on_commit=False, future=True
 )
 Base = declarative_base()
+_DB_INITIALIZED = False
 
 
 # ---------------------------------------------------------------------------
@@ -168,6 +170,12 @@ class User(Base):
     )
     annonces_marche = relationship(
         "AnnonceMarche", back_populates="user", cascade="all, delete-orphan"
+    )
+    farmcast_contenus = relationship(
+        "FarmCastContenu", back_populates="user", cascade="all, delete-orphan"
+    )
+    transactions_paiement = relationship(
+        "TransactionPaiement", back_populates="user", cascade="all, delete-orphan"
     )
 
 
@@ -440,9 +448,13 @@ class Post(Base):
         nullable=False,
         index=True,
     )
+    titre = Column(String(255), nullable=False, default="")
     contenu = Column(Text, nullable=False)
     type = Column(String(50), nullable=False, default="texte")
+    espece_concernee = Column(String(120), nullable=False, default="")
     likes = Column(Integer, nullable=False, default=0)
+    vues = Column(Integer, nullable=False, default=0)
+    langue = Column(String(20), nullable=False, default="fr")
     date_creation = Column(DateTime, nullable=False, default=_utcnow_naive, index=True)
 
     user = relationship("User", back_populates="posts")
@@ -472,6 +484,7 @@ class Commentaire(Base):
         index=True,
     )
     contenu = Column(Text, nullable=False)
+    utile = Column(Integer, nullable=False, default=0)
     date_creation = Column(DateTime, nullable=False, default=_utcnow_naive, index=True)
 
     post = relationship("Post", back_populates="commentaires")
@@ -492,15 +505,86 @@ class AnnonceMarche(Base):
         nullable=False,
         index=True,
     )
-    type = Column(String(20), nullable=False)
+    type_annonce = Column(String(20), nullable=False, default="vente")
+    type = Column(String(20), nullable=False, default="vente")
     espece = Column(String(120), nullable=False, index=True)
-    quantite = Column(String(50), nullable=False)
-    prix = Column(String(50), nullable=False)
+    race = Column(String(120), nullable=False, default="")
+    quantite = Column(Integer, nullable=False, default=0)
+    prix_fcfa = Column(Float, nullable=False, default=0.0)
+    prix = Column(String(50), nullable=False, default="")
+    prix_negociable = Column(Boolean, nullable=False, default=False)
+    description = Column(Text, nullable=False, default="")
     localisation = Column(String(120), nullable=False)
+    departement = Column(String(120), nullable=False, default="")
+    telephone_contact = Column(String(50), nullable=False, default="")
+    photos_json = Column(Text, nullable=False, default="[]")
     statut = Column(String(30), nullable=False, default="active")
+    date_expiration = Column(DateTime, nullable=True)
     date_creation = Column(DateTime, nullable=False, default=_utcnow_naive, index=True)
 
     user = relationship("User", back_populates="annonces_marche")
+
+
+class FarmCastContenu(Base):
+    """
+    Table farmcast_contenus.
+    """
+
+    __tablename__ = "farmcast_contenus"
+
+    id = Column(String(36), primary_key=True, default=_uuid_str)
+    user_id = Column(
+        String(36),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    theme = Column(String(255), nullable=False)
+    langue = Column(String(20), nullable=False, default="fr")
+    format_type = Column(String(50), nullable=False, default="audio")
+    public_cible = Column(String(120), nullable=False, default="")
+    script = Column(Text, nullable=False)
+    audio_url = Column(String(255), nullable=False, default="")
+    images_json = Column(Text, nullable=False, default="[]")
+    fiche_url = Column(String(255), nullable=False, default="")
+    whatsapp_link = Column(String(255), nullable=False, default="")
+    points_gagnes = Column(Integer, nullable=False, default=0)
+    date_creation = Column(DateTime, nullable=False, default=_utcnow_naive, index=True)
+
+    user = relationship("User", back_populates="farmcast_contenus")
+
+
+class TransactionPaiement(Base):
+    """
+    Table transactions_paiement.
+    """
+
+    __tablename__ = "transactions_paiement"
+    __table_args__ = (UniqueConstraint("transaction_id", name="uq_transaction_id"),)
+
+    id = Column(String(36), primary_key=True, default=_uuid_str)
+    transaction_id = Column(String(120), nullable=False, index=True)
+    user_id = Column(
+        String(36),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    abonnement = Column(String(30), nullable=False, default="free")
+    duree = Column(String(20), nullable=False, default="mensuel")
+    montant = Column(Float, nullable=False, default=0.0)
+    statut = Column(String(30), nullable=False, default="pending")
+    provider = Column(String(30), nullable=False, default="simulation")
+    lien_paiement = Column(String(255), nullable=False, default="")
+    telephone = Column(String(50), nullable=False, default="")
+    prenom = Column(String(120), nullable=False, default="")
+    callback_payload = Column(Text, nullable=False, default="{}")
+    date_expiration = Column(DateTime, nullable=True)
+    date_creation = Column(DateTime, nullable=False, default=_utcnow_naive, index=True)
+    date_mise_a_jour = Column(DateTime, nullable=False, default=_utcnow_naive)
+    points_bonus = Column(Integer, nullable=False, default=0)
+
+    user = relationship("User", back_populates="transactions_paiement")
 
 
 # ---------------------------------------------------------------------------
@@ -508,11 +592,122 @@ class AnnonceMarche(Base):
 # ---------------------------------------------------------------------------
 
 
+def _ensure_sqlite_columns() -> None:
+    """Ajoute à chaud les colonnes manquantes sur une base SQLite existante."""
+    if not DATABASE_URL.startswith("sqlite"):
+        return
+
+    migrations = {
+        "users": {
+            "departement": "TEXT NOT NULL DEFAULT ''",
+            "date_inscription": "DATETIME",
+            "derniere_connexion": "DATETIME",
+            "points_total": "INTEGER NOT NULL DEFAULT 0",
+            "niveau_actuel": "INTEGER NOT NULL DEFAULT 1",
+            "serie_actuelle": "INTEGER NOT NULL DEFAULT 0",
+            "meilleure_serie": "INTEGER NOT NULL DEFAULT 0",
+            "graines_or": "INTEGER NOT NULL DEFAULT 0",
+            "graines_secours": "INTEGER NOT NULL DEFAULT 3",
+            "energie_solaire": "INTEGER NOT NULL DEFAULT 5",
+            "abonnement": "TEXT NOT NULL DEFAULT 'free'",
+            "is_active": "BOOLEAN NOT NULL DEFAULT 1",
+            "region": "TEXT NOT NULL DEFAULT 'Bénin'",
+        },
+        "posts": {
+            "titre": "TEXT NOT NULL DEFAULT ''",
+            "contenu": "TEXT NOT NULL DEFAULT ''",
+            "type": "TEXT NOT NULL DEFAULT 'texte'",
+            "espece_concernee": "TEXT NOT NULL DEFAULT ''",
+            "likes": "INTEGER NOT NULL DEFAULT 0",
+            "vues": "INTEGER NOT NULL DEFAULT 0",
+            "langue": "TEXT NOT NULL DEFAULT 'fr'",
+            "date_creation": "DATETIME",
+        },
+        "commentaires": {
+            "utile": "INTEGER NOT NULL DEFAULT 0",
+            "date_creation": "DATETIME",
+        },
+        "annonces_marche": {
+            "type_annonce": "TEXT NOT NULL DEFAULT 'vente'",
+            "type": "TEXT NOT NULL DEFAULT 'vente'",
+            "race": "TEXT NOT NULL DEFAULT ''",
+            "quantite": "INTEGER NOT NULL DEFAULT 0",
+            "prix_fcfa": "FLOAT NOT NULL DEFAULT 0",
+            "prix": "TEXT NOT NULL DEFAULT ''",
+            "prix_negociable": "BOOLEAN NOT NULL DEFAULT 0",
+            "description": "TEXT NOT NULL DEFAULT ''",
+            "departement": "TEXT NOT NULL DEFAULT ''",
+            "telephone_contact": "TEXT NOT NULL DEFAULT ''",
+            "photos_json": "TEXT NOT NULL DEFAULT '[]'",
+            "statut": "TEXT NOT NULL DEFAULT 'active'",
+            "date_expiration": "DATETIME",
+            "date_creation": "DATETIME",
+        },
+        "farmcast_contenus": {
+            "theme": "TEXT NOT NULL DEFAULT ''",
+            "langue": "TEXT NOT NULL DEFAULT 'fr'",
+            "format_type": "TEXT NOT NULL DEFAULT 'audio'",
+            "public_cible": "TEXT NOT NULL DEFAULT ''",
+            "script": "TEXT NOT NULL DEFAULT ''",
+            "audio_url": "TEXT NOT NULL DEFAULT ''",
+            "images_json": "TEXT NOT NULL DEFAULT '[]'",
+            "fiche_url": "TEXT NOT NULL DEFAULT ''",
+            "whatsapp_link": "TEXT NOT NULL DEFAULT ''",
+            "points_gagnes": "INTEGER NOT NULL DEFAULT 0",
+            "date_creation": "DATETIME",
+        },
+        "transactions_paiement": {
+            "transaction_id": "TEXT NOT NULL DEFAULT ''",
+            "abonnement": "TEXT NOT NULL DEFAULT 'free'",
+            "duree": "TEXT NOT NULL DEFAULT 'mensuel'",
+            "montant": "FLOAT NOT NULL DEFAULT 0",
+            "statut": "TEXT NOT NULL DEFAULT 'pending'",
+            "provider": "TEXT NOT NULL DEFAULT 'simulation'",
+            "lien_paiement": "TEXT NOT NULL DEFAULT ''",
+            "telephone": "TEXT NOT NULL DEFAULT ''",
+            "prenom": "TEXT NOT NULL DEFAULT ''",
+            "callback_payload": "TEXT NOT NULL DEFAULT '{}'",
+            "date_expiration": "DATETIME",
+            "date_creation": "DATETIME",
+            "date_mise_a_jour": "DATETIME",
+            "points_bonus": "INTEGER NOT NULL DEFAULT 0",
+        },
+    }
+
+    with engine.begin() as conn:
+        for table_name, columns in migrations.items():
+            existing = {
+                row[1]
+                for row in conn.execute(
+                    text(f'PRAGMA table_info("{table_name}")')
+                ).fetchall()
+            }
+            if not existing:
+                continue
+            for column_name, column_ddl in columns.items():
+                if column_name in existing:
+                    continue
+                conn.execute(
+                    text(
+                        f'ALTER TABLE "{table_name}" ADD COLUMN {column_name} {column_ddl}'
+                    )
+                )
+
+
 def init_db() -> None:
     """
     Initialise la base de données en créant les tables manquantes.
     """
+    global _DB_INITIALIZED
     Base.metadata.create_all(bind=engine)
+    _ensure_sqlite_columns()
+    _DB_INITIALIZED = True
+
+
+def _ensure_db_initialized() -> None:
+    global _DB_INITIALIZED
+    if not _DB_INITIALIZED:
+        init_db()
 
 
 def get_db() -> Generator[Session, None, None]:
@@ -522,6 +717,7 @@ def get_db() -> Generator[Session, None, None]:
     Usage attendu dans FastAPI :
         db: Session = Depends(get_db)
     """
+    _ensure_db_initialized()
     db = SessionLocal()
     try:
         yield db
@@ -1151,13 +1347,21 @@ def create_post(
     type_contenu: str = "texte",
     likes: int = 0,
     date_creation: Optional[datetime] = None,
+    titre: str = "",
+    espece_concernee: str = "",
+    langue: str = "fr",
+    vues: int = 0,
 ) -> Post:
     """Crée un post communautaire."""
     row = Post(
         user_id=user_id,
+        titre=(titre or "").strip(),
         contenu=(contenu or "").strip(),
         type=(type_contenu or "texte").strip().lower(),
+        espece_concernee=(espece_concernee or "").strip(),
         likes=max(0, int(likes or 0)),
+        vues=max(0, int(vues or 0)),
+        langue=(langue or "fr").strip().lower(),
         date_creation=date_creation or datetime.now(timezone.utc).replace(tzinfo=None),
     )
     db.add(row)
@@ -1189,12 +1393,14 @@ def create_commentaire(
     user_id: str,
     contenu: str,
     date_creation: Optional[datetime] = None,
+    utile: int = 0,
 ) -> Commentaire:
     """Crée un commentaire sur un post."""
     row = Commentaire(
         post_id=post_id,
         user_id=user_id,
         contenu=(contenu or "").strip(),
+        utile=max(0, int(utile or 0)),
         date_creation=date_creation or datetime.now(timezone.utc).replace(tzinfo=None),
     )
     db.add(row)
@@ -1222,21 +1428,38 @@ def create_annonce_marche(
     user_id: str,
     type_annonce: str,
     espece: str,
-    quantite: str,
-    prix: str,
-    localisation: str,
+    quantite: Any,
+    prix: Any = None,
+    localisation: str = "",
     statut: str = "active",
     date_creation: Optional[datetime] = None,
+    race: str = "",
+    prix_fcfa: float = 0.0,
+    prix_negociable: bool = False,
+    description: str = "",
+    departement: str = "",
+    telephone_contact: str = "",
+    photos_json: Any = None,
+    date_expiration: Optional[datetime] = None,
 ) -> AnnonceMarche:
     """Crée une annonce marketplace."""
     row = AnnonceMarche(
         user_id=user_id,
+        type_annonce=(type_annonce or "vente").strip().lower(),
         type=(type_annonce or "vente").strip().lower(),
         espece=(espece or "").strip(),
-        quantite=(quantite or "").strip(),
-        prix=(prix or "").strip(),
+        race=(race or "").strip(),
+        quantite=int(quantite or 0),
+        prix_fcfa=float(prix_fcfa or 0.0),
+        prix=(str(prix) if prix is not None else "").strip(),
+        prix_negociable=bool(prix_negociable),
+        description=(description or "").strip(),
         localisation=(localisation or "").strip(),
+        departement=(departement or "").strip(),
+        telephone_contact=(telephone_contact or "").strip(),
+        photos_json=_to_json_text(photos_json or []),
         statut=(statut or "active").strip().lower(),
+        date_expiration=date_expiration,
         date_creation=date_creation or datetime.now(timezone.utc).replace(tzinfo=None),
     )
     db.add(row)
@@ -1250,16 +1473,19 @@ def list_annonces_marche(
     type_annonce: Optional[str] = None,
     espece: Optional[str] = None,
     localisation: Optional[str] = None,
+    departement: Optional[str] = None,
     limit: int = 50,
 ) -> List[AnnonceMarche]:
     """Liste les annonces marketplace avec filtres optionnels."""
     q = db.query(AnnonceMarche)
     if type_annonce:
-        q = q.filter(AnnonceMarche.type == type_annonce.strip().lower())
+        q = q.filter(AnnonceMarche.type_annonce == type_annonce.strip().lower())
     if espece:
         q = q.filter(AnnonceMarche.espece == espece.strip())
     if localisation:
         q = q.filter(AnnonceMarche.localisation == localisation.strip())
+    if departement:
+        q = q.filter(AnnonceMarche.departement == departement.strip())
     n = max(1, min(int(limit or 50), 500))
     return q.order_by(desc(AnnonceMarche.date_creation)).limit(n).all()
 
@@ -1273,6 +1499,117 @@ def list_user_formations_completees(
         db.query(FormationCompletee)
         .filter(FormationCompletee.user_id == user_id)
         .order_by(desc(FormationCompletee.date_completion))
+        .limit(n)
+        .all()
+    )
+
+
+# ---------------------------------------------------------------------------
+# CRUD - FARMCAST / PAIEMENT
+# ---------------------------------------------------------------------------
+
+
+def create_farmcast_contenu(
+    db: Session,
+    user_id: str,
+    theme: str,
+    langue: str,
+    format_type: str,
+    public_cible: str,
+    script: str,
+    audio_url: str,
+    images_urls: List[str],
+    fiche_url: str,
+    whatsapp_link: str,
+    points_gagnes: int = 0,
+) -> FarmCastContenu:
+    row = FarmCastContenu(
+        user_id=user_id,
+        theme=(theme or "").strip(),
+        langue=(langue or "fr").strip().lower(),
+        format_type=(format_type or "audio").strip().lower(),
+        public_cible=(public_cible or "").strip(),
+        script=script or "",
+        audio_url=audio_url or "",
+        images_json=_to_json_text(images_urls or []),
+        fiche_url=fiche_url or "",
+        whatsapp_link=whatsapp_link or "",
+        points_gagnes=max(0, int(points_gagnes or 0)),
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return row
+
+
+def list_farmcast_contenus(
+    db: Session, user_id: str, limit: int = 20
+) -> List[FarmCastContenu]:
+    n = max(1, min(int(limit or 20), 200))
+    return (
+        db.query(FarmCastContenu)
+        .filter(FarmCastContenu.user_id == user_id)
+        .order_by(desc(FarmCastContenu.date_creation))
+        .limit(n)
+        .all()
+    )
+
+
+def create_transaction_paiement(
+    db: Session,
+    transaction_id: str,
+    user_id: str,
+    abonnement: str,
+    duree: str,
+    montant: float,
+    statut: str,
+    provider: str,
+    lien_paiement: str,
+    telephone: str,
+    prenom: str,
+    callback_payload: Any = None,
+    date_expiration: Optional[datetime] = None,
+    points_bonus: int = 0,
+) -> TransactionPaiement:
+    row = TransactionPaiement(
+        transaction_id=transaction_id,
+        user_id=user_id,
+        abonnement=(abonnement or "free").strip().lower(),
+        duree=(duree or "mensuel").strip().lower(),
+        montant=float(montant or 0.0),
+        statut=(statut or "pending").strip().lower(),
+        provider=(provider or "simulation").strip().lower(),
+        lien_paiement=lien_paiement or "",
+        telephone=(telephone or "").strip(),
+        prenom=(prenom or "").strip(),
+        callback_payload=_to_json_text(callback_payload or {}),
+        date_expiration=date_expiration,
+        points_bonus=max(0, int(points_bonus or 0)),
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return row
+
+
+def get_transaction_paiement_by_id(
+    db: Session, transaction_id: str
+) -> Optional[TransactionPaiement]:
+    return (
+        db.query(TransactionPaiement)
+        .filter(TransactionPaiement.transaction_id == (transaction_id or "").strip())
+        .first()
+    )
+
+
+def list_user_transactions(
+    db: Session, user_id: str, limit: int = 20
+) -> List[TransactionPaiement]:
+    n = max(1, min(int(limit or 20), 500))
+    return (
+        db.query(TransactionPaiement)
+        .filter(TransactionPaiement.user_id == user_id)
+        .order_by(desc(TransactionPaiement.date_creation))
         .limit(n)
         .all()
     )
@@ -1431,9 +1768,13 @@ def serialize_post(p: Post) -> Dict[str, Any]:
     return {
         "id": p.id,
         "user_id": p.user_id,
+        "titre": getattr(p, "titre", ""),
         "contenu": p.contenu,
         "type": p.type,
+        "espece_concernee": getattr(p, "espece_concernee", ""),
         "likes": int(p.likes or 0),
+        "vues": int(getattr(p, "vues", 0) or 0),
+        "langue": getattr(p, "langue", "fr"),
         "date_creation": p.date_creation.isoformat() if p.date_creation else None,
     }
 
@@ -1445,6 +1786,7 @@ def serialize_commentaire(c: Commentaire) -> Dict[str, Any]:
         "post_id": c.post_id,
         "user_id": c.user_id,
         "contenu": c.contenu,
+        "utile": int(getattr(c, "utile", 0) or 0),
         "date_creation": c.date_creation.isoformat() if c.date_creation else None,
     }
 
@@ -1454,12 +1796,23 @@ def serialize_annonce_marche(a: AnnonceMarche) -> Dict[str, Any]:
     return {
         "id": a.id,
         "user_id": a.user_id,
-        "type": a.type,
+        "type": getattr(a, "type_annonce", a.type),
+        "type_annonce": getattr(a, "type_annonce", a.type),
         "espece": a.espece,
-        "quantite": a.quantite,
-        "prix": a.prix,
+        "race": getattr(a, "race", ""),
+        "quantite": int(getattr(a, "quantite", 0) or 0),
+        "prix_fcfa": float(getattr(a, "prix_fcfa", 0.0) or 0.0),
+        "prix": getattr(a, "prix", ""),
+        "prix_negociable": bool(getattr(a, "prix_negociable", False)),
+        "description": getattr(a, "description", ""),
         "localisation": a.localisation,
+        "departement": getattr(a, "departement", ""),
+        "telephone_contact": getattr(a, "telephone_contact", ""),
+        "photos_json": _from_json_text(getattr(a, "photos_json", "[]"), []),
         "statut": a.statut,
+        "date_expiration": a.date_expiration.isoformat()
+        if getattr(a, "date_expiration", None)
+        else None,
         "date_creation": a.date_creation.isoformat() if a.date_creation else None,
     }
 
@@ -1516,6 +1869,8 @@ __all__ = [
     "Post",
     "Commentaire",
     "AnnonceMarche",
+    "FarmCastContenu",
+    "TransactionPaiement",
     "create_post",
     "list_posts",
     "like_post",

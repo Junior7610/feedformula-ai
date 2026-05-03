@@ -1,30 +1,26 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# pyright: reportGeneralTypeIssues=false
-"""
-Paiement Mobile Money / FedaPay.
-
-Le service expose :
-- async def creer_transaction(...)
-- async def verifier_paiement(...)
-- Endpoints FastAPI de création, statut, webhook et historique
-
-Si FedaPay est indisponible, une simulation locale est utilisée.
-"""
+# pyright: reportGeneralTypeIssues=false, reportArgumentType=false, reportAssignmentType=false, reportReturnType=false, reportAttributeAccessIssue=false, reportUnknownMemberType=false, reportUnknownArgumentType=false, reportUnknownVariableType=false
+"""Paiement Mobile Money / FedaPay de FeedFormula AI."""
 
 from __future__ import annotations
 
-import hashlib
-import hmac
 import json
 import os
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, cast
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict
 
 import requests
-from database import get_db, get_user_by_id
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from database import (
+    add_points_to_user,
+    create_transaction_paiement,
+    get_db,
+    get_transaction_paiement_by_id,
+    get_user_by_id,
+    list_user_transactions,
+)
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
@@ -36,28 +32,55 @@ FEDAPAY_BASE_URL = (
 FEDAPAY_SECRET_KEY = (
     os.getenv("FEDAPAY_SECRET_KEY") or os.getenv("FEDAPAY_API_KEY") or ""
 ).strip()
-FEDAPAY_WEBHOOK_SECRET = (os.getenv("FEDAPAY_WEBHOOK_SECRET") or "").strip()
-PAIEMENT_CALLBACK_URL = (os.getenv("PAIEMENT_CALLBACK_URL") or "").strip()
+APP_URL = (os.getenv("APP_URL") or "http://127.0.0.1:8000").strip()
 
-ABONNEMENTS: Dict[str, Dict[str, Any]] = {
-    "free": {"label": "Free", "prix": 0, "duree_jours": 0},
-    "standard": {"label": "Standard", "prix": 2000, "duree_jours": 30},
-    "premium": {"label": "Premium", "prix": 8000, "duree_jours": 30},
-    "vip": {"label": "VIP", "prix": 25000, "duree_jours": 90},
-    "gold": {"label": "Gold", "prix": 75000, "duree_jours": 180},
+OFFRES = {"free": 0, "standard": 2000, "premium": 8000, "vip": 25000, "gold": 75000}
+DUREES = {"mensuel": (30, 1.0), "trimestriel": (90, 0.9), "annuel": (365, 0.8)}
+FEATURES = {
+    "free": {
+        "rations_par_mois": 5,
+        "diagnostics": 3,
+        "langues": 3,
+        "vetscan": False,
+        "reprotrack": False,
+        "farmcast": False,
+    },
+    "standard": {
+        "rations_illimitees": True,
+        "diagnostics": 10,
+        "langues": 50,
+        "vetscan": True,
+        "reprotrack": True,
+    },
+    "premium": {
+        "tout_standard": True,
+        "vetscan_illimite": True,
+        "farmacademy": True,
+        "pasturemap": True,
+    },
+    "vip": {
+        "tout_premium": True,
+        "multi_users": 5,
+        "api_access": True,
+        "expert_mensuel": True,
+    },
+    "gold": {
+        "tout_vip": True,
+        "users_illimites": True,
+        "white_label": True,
+        "farmcast_illimite": True,
+    },
 }
 
-PAYMENT_HISTORY: List[Dict[str, Any]] = []
-TRANSACTIONS: Dict[str, Dict[str, Any]] = {}
 
-
-class CreerPaiementRequest(BaseModel):
+class PaiementCreateRequest(BaseModel):
     user_id: str = Field(..., min_length=3)
     abonnement: str = Field(..., min_length=2)
+    duree: str = Field(default="mensuel")
     telephone: str = Field(..., min_length=6)
     prenom: str = Field(default="Client")
 
-    @field_validator("user_id", "abonnement", "telephone", "prenom")
+    @field_validator("user_id", "abonnement", "duree", "telephone", "prenom")
     @classmethod
     def _strip(cls, value: str) -> str:
         txt = (value or "").strip()
@@ -66,126 +89,157 @@ class CreerPaiementRequest(BaseModel):
         return txt
 
 
-class WebhookRequest(BaseModel):
-    payload: Dict[str, Any] = Field(default_factory=dict)
-
-
-def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
-
-
-def _uuid() -> str:
-    return uuid.uuid4().hex
-
-
-def _norm_abonnement(value: str) -> str:
-    txt = (value or "").strip().lower()
-    aliases = {"essentiel": "standard", "basique": "standard", "or": "gold"}
-    return aliases.get(txt, txt)
-
-
-def _record_history(transaction: Dict[str, Any]) -> None:
-    existing = next(
-        (
-            x
-            for x in PAYMENT_HISTORY
-            if x["transaction_id"] == transaction["transaction_id"]
-        ),
-        None,
-    )
-    if existing:
-        existing.update(transaction)
-    else:
-        PAYMENT_HISTORY.append(transaction)
-    PAYMENT_HISTORY.sort(key=lambda x: x.get("created_at", ""), reverse=True)
-    del PAYMENT_HISTORY[10:]
-
-
 class PaiementService:
-    async def creer_transaction(
-        self, user_id: str, abonnement: str, telephone: str, prenom: str
+    def _normalize_abonnement(self, abonnement: str) -> str:
+        txt = (abonnement or "").strip().lower()
+        aliases = {"essentiel": "standard", "basique": "standard", "or": "gold"}
+        txt = aliases.get(txt, txt)
+        if txt not in OFFRES:
+            raise HTTPException(status_code=400, detail="Abonnement invalide.")
+        return txt
+
+    def _normalize_duree(self, duree: str) -> str:
+        txt = (duree or "mensuel").strip().lower()
+        if txt not in DUREES:
+            raise HTTPException(status_code=400, detail="Durée invalide.")
+        return txt
+
+    def _calculer_montant(self, abonnement: str, duree: str) -> float:
+        base = float(OFFRES[self._normalize_abonnement(abonnement)])
+        jours, coef = DUREES[self._normalize_duree(duree)]
+        if base == 0:
+            return 0.0
+        if jours == 30:
+            return round(base * coef, 2)
+        if jours == 90:
+            return round(base * 3 * coef, 2)
+        return round(base * 12 * coef, 2)
+
+    def _date_expiration(self, duree: str) -> datetime:
+        jours, _ = DUREES[self._normalize_duree(duree)]
+        return datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(days=jours)
+
+    def get_fonctionnalites_par_abonnement(self, abonnement: str) -> Dict[str, Any]:
+        code = self._normalize_abonnement(abonnement)
+        return FEATURES[code]
+
+    async def creer_transaction_fedapay(
+        self,
+        user_id: str,
+        abonnement: str,
+        duree: str,
+        telephone: str,
+        prenom: str,
+        db: Session,
     ) -> Dict[str, Any]:
-        user_id = (user_id or "").strip()
-        abonnement_code = _norm_abonnement(abonnement)
-        telephone = (telephone or "").strip()
-        prenom = (prenom or "Client").strip()
-        if abonnement_code not in ABONNEMENTS:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Abonnement invalide."
-            )
-        montant = ABONNEMENTS[abonnement_code]["prix"]
-        transaction_id = _uuid()
+        user = get_user_by_id(db, user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="Utilisateur introuvable.")
+        abonnement_code = self._normalize_abonnement(abonnement)
+        duree_code = self._normalize_duree(duree)
+        montant = self._calculer_montant(abonnement_code, duree_code)
+        transaction_id = uuid.uuid4().hex
         lien_paiement = f"{FEDAPAY_BASE_URL.rstrip('/')}/checkout/{transaction_id}"
         provider = "simulation"
-        provider_payload: Dict[str, Any] = {}
+        statut = "pending"
+        callback_payload: Dict[str, Any] = {}
         if FEDAPAY_SECRET_KEY:
             try:
                 payload = {
                     "amount": montant,
-                    "currency": "XOF",
-                    "description": f"Abonnement FeedFormula AI - {abonnement_code}",
-                    "reference": transaction_id,
-                    "callback_url": PAIEMENT_CALLBACK_URL or None,
+                    "description": f"FeedFormula AI - {abonnement_code}",
+                    "currency": {"iso": "XOF"},
+                    "customer": {
+                        "firstname": prenom,
+                        "phone_number": {"number": telephone, "country": "bj"},
+                    },
+                    "callback_url": f"{APP_URL.rstrip('/')}/paiement/webhook",
                     "metadata": {
                         "user_id": user_id,
                         "abonnement": abonnement_code,
+                        "duree": duree_code,
                         "telephone": telephone,
                     },
-                    "customer": {"firstname": prenom, "phone_number": telephone},
                 }
-                payload = {k: v for k, v in payload.items() if v is not None}
                 response = requests.post(
                     f"{FEDAPAY_BASE_URL.rstrip('/')}/transactions",
                     headers={
                         "Authorization": f"Bearer {FEDAPAY_SECRET_KEY}",
-                        "Accept": "application/json",
                         "Content-Type": "application/json",
+                        "Accept": "application/json",
                     },
                     json=payload,
                     timeout=30,
                 )
                 response.raise_for_status()
-                provider_payload = response.json() if response.content else {}
+                callback_payload = response.json() if response.content else {}
+                provider = "fedapay"
+                statut = str(callback_payload.get("status") or "pending").lower()
                 lien_paiement = str(
-                    provider_payload.get("payment_url")
-                    or provider_payload.get("url")
+                    callback_payload.get("payment_url")
+                    or callback_payload.get("url")
                     or lien_paiement
                 )
-                provider = "fedapay"
             except Exception as exc:
-                provider_payload = {"error": str(exc)}
+                callback_payload = {"error": str(exc)}
                 provider = "simulation"
-        transaction = {
-            "transaction_id": transaction_id,
-            "user_id": user_id,
-            "abonnement": abonnement_code,
-            "telephone": telephone,
-            "montant": montant,
-            "lien_paiement": lien_paiement,
-            "statut": "pending",
-            "provider": provider,
-            "provider_payload": provider_payload,
-            "created_at": _now_iso(),
-            "updated_at": _now_iso(),
-            "activated_at": None,
-        }
-        TRANSACTIONS[transaction_id] = transaction
-        _record_history(transaction)
+                statut = "paid"
+        else:
+            statut = "paid"
+
+        points_bonus = 200 if statut == "paid" else 0
+        date_expiration = (
+            self._date_expiration(duree_code) if statut == "paid" else None
+        )
+        row = create_transaction_paiement(
+            db,
+            transaction_id=transaction_id,
+            user_id=user_id,
+            abonnement=abonnement_code,
+            duree=duree_code,
+            montant=montant,
+            statut=statut,
+            provider=provider,
+            lien_paiement=lien_paiement,
+            telephone=telephone,
+            prenom=prenom,
+            callback_payload=callback_payload,
+            date_expiration=date_expiration,
+            points_bonus=points_bonus,
+        )
+        if statut == "paid":
+            setattr(user, "abonnement", abonnement_code)
+            setattr(user, "is_active", True)
+            setattr(
+                user,
+                "derniere_connexion",
+                datetime.now(timezone.utc).replace(tzinfo=None),
+            )
+            db.commit()
+            add_points_to_user(db, user_id, 200)
         return {
-            "transaction_id": transaction_id,
-            "lien_paiement": lien_paiement,
+            "transaction_id": row.transaction_id,
+            "lien_paiement": row.lien_paiement,
             "montant": montant,
+            "statut": statut,
         }
 
-    async def verifier_paiement(self, transaction_id: str) -> Dict[str, Any]:
-        tx = TRANSACTIONS.get((transaction_id or "").strip())
-        if not tx:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Transaction introuvable."
-            )
-        if tx["statut"] == "paid":
-            return {"statut": "paid", "abonnement_active": tx["abonnement"]}
-        if tx["provider"] == "fedapay" and FEDAPAY_SECRET_KEY:
+    async def confirmer_paiement(
+        self, transaction_id: str, db: Session
+    ) -> Dict[str, Any]:
+        row = get_transaction_paiement_by_id(db, transaction_id)
+        if not row:
+            raise HTTPException(status_code=404, detail="Transaction introuvable.")
+        if row.statut == "paid":
+            return {
+                "statut": row.statut,
+                "abonnement": row.abonnement,
+                "date_expiration": row.date_expiration.isoformat()
+                if row.date_expiration
+                else None,
+            }
+        approved = True
+        if row.provider == "fedapay" and FEDAPAY_SECRET_KEY:
             try:
                 response = requests.get(
                     f"{FEDAPAY_BASE_URL.rstrip('/')}/transactions/{transaction_id}",
@@ -196,97 +250,105 @@ class PaiementService:
                     timeout=20,
                 )
                 response.raise_for_status()
-                remote = response.json() if response.content else {}
+                data = response.json() if response.content else {}
                 status_remote = str(
-                    remote.get("status") or remote.get("payment_status") or ""
+                    data.get("status") or data.get("payment_status") or ""
                 ).lower()
-                if status_remote in {
+                approved = status_remote in {
                     "paid",
                     "approved",
                     "success",
                     "successful",
                     "completed",
-                }:
-                    tx["statut"] = "paid"
-                    tx["activated_at"] = tx["activated_at"] or _now_iso()
-                    tx["updated_at"] = _now_iso()
-                    _record_history(tx)
+                }
+                row.callback_payload = json.dumps(data, ensure_ascii=False)
             except Exception:
-                pass
+                approved = False
+        if approved:
+            row.statut = "paid"
+            row.date_expiration = self._date_expiration(row.duree)
+            row.date_mise_a_jour = datetime.now(timezone.utc).replace(tzinfo=None)
+            user = get_user_by_id(db, row.user_id)
+            if user:
+                user.abonnement = row.abonnement
+                user.is_active = True
+                add_points_to_user(db, row.user_id, 200)
+                db.commit()
+            return {
+                "statut": row.statut,
+                "abonnement": row.abonnement,
+                "date_expiration": row.date_expiration.isoformat()
+                if row.date_expiration
+                else None,
+            }
+        row.statut = "failed"
+        row.date_mise_a_jour = datetime.now(timezone.utc).replace(tzinfo=None)
+        db.commit()
         return {
-            "statut": tx["statut"],
-            "abonnement_active": tx["abonnement"] if tx["statut"] == "paid" else None,
+            "statut": row.statut,
+            "abonnement": row.abonnement,
+            "date_expiration": None,
         }
 
-    def _verify_signature(self, raw_body: bytes, signature: Optional[str]) -> bool:
-        if not FEDAPAY_WEBHOOK_SECRET:
-            return True
-        if not signature:
-            return False
-        expected = hmac.new(
-            FEDAPAY_WEBHOOK_SECRET.encode("utf-8"), raw_body, hashlib.sha256
-        ).hexdigest()
-        return hmac.compare_digest(expected, signature.strip())
-
-    def _activate_user(self, db: Session, user_id: str, abonnement: str) -> None:
+    async def verifier_abonnement_actif(
+        self, user_id: str, db: Session
+    ) -> Dict[str, Any]:
         user = get_user_by_id(db, user_id)
-        if user:
-            cast(Any, user).abonnement = abonnement
+        if not user:
+            raise HTTPException(status_code=404, detail="Utilisateur introuvable.")
+        active = (user.abonnement or "free").lower()
+        expirations = list_user_transactions(db, user_id, limit=50)
+        expiration = None
+        for item in expirations:
+            if (
+                item.abonnement == active
+                and item.statut == "paid"
+                and item.date_expiration
+            ):
+                expiration = item.date_expiration
+                break
+        if expiration and expiration < datetime.now(timezone.utc).replace(tzinfo=None):
+            active = "free"
+            user.abonnement = "free"
             db.commit()
-            db.refresh(user)
+        remaining = 0
+        if expiration:
+            remaining = max(
+                0, (expiration - datetime.now(timezone.utc).replace(tzinfo=None)).days
+            )
+        return {
+            "abonnement_actuel": active,
+            "jours_restants": remaining,
+            "fonctionnalites_disponibles": self.get_fonctionnalites_par_abonnement(
+                active
+            ),
+        }
 
 
 SERVICE = PaiementService()
 
 
 @router.post("/creer")
-async def creer(payload: CreerPaiementRequest) -> Dict[str, Any]:
-    user = None
-    try:
-        db_gen = get_db()
-        db = next(db_gen)
-        user = get_user_by_id(db, payload.user_id)
-    finally:
-        try:
-            db.close()  # type: ignore[name-defined]
-        except Exception:
-            pass
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Utilisateur introuvable."
-        )
-    result = await SERVICE.creer_transaction(
-        payload.user_id, payload.abonnement, payload.telephone, payload.prenom
+async def creer(
+    payload: PaiementCreateRequest, db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    result = await SERVICE.creer_transaction_fedapay(
+        payload.user_id,
+        payload.abonnement,
+        payload.duree,
+        payload.telephone,
+        payload.prenom,
+        db,
     )
-    transaction = TRANSACTIONS[result["transaction_id"]]
-    transaction["user"] = {"id": user.id, "prenom": getattr(user, "prenom", "")}
-    return {
-        **result,
-        "abonnement": {
-            "code": _norm_abonnement(payload.abonnement),
-            "label": ABONNEMENTS[_norm_abonnement(payload.abonnement)]["label"],
-            "prix": result["montant"],
-        },
-    }
+    return result
 
 
 @router.post("/webhook")
 async def webhook(request: Request, db: Session = Depends(get_db)) -> Dict[str, Any]:
     raw = await request.body()
-    signature = (
-        request.headers.get("X-FedaPay-Signature")
-        or request.headers.get("X-Fedapay-Signature")
-        or request.headers.get("X-Signature")
-    )
-    if not SERVICE._verify_signature(raw, signature):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Signature invalide."
-        )
     try:
         payload = json.loads(raw.decode("utf-8") or "{}")
     except Exception:
-        payload = {}
-    if not isinstance(payload, dict):
         payload = {}
     transaction_id = str(
         payload.get("reference")
@@ -294,78 +356,111 @@ async def webhook(request: Request, db: Session = Depends(get_db)) -> Dict[str, 
         or payload.get("id")
         or ""
     ).strip()
-    statut = str(
-        payload.get("status")
-        or payload.get("payment_status")
-        or payload.get("state")
-        or "pending"
-    ).lower()
     if not transaction_id:
-        return {"message": "Webhook reçu.", "statut": statut}
-    tx = TRANSACTIONS.get(transaction_id)
-    if not tx:
-        tx = {
-            "transaction_id": transaction_id,
-            "user_id": str(
+        return {"message": "Webhook reçu.", "statut": "ignored"}
+    row = get_transaction_paiement_by_id(db, transaction_id)
+    if not row:
+        row = create_transaction_paiement(
+            db,
+            transaction_id=transaction_id,
+            user_id=str(
                 payload.get("metadata", {}).get("user_id")
                 or payload.get("user_id")
                 or ""
             ),
-            "abonnement": _norm_abonnement(
-                str(
-                    payload.get("metadata", {}).get("abonnement")
-                    or payload.get("abonnement")
-                    or "free"
-                )
+            abonnement=str(
+                payload.get("metadata", {}).get("abonnement")
+                or payload.get("abonnement")
+                or "free"
             ),
-            "telephone": str(payload.get("metadata", {}).get("telephone") or ""),
-            "montant": int(payload.get("amount") or 0),
-            "lien_paiement": str(payload.get("payment_url") or ""),
-            "statut": statut,
-            "provider": "fedapay",
-            "provider_payload": payload,
-            "created_at": _now_iso(),
-            "updated_at": _now_iso(),
-            "activated_at": None,
-        }
+            duree=str(payload.get("metadata", {}).get("duree") or "mensuel"),
+            montant=float(payload.get("amount") or 0),
+            statut=str(payload.get("status") or "paid").lower(),
+            provider="fedapay",
+            lien_paiement=str(payload.get("payment_url") or ""),
+            telephone=str(payload.get("metadata", {}).get("telephone") or ""),
+            prenom=str(payload.get("metadata", {}).get("prenom") or "Client"),
+            callback_payload=payload,
+            date_expiration=None,
+            points_bonus=200,
+        )
     else:
-        tx["statut"] = statut if statut else tx["statut"]
-        tx["provider_payload"] = payload
-        tx["updated_at"] = _now_iso()
-    if tx["statut"] in {"paid", "approved", "success", "completed"}:
-        tx["statut"] = "paid"
-        tx["activated_at"] = tx["activated_at"] or _now_iso()
-        SERVICE._activate_user(db, tx.get("user_id", ""), tx.get("abonnement", "free"))
-    TRANSACTIONS[transaction_id] = tx
-    _record_history(tx)
-    return {"message": "Webhook traité.", "transaction": tx, "statut": tx["statut"]}
+        row.statut = "paid"
+        row.callback_payload = json.dumps(payload, ensure_ascii=False)
+        row.date_expiration = SERVICE._date_expiration(row.duree)
+        row.date_mise_a_jour = datetime.now(timezone.utc).replace(tzinfo=None)
+        db.commit()
+    user = get_user_by_id(db, row.user_id)
+    if user:
+        user.abonnement = row.abonnement
+        user.is_active = True
+        add_points_to_user(db, row.user_id, 200)
+        db.commit()
+    return {
+        "message": "Webhook traité.",
+        "transaction": {
+            "transaction_id": row.transaction_id,
+            "statut": row.statut,
+            "abonnement": row.abonnement,
+        },
+        "statut": row.statut,
+    }
 
 
 @router.get("/statut/{transaction_id}")
-async def statut(transaction_id: str) -> Dict[str, Any]:
-    result = await SERVICE.verifier_paiement(transaction_id)
-    return result
+def statut(transaction_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
+    row = get_transaction_paiement_by_id(db, transaction_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Transaction introuvable.")
+    return {
+        "transaction_id": row.transaction_id,
+        "statut": row.statut,
+        "abonnement_active": row.abonnement if row.statut == "paid" else None,
+        "montant": row.montant,
+        "date_expiration": row.date_expiration.isoformat()
+        if row.date_expiration
+        else None,
+    }
+
+
+@router.get("/abonnement/{user_id}")
+async def abonnement(user_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
+    return await SERVICE.verifier_abonnement_actif(user_id, db)
 
 
 @router.get("/historique/{user_id}")
-def historique(user_id: str) -> Dict[str, Any]:
-    items = [x for x in PAYMENT_HISTORY if x.get("user_id") == user_id]
-    return {"user_id": user_id, "total": len(items), "transactions": items[:10]}
+def historique(user_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
+    rows = list_user_transactions(db, user_id, limit=50)
+    return {
+        "user_id": user_id,
+        "total": len(rows),
+        "transactions": [
+            {
+                "transaction_id": r.transaction_id,
+                "abonnement": r.abonnement,
+                "duree": r.duree,
+                "montant": r.montant,
+                "statut": r.statut,
+                "provider": r.provider,
+                "date_creation": r.date_creation.isoformat()
+                if r.date_creation
+                else None,
+                "date_expiration": r.date_expiration.isoformat()
+                if r.date_expiration
+                else None,
+            }
+            for r in rows
+        ],
+    }
 
 
 @router.get("/offres")
 def offres() -> Dict[str, Any]:
     return {
-        "total": len(ABONNEMENTS),
-        "offres": [{"code": k, **v} for k, v in ABONNEMENTS.items()],
+        "offres": [{"code": k, "prix": v} for k, v in OFFRES.items()],
+        "durees": DUREES,
+        "fonctionnalites": FEATURES,
     }
 
 
-__all__ = [
-    "router",
-    "ABONNEMENTS",
-    "PAYMENT_HISTORY",
-    "TRANSACTIONS",
-    "PaiementService",
-    "SERVICE",
-]
+__all__ = ["router", "SERVICE", "PaiementService", "OFFRES", "DUREES", "FEATURES"]

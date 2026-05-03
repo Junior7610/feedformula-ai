@@ -1,126 +1,543 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FarmCommunity | FeedFormula AI</title>
-  <style>
-    body{font-family:Arial,sans-serif;margin:0;background:#f7fbf8;color:#173126}
-    header,main{max-width:1200px;margin:auto;padding:20px}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
-    .card{background:#fff;border-radius:18px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,.08)}
-    input,select,textarea{width:100%;padding:11px;border:1px solid #d9e6dd;border-radius:10px;margin-top:6px}
-    button{border:none;border-radius:12px;padding:10px 14px;background:#19733f;color:#fff;cursor:pointer}
-    .muted{color:#60786d}
-    .post{border:1px solid #e4eee7;border-radius:14px;padding:12px;margin-bottom:12px}
-    .like{background:#e8f7ee;color:#176c3c}
-    .wa{background:#25d366}
-    .expert{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #edf0f2;padding:10px 0}
-  </style>
-</head>
-<body>
-  <header>
-    <h1>FarmCommunity</h1>
-    <p class="muted">Fil d actualité, échanges entre éleveurs et marketplace locale.</p>
-  </header>
-  <main>
-    <section class="grid">
-      <div class="card">
-        <h2>Créer un post</h2>
-        <label>Utilisateur ID<input id="postUser" placeholder="ID utilisateur"></label>
-        <label>Contenu<textarea id="postContent" rows="4" placeholder="Partagez une astuce, une question, une photo..."></textarea></label>
-        <label>Photo<input id="postPhoto" type="file" accept="image/*"></label>
-        <button onclick="createPost()">Publier</button>
-      </div>
-      <div class="card">
-        <h2>Marketplace</h2>
-        <label>Espèce<input id="filterEspece" placeholder="poulet, vache..."></label>
-        <label>Région<input id="filterRegion" placeholder="Atlantique, Borgou..."></label>
-        <label>Type<select id="filterType"><option value="">Tous</option><option>vente</option><option>achat</option></select></label>
-        <button onclick="loadMarketplace()">Filtrer</button>
-      </div>
-    </section>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>FarmCommunity | FeedFormula AI</title>
+        <style>
+            :root {
+                --green: #19733f;
+                --green2: #0f9d58;
+                --bg: #f7fbf8;
+                --card: #fff;
+                --text: #173126;
+                --muted: #60786d;
+            }
+            * {
+                box-sizing: border-box;
+            }
+            body {
+                margin: 0;
+                font-family: Arial, sans-serif;
+                background: var(--bg);
+                color: var(--text);
+            }
+            header,
+            main {
+                max-width: 1200px;
+                margin: auto;
+                padding: 20px;
+            }
+            .top {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 16px;
+                flex-wrap: wrap;
+            }
+            .hero {
+                background: linear-gradient(135deg, #e8fff1, #fff5e9);
+                border: 1px solid #d8f1e0;
+                border-radius: 24px;
+                padding: 14px 16px;
+                display: flex;
+                align-items: center;
+                gap: 14px;
+            }
+            .aya {
+                width: 56px;
+                height: 56px;
+                border-radius: 50%;
+                display: grid;
+                place-items: center;
+                background: linear-gradient(135deg, #ffd166, #ff8fab);
+                font-size: 30px;
+                box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+            }
+            .grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+                gap: 16px;
+            }
+            .card {
+                background: var(--card);
+                border-radius: 18px;
+                padding: 16px;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            }
+            input,
+            select,
+            textarea {
+                width: 100%;
+                padding: 11px;
+                border: 1px solid #d9e6dd;
+                border-radius: 10px;
+                margin-top: 6px;
+            }
+            button {
+                border: none;
+                border-radius: 12px;
+                padding: 10px 14px;
+                background: var(--green);
+                color: #fff;
+                cursor: pointer;
+            }
+            button.like {
+                background: #e8f7ee;
+                color: #176c3c;
+            }
+            button.alt {
+                background: #eef5ff;
+                color: #174da0;
+            }
+            .muted {
+                color: var(--muted);
+            }
+            .post {
+                border: 1px solid #e4eee7;
+                border-radius: 14px;
+                padding: 12px;
+                margin-bottom: 12px;
+                background: #fff;
+            }
+            .post-head {
+                display: flex;
+                gap: 10px;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 8px;
+            }
+            .avatar {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #dff3e7, #e8f0ff);
+                display: grid;
+                place-items: center;
+                font-weight: 700;
+                color: #116334;
+            }
+            .badge {
+                display: inline-block;
+                padding: 4px 10px;
+                border-radius: 999px;
+                background: #edf8f1;
+                color: #116334;
+                font-size: 12px;
+                margin-right: 6px;
+            }
+            .toolbar {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+            .muted-box {
+                padding: 10px 12px;
+                border-radius: 12px;
+                background: #f4fbf6;
+                border-left: 4px solid var(--green);
+            }
+            .expert {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 10px;
+                border-bottom: 1px solid #edf0f2;
+                padding: 10px 0;
+            }
+            .online {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: #22c55e;
+                display: inline-block;
+                margin-right: 6px;
+            }
+            .offline {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: #94a3b8;
+                display: inline-block;
+                margin-right: 6px;
+            }
+            .loading {
+                display: none;
+                align-items: center;
+                gap: 10px;
+                padding: 12px 14px;
+                border-radius: 14px;
+                background: #eefaf1;
+                color: #16663d;
+                margin-top: 12px;
+            }
+            .spinner {
+                width: 18px;
+                height: 18px;
+                border: 3px solid #bfe7cb;
+                border-top-color: var(--green);
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+            }
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+            .filterbar {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 10px;
+            }
+            .mapgrid {
+                display: grid;
+                grid-template-columns: 1.4fr 1fr 1fr;
+                gap: 16px;
+                align-items: start;
+            }
+            @media (max-width: 980px) {
+                .mapgrid {
+                    grid-template-columns: 1fr;
+                }
+            }
+            .loader-skel {
+                height: 120px;
+                border-radius: 14px;
+                background: linear-gradient(90deg, #eef5ef, #f6fbf7, #eef5ef);
+                background-size: 200% 100%;
+                animation: shimmer 1.4s infinite;
+            }
+            @keyframes shimmer {
+                0% {
+                    background-position: 200% 0;
+                }
+                100% {
+                    background-position: -200% 0;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <div class="top">
+                <div>
+                    <h1>FarmCommunity</h1>
+                    <p class="muted">
+                        Fil d’actualité, marketplace locale et experts en ligne.
+                    </p>
+                </div>
+                <div class="hero">
+                    <div class="aya">🤝</div>
+                    <div>
+                        <strong>Aya vous aide à rester connecté</strong>
+                        <div class="muted">
+                            Publiez, échangez, vendez et demandez conseil.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <main>
+            <section class="grid">
+                <div class="card">
+                    <h2>Créer un post</h2>
+                    <label
+                        >Utilisateur ID<input
+                            id="postUser"
+                            placeholder="ID utilisateur"
+                    /></label>
+                    <label
+                        >Titre<input
+                            id="postTitle"
+                            placeholder="Astuce, question, annonce..."
+                    /></label>
+                    <label
+                        >Contenu<textarea
+                            id="postContent"
+                            rows="4"
+                            placeholder="Partagez une astuce, une question, une photo..."
+                        ></textarea>
+                    </label>
+                    <label
+                        >Espèce concernée<input
+                            id="postSpecies"
+                            placeholder="poulet, vache..."
+                    /></label>
+                    <label
+                        >Langue<select id="postLang">
+                            <option>fr</option>
+                            <option>fon</option>
+                            <option>en</option>
+                        </select></label
+                    >
+                    <button onclick="createPost()">Publier</button>
+                    <div class="loading" id="postLoading">
+                        <span class="spinner"></span
+                        ><span>Publication en cours...</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <h2>Marketplace</h2>
+                    <div class="filterbar">
+                        <div>
+                            <label
+                                >Espèce<input
+                                    id="filterEspece"
+                                    placeholder="poulet, vache..."
+                            /></label>
+                        </div>
+                        <div>
+                            <label
+                                >Région/Dept<input
+                                    id="filterRegion"
+                                    placeholder="Atlantique, Borgou..."
+                            /></label>
+                        </div>
+                        <div>
+                            <label
+                                >Type<select id="filterType">
+                                    <option value="">Tous</option>
+                                    <option>vente</option>
+                                    <option>achat</option>
+                                    <option>service</option>
+                                </select></label
+                            >
+                        </div>
+                    </div>
+                    <button
+                        style="margin-top: 12px"
+                        onclick="loadMarketplace()"
+                    >
+                        Filtrer
+                    </button>
+                    <div class="toolbar" style="margin-top: 12px">
+                        <button class="alt" onclick="setMarketView('grid')">
+                            Vue grille</button
+                        ><button class="alt" onclick="setMarketView('list')">
+                            Vue liste
+                        </button>
+                    </div>
+                </div>
+            </section>
 
-    <section class="card" style="margin-top:16px">
-      <h2>Fil d actualité</h2>
-      <div id="posts"></div>
-    </section>
+            <section class="mapgrid" style="margin-top: 16px">
+                <div class="card">
+                    <h2>Fil d’actualité</h2>
+                    <div class="toolbar" style="margin-bottom: 12px">
+                        <button class="alt" onclick="refreshFeed()">
+                            Rafraîchir
+                        </button>
+                        <button class="alt" onclick="applySpeciesFilter()">
+                            Filtre espèce
+                        </button>
+                    </div>
+                    <div id="posts"></div>
+                    <div class="loader-skel" id="feedSkeleton"></div>
+                    <div id="feedSentinel"></div>
+                </div>
+                <div class="card">
+                    <h2>Marketplace</h2>
+                    <div id="market"></div>
+                </div>
+                <div class="card">
+                    <h2>Experts en ligne</h2>
+                    <div id="experts"></div>
+                </div>
+            </section>
+        </main>
 
-    <section class="card" style="margin-top:16px">
-      <h2>Marketplace</h2>
-      <div id="market"></div>
-    </section>
+        <script>
+            const API_BASE = window.API_BASE || "http://127.0.0.1:8000";
+            const api = API_BASE.replace(/\/$/, "");
+            let feedPage = 1;
+            let feedLoading = false;
+            let marketView = "grid";
 
-    <section class="card" style="margin-top:16px">
-      <h2>Experts en ligne</h2>
-      <div class="expert"><span>Dr. A. Bio</span><button>Contacter</button></div>
-      <div class="expert"><span>Conseiller nutrition</span><button>Contacter</button></div>
-      <div class="expert"><span>Vétérinaire terrain</span><button>Contacter</button></div>
-    </section>
-  </main>
+            async function jget(url) {
+                const r = await fetch(api + url);
+                return await r.json();
+            }
+            async function jpost(url, data) {
+                const r = await fetch(api + url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                });
+                return await r.json();
+            }
 
-  <script>
-    const api = (window.API_BASE || '').replace(/\/$/, '');
-    async function jget(url){ const r = await fetch(api + url); return await r.json(); }
-    async function jpost(url, data){ const r = await fetch(api + url, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)}); return await r.json(); }
+            function initials(name) {
+                return (name || "?").slice(0, 2).toUpperCase();
+            }
+            function setMarketView(view) {
+                marketView = view;
+                loadMarketplace();
+            }
+            function refreshFeed() {
+                feedPage = 1;
+                document.getElementById("posts").innerHTML = "";
+                loadPosts(true);
+            }
+            function applySpeciesFilter() {
+                const e = document.getElementById("filterEspece").value.trim();
+                if (e) loadPosts(true, e);
+            }
 
-    async function loadPosts(){
-      const data = await jget('/community/posts');
-      document.getElementById('posts').innerHTML = data.posts.map(p => `
-        <div class="post">
-          <strong>${p.user_id}</strong> · ${p.date_creation}<br>
-          <p>${p.contenu}</p>
-          <button class="like" onclick="likePost('${p.id}')">👍 ${p.likes}</button>
-          <form onsubmit="return addComment(event, '${p.id}')" style="margin-top:10px">
-            <input name="comment" placeholder="Ajouter un commentaire">
-            <button type="submit">Commenter</button>
-          </form>
-          <div style="margin-top:8px">${(p.commentaires || []).map(c => `<div class='muted'>${c.user_id}: ${c.contenu}</div>`).join('')}</div>
-        </div>
-      `).join('');
-    }
+            async function loadPosts(reset = false, espece = "") {
+                if (feedLoading) return;
+                feedLoading = true;
+                document.getElementById("feedSkeleton").style.display = reset
+                    ? "block"
+                    : "none";
+                const userId = document.getElementById("postUser").value.trim();
+                const url = `/community/posts?page=${feedPage}${espece ? "&espece=" + encodeURIComponent(espece) : ""}${userId ? "&user_id=" + encodeURIComponent(userId) : ""}`;
+                const data = await jget(url);
+                document.getElementById("feedSkeleton").style.display = "none";
+                const html = data.posts
+                    .map(
+                        (p) => `
+                    <article class="post">
+                        <div class="post-head">
+                            <div style="display:flex;gap:10px;align-items:center">
+                                <div class="avatar">${initials(p.user_id || "FF")}</div>
+                                <div>
+                                    <strong>${p.titre || "Publication FeedFormula"}</strong><br>
+                                    <span class="muted">${p.user_id} • ${p.date_creation || ""}</span>
+                                </div>
+                            </div>
+                            <span class="badge">${p.type || "conseil"}</span>
+                        </div>
+                        <p>${p.contenu}</p>
+                        <div class="toolbar">
+                            <button class="like" onclick="likePost('${p.id}')">👍 ${p.likes || 0}</button>
+                            <button class="alt" onclick="focusComment('${p.id}')">💬 Commenter</button>
+                        </div>
+                        <div style="margin-top:8px">${(p.commentaires || []).map((c) => `<div class='muted-box'><strong>${c.user_id}</strong> — ${c.contenu}</div>`).join("")}</div>
+                    </article>`,
+                    )
+                    .join("");
+                document
+                    .getElementById("posts")
+                    .insertAdjacentHTML("beforeend", html);
+                feedPage += 1;
+                feedLoading = false;
+            }
 
-    async function createPost(){
-      const form = new FormData();
-      form.append('user_id', document.getElementById('postUser').value.trim());
-      form.append('contenu', document.getElementById('postContent').value.trim());
-      form.append('type', 'texte');
-      const photo = document.getElementById('postPhoto').files[0];
-      if(photo) form.append('photo', photo);
-      await fetch(api + '/community/posts', {method:'POST', body: form});
-      loadPosts();
-    }
+            async function createPost() {
+                const payload = {
+                    user_id: document.getElementById("postUser").value.trim(),
+                    titre: document.getElementById("postTitle").value.trim(),
+                    contenu: document
+                        .getElementById("postContent")
+                        .value.trim(),
+                    type_post: "conseil",
+                    espece_concernee: document
+                        .getElementById("postSpecies")
+                        .value.trim(),
+                    langue: document.getElementById("postLang").value.trim(),
+                };
+                if (!payload.user_id || !payload.contenu)
+                    return alert("user_id et contenu requis");
+                document.getElementById("postLoading").style.display = "flex";
+                await jpost("/community/posts", payload);
+                document.getElementById("postLoading").style.display = "none";
+                refreshFeed();
+            }
 
-    async function likePost(id){ await jpost(`/community/posts/${id}/like`, {}); loadPosts(); }
+            async function likePost(id) {
+                await jpost(`/community/posts/${id}/like`, {});
+                refreshFeed();
+            }
+            function focusComment(id) {
+                const box = document.getElementById("postContent");
+                box.focus();
+                box.placeholder = "Répondez au post " + id + "...";
+            }
 
-    async function addComment(event, postId){
-      event.preventDefault();
-      const input = event.target.querySelector('input[name="comment"]');
-      await jpost(`/community/posts/${postId}/commentaires`, {user_id: document.getElementById('postUser').value.trim() || 'anonymous', contenu: input.value});
-      loadPosts();
-      return false;
-    }
+            async function addComment(event, postId) {
+                event.preventDefault();
+                const input = event.target.querySelector(
+                    'input[name="comment"]',
+                );
+                await jpost(`/community/posts/${postId}/commentaires`, {
+                    user_id:
+                        document.getElementById("postUser").value.trim() ||
+                        "anonymous",
+                    contenu: input.value,
+                });
+                refreshFeed();
+                return false;
+            }
 
-    async function loadMarketplace(){
-      const params = new URLSearchParams();
-      const t = document.getElementById('filterType').value;
-      const e = document.getElementById('filterEspece').value.trim();
-      const r = document.getElementById('filterRegion').value.trim();
-      if(t) params.set('type', t);
-      if(e) params.set('espece', e);
-      if(r) params.set('localisation', r);
-      const data = await jget('/community/marche' + (params.toString() ? '?' + params.toString() : ''));
-      document.getElementById('market').innerHTML = data.annonces.map(a => `
-        <div class="post">
-          <strong>${a.espece}</strong> · ${a.type}<br>
-          ${a.quantite} · ${a.prix} · ${a.localisation}
-          <div><a class="wa" style="display:inline-block;padding:8px 10px;border-radius:10px;color:#fff;text-decoration:none;margin-top:8px" href="https://wa.me/?text=${encodeURIComponent(a.espece + ' ' + a.prix + ' ' + a.localisation)}" target="_blank">Contacter via WhatsApp</a></div>
-        </div>
-      `).join('');
-    }
+            async function loadMarketplace() {
+                const params = new URLSearchParams();
+                const t = document.getElementById("filterType").value;
+                const e = document.getElementById("filterEspece").value.trim();
+                const r = document.getElementById("filterRegion").value.trim();
+                if (t) params.set("type", t);
+                if (e) params.set("espece", e);
+                if (r) params.set("dept", r);
+                const data = await jget(
+                    "/community/marche" +
+                        (params.toString() ? "?" + params.toString() : ""),
+                );
+                document.getElementById("market").innerHTML = data.annonces
+                    .map(
+                        (a) => `
+                    <div class="post" style="display:${marketView === "grid" ? "block" : "flex"}">
+                        <div class="badge">${a.type}</div>
+                        <h3 style="margin:8px 0 4px">${a.espece} ${a.race ? "· " + a.race : ""}</h3>
+                        <p class="muted">${a.description || "Annonce locale feedformula"}</p>
+                        <div><strong>${a.prix_fcfa ? a.prix_fcfa + " FCFA" : "Prix à discuter"}</strong></div>
+                        <div class="muted">${a.localisation} • ${a.departement || ""}</div>
+                        <a class="badge" style="display:inline-block;margin-top:10px;text-decoration:none" href="https://wa.me/?text=${encodeURIComponent((a.espece || "") + " " + (a.prix_fcfa || "") + " " + (a.localisation || ""))}" target="_blank">Contacter via WhatsApp</a>
+                    </div>`,
+                    )
+                    .join("");
+            }
 
-    loadPosts();
-    loadMarketplace();
-  </script>
-</body>
+            function renderExperts() {
+                const experts = [
+                    ["Dr. A. Bio", "vétérinaire", "en ligne"],
+                    ["Mme S. Kora", "nutritionniste", "en ligne"],
+                    ["M. T. Sow", "agronome", "hors ligne"],
+                    ["Dr. C. Gnonlonfoun", "vétérinaire", "en ligne"],
+                    ["Mme M. Afolabi", "conseillère élevage", "en ligne"],
+                ];
+                document.getElementById("experts").innerHTML = experts
+                    .map(
+                        ([name, role, status]) => `
+                    <div class="expert">
+                        <div>
+                            <strong>${name}</strong><br>
+                            <span class="muted">${role}</span>
+                        </div>
+                        <div>
+                            <span class="${status === "en ligne" ? "online" : "offline"}"></span>${status}<br>
+                            <button style="margin-top:6px">Poser une question</button>
+                        </div>
+                    </div>`,
+                    )
+                    .join("");
+            }
+
+            document
+                .getElementById("feedSentinel")
+                .addEventListener("mouseenter", () => {
+                    if (!feedLoading) loadPosts(false);
+                });
+            window.addEventListener("scroll", () => {
+                if (
+                    window.innerHeight + window.scrollY >=
+                        document.body.offsetHeight - 400 &&
+                    !feedLoading
+                )
+                    loadPosts(false);
+            });
+
+            renderExperts();
+            loadPosts(true);
+            loadMarketplace();
+        </script>
+    </body>
 </html>

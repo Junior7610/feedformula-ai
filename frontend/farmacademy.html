@@ -5,11 +5,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>FarmAcademy | FeedFormula AI</title>
         <style>
+            :root {
+                --green: #1f8f57;
+                --green2: #10b981;
+                --bg: #f6faf6;
+                --card: #ffffff;
+                --text: #163024;
+                --muted: #61746d;
+            }
+            * {
+                box-sizing: border-box;
+            }
             body {
-                font-family: Arial, sans-serif;
                 margin: 0;
-                background: #f6faf6;
-                color: #163024;
+                font-family: Arial, sans-serif;
+                background: var(--bg);
+                color: var(--text);
             }
             header,
             main {
@@ -19,8 +30,39 @@
             }
             header {
                 display: flex;
+                gap: 16px;
                 justify-content: space-between;
                 align-items: center;
+                flex-wrap: wrap;
+            }
+            .hero {
+                background: linear-gradient(135deg, #e8fff1, #f2fbff);
+                border: 1px solid #d5f0df;
+                border-radius: 24px;
+                padding: 16px 18px;
+                display: flex;
+                gap: 14px;
+                align-items: center;
+            }
+            .aya {
+                width: 64px;
+                height: 64px;
+                border-radius: 50%;
+                display: grid;
+                place-items: center;
+                background: linear-gradient(135deg, #ffd166, #ff8fab);
+                font-size: 32px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+                animation: float 3.4s ease-in-out infinite;
+            }
+            @keyframes float {
+                0%,
+                100% {
+                    transform: translateY(0);
+                }
+                50% {
+                    transform: translateY(-6px);
+                }
             }
             .grid {
                 display: grid;
@@ -28,41 +70,58 @@
                 gap: 16px;
             }
             .card {
-                background: #fff;
-                border-radius: 18px;
+                background: var(--card);
+                border-radius: 20px;
                 padding: 16px;
                 box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
             }
             .badge {
-                display: inline-block;
-                padding: 4px 10px;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 5px 10px;
                 border-radius: 999px;
-                background: #e7f5ea;
-                color: #19733f;
+                background: #e9f9ef;
+                color: var(--green);
                 font-size: 12px;
+                font-weight: 700;
             }
             .progress {
-                height: 10px;
-                background: #e8eee9;
+                height: 12px;
+                background: #e7eee9;
                 border-radius: 999px;
                 overflow: hidden;
             }
             .bar {
                 height: 100%;
-                background: linear-gradient(90deg, #3cb371, #1f8f57);
                 width: 0%;
+                background: linear-gradient(90deg, var(--green2), var(--green));
+                transition: width 0.45s ease;
             }
             button {
                 border: none;
                 border-radius: 12px;
                 padding: 10px 14px;
-                background: #1f8f57;
+                background: var(--green);
                 color: #fff;
                 cursor: pointer;
+                transition:
+                    transform 0.2s ease,
+                    opacity 0.2s ease;
+            }
+            button:hover {
+                transform: translateY(-1px);
             }
             button.secondary {
                 background: #e7f5ea;
                 color: #16663d;
+            }
+            button:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+            .muted {
+                color: var(--muted);
             }
             .lesson-nav {
                 display: flex;
@@ -74,61 +133,120 @@
                 width: 100%;
                 text-align: left;
                 margin: 8px 0;
-                padding: 10px;
+                padding: 11px;
                 border: 1px solid #d8e7dc;
-                border-radius: 10px;
+                border-radius: 12px;
                 background: #fff;
             }
             .quiz-option.correct {
-                border-color: #1f8f57;
+                border-color: var(--green);
                 background: #e8fff1;
             }
             .quiz-option.wrong {
                 border-color: #cc3c3c;
                 background: #fff0f0;
             }
-            .hidden {
-                display: none;
-            }
-            .muted {
-                color: #60756d;
-            }
             .score-pop {
                 font-size: 34px;
                 font-weight: 800;
-                color: #1f8f57;
-                transition: transform 0.4s ease;
+                color: var(--green);
+                min-height: 44px;
+                transition: transform 0.25s ease;
             }
             .score-pop.pulse {
-                transform: scale(1.15);
+                transform: scale(1.12);
+            }
+            .confetti {
+                position: fixed;
+                inset: 0;
+                pointer-events: none;
+                overflow: hidden;
+                z-index: 9999;
+            }
+            .confetti span {
+                position: absolute;
+                width: 10px;
+                height: 18px;
+                opacity: 0.85;
+                animation: fall 1.8s linear forwards;
+            }
+            @keyframes fall {
+                from {
+                    transform: translateY(-12vh) rotate(0deg);
+                }
+                to {
+                    transform: translateY(110vh) rotate(540deg);
+                    opacity: 0;
+                }
+            }
+            .loading {
+                display: none;
+                align-items: center;
+                gap: 10px;
+                padding: 12px 14px;
+                border-radius: 14px;
+                background: #eefaf1;
+                color: #16663d;
+                margin-top: 12px;
+            }
+            .spinner {
+                width: 18px;
+                height: 18px;
+                border: 3px solid #bfe7cb;
+                border-top-color: var(--green);
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+            }
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+            .coaching {
+                border-left: 4px solid var(--green);
+                padding: 10px 12px;
+                background: #f3fff7;
+                border-radius: 12px;
+                margin-top: 12px;
             }
             audio {
                 width: 100%;
             }
             .cert-link {
-                display: inline-block;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
                 margin-top: 10px;
+            }
+            .pill {
+                display: inline-block;
+                padding: 4px 10px;
+                border-radius: 999px;
+                background: #eef7ff;
+                color: #2156a3;
+                font-size: 12px;
+                margin-right: 6px;
             }
         </style>
     </head>
     <body>
+        <div id="confetti" class="confetti"></div>
         <header>
             <div>
                 <h1>FarmAcademy</h1>
-                <p class="muted">Catalogue, leçons, quiz et certificats</p>
+                <p class="muted">
+                    Apprenez, répondez au quiz, gagnez des points et débloquez
+                    votre certificat.
+                </p>
             </div>
-            <div>
-                <label
-                    >Utilisateur ID<br /><input
-                        id="userId"
-                        placeholder="ID utilisateur"
-                        style="
-                            padding: 10px;
-                            border-radius: 10px;
-                            border: 1px solid #cfe0d4;
-                        "
-                /></label>
-                <button onclick="loadProgress()">Charger ma progression</button>
+            <div class="hero">
+                <div class="aya">🌱</div>
+                <div>
+                    <strong>Aya vous accompagne</strong>
+                    <div class="muted" id="ayaText">
+                        Choisissez une formation pour commencer en douceur.
+                    </div>
+                </div>
             </div>
         </header>
         <main>
@@ -149,10 +267,14 @@
             </section>
 
             <section class="card" style="margin-top: 20px">
+                <div class="badge" id="lessonBadge">Leçon</div>
                 <h2 id="lessonTitle">Choisissez une leçon</h2>
                 <p id="lessonMeta" class="muted"></p>
                 <div id="lessonContent">
                     Cliquez sur une formation pour commencer.
+                </div>
+                <div class="coaching" id="coachingBox">
+                    Aya: « Chaque petite leçon compte. On avance ensemble. »
                 </div>
                 <div class="lesson-nav" style="margin-top: 14px">
                     <button
@@ -173,17 +295,23 @@
                 <div style="margin-top: 18px">
                     <h3>Quiz</h3>
                     <div id="quizZone">Le quiz apparaîtra ici.</div>
+                    <div class="loading" id="quizLoading">
+                        <span class="spinner"></span
+                        ><span>Soumission en cours...</span>
+                    </div>
                     <div id="scoreZone" class="score-pop"></div>
                 </div>
             </section>
         </main>
 
         <script>
-            const api = (window.API_BASE || "").replace(/\/$/, "");
+            const API_BASE = window.API_BASE || "http://127.0.0.1:8000";
+            const api = API_BASE.replace(/\/$/, "");
             let currentFormation = null;
             let currentLesson = 1;
             let currentLessonData = null;
             let progressCache = null;
+            window._quizAnswers = [];
 
             async function jget(url) {
                 const r = await fetch(api + url);
@@ -198,6 +326,31 @@
                 return await r.json();
             }
 
+            function confettiBurst() {
+                const host = document.getElementById("confetti");
+                host.innerHTML = "";
+                const colors = [
+                    "#10b981",
+                    "#ffd166",
+                    "#16a34a",
+                    "#60a5fa",
+                    "#f472b6",
+                ];
+                for (let i = 0; i < 40; i++) {
+                    const piece = document.createElement("span");
+                    piece.style.left = Math.random() * 100 + "vw";
+                    piece.style.background = colors[i % colors.length];
+                    piece.style.animationDuration =
+                        1.3 + Math.random() * 1.8 + "s";
+                    piece.style.transform =
+                        "rotate(" + Math.random() * 180 + "deg)";
+                    host.appendChild(piece);
+                }
+                setTimeout(() => {
+                    host.innerHTML = "";
+                }, 2500);
+            }
+
             async function loadCatalogue() {
                 const data = await jget("/academy/formations");
                 const box = document.getElementById("catalogue");
@@ -210,13 +363,13 @@
                     const el = document.createElement("article");
                     el.className = "card";
                     el.innerHTML = `
-          <div class="badge">${f.icone} ${f.total_lecons} leçons</div>
-          <h3>${f.titre}</h3>
-          <p class="muted">${f.resume}</p>
-          <div class="progress"><div class="bar" style="width:${percent}%"></div></div>
-          <p class="muted">Progression: ${percent}%</p>
-          <button onclick="openFormation('${f.code}')">Ouvrir</button>
-        `;
+                        <div class="badge">${f.icone} ${f.total_lecons} leçons</div>
+                        <h3>${f.titre}</h3>
+                        <p class="muted">${f.resume}</p>
+                        <div class="progress"><div class="bar" style="width:${percent}%"></div></div>
+                        <p class="muted">Progression: ${percent}%</p>
+                        <button onclick="openFormation('${f.code}')">Ouvrir</button>
+                    `;
                     box.appendChild(el);
                 });
             }
@@ -245,6 +398,8 @@
                 currentFormation = code;
                 currentLesson = 1;
                 await loadLesson();
+                document.getElementById("ayaText").textContent =
+                    "Aya dit : on commence par une leçon simple et utile.";
             }
 
             async function loadLesson() {
@@ -257,8 +412,12 @@
                     data.lecon.titre;
                 document.getElementById("lessonMeta").textContent =
                     `${data.formation.titre} • Leçon ${data.lecon.numero}/${data.formation.total_lecons}`;
+                document.getElementById("lessonBadge").textContent =
+                    `${data.formation.icone} ${data.formation.niveau}`;
                 document.getElementById("lessonContent").innerHTML =
                     `<p>${data.lecon.contenu.replace(/\n/g, "</p><p>")}</p>`;
+                document.getElementById("coachingBox").textContent =
+                    `Aya: « ${data.lecon.objectif} »`;
                 document.getElementById("quizZone").innerHTML = renderQuiz(
                     data.quiz.questions,
                 );
@@ -267,6 +426,7 @@
                     !data.navigation.precedente;
                 document.getElementById("nextBtn").disabled =
                     !data.navigation.suivante;
+                window._quizAnswers = [];
             }
 
             function renderQuiz(questions) {
@@ -274,37 +434,31 @@
                     questions
                         .map(
                             (q, idx) => `
-        <div style="margin-bottom:16px">
-          <strong>${idx + 1}. ${q.question}</strong>
-          ${q.choix.map((c, i) => `<button class="quiz-option" onclick="answerQuestion(${idx}, ${i})">${c}</button>`).join("")}
-          <div class="muted" id="exp-${idx}"></div>
-        </div>
-      `,
+                    <div style="margin-bottom:16px">
+                        <strong>${idx + 1}. ${q.question}</strong>
+                        ${q.choix.map((c, i) => `<button class="quiz-option" onclick="answerQuestion(${idx}, ${i})">${c}</button>`).join("")}
+                        <div class="muted" id="exp-${idx}"></div>
+                    </div>`,
                         )
                         .join("") +
-                    '<button onclick="submitQuiz()">Soumettre le quiz</button>'
+                    '<button id="submitQuizBtn" onclick="submitQuiz()">Soumettre le quiz</button>'
                 );
             }
 
             function answerQuestion(qIndex, choice) {
-                const buttons = document.querySelectorAll(
-                    `#quizZone .quiz-option`,
-                );
-                // minimal local feedback only
-                if (window._quizAnswers === undefined) window._quizAnswers = [];
                 window._quizAnswers[qIndex] = choice;
-                buttons.forEach((b) => b.classList.remove("correct", "wrong"));
                 const q = currentLessonData.quiz.questions[qIndex];
                 const targetButtons = [
                     ...document.querySelectorAll("#quizZone .quiz-option"),
                 ].slice(qIndex * 4, qIndex * 4 + 4);
                 targetButtons.forEach((btn, i) =>
-                    btn.classList.add(
+                    btn.classList.toggle(
                         i === choice
                             ? choice === q.bonne_reponse
                                 ? "correct"
                                 : "wrong"
                             : "",
+                        i === choice,
                     ),
                 );
                 document.getElementById(`exp-${qIndex}`).textContent =
@@ -317,20 +471,32 @@
                     alert("Entrez votre ID utilisateur");
                     return;
                 }
-                const responses = window._quizAnswers || [];
+                const btn = document.getElementById("submitQuizBtn");
+                btn.disabled = true;
+                document.getElementById("quizLoading").style.display = "flex";
                 const data = await jpost("/academy/quiz/soumettre", {
                     user_id: userId,
                     formation_code: currentFormation,
                     numero: currentLesson,
-                    reponses: responses,
+                    reponses: window._quizAnswers,
                 });
+                document.getElementById("quizLoading").style.display = "none";
+                btn.disabled = false;
                 const scoreZone = document.getElementById("scoreZone");
-                scoreZone.textContent = `+${data.points_gagnes} points`;
+                scoreZone.textContent = `+${data.points_gagnes} points • ${data.correct}/${data.score_max / 30} correctes`;
                 scoreZone.classList.add("pulse");
                 setTimeout(() => scoreZone.classList.remove("pulse"), 500);
+                if (data.score >= 0) {
+                    document.getElementById("ayaText").textContent =
+                        data.score >= data.score_max * 0.8
+                            ? "Aya applaudit : très bon travail !"
+                            : "Aya dit : continue, tu progresses déjà.";
+                }
+                if (data.score >= data.score_max * 0.8) confettiBurst();
                 if (data.certificat_url) {
                     document.getElementById("certificateZone").innerHTML =
                         `<a class="cert-link" href="${data.certificat_url}" download>Télécharger le certificat PDF</a>`;
+                    confettiBurst();
                 }
                 await loadProgress();
             }

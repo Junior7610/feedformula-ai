@@ -16,6 +16,7 @@ Ce fichier est volontairement commenté en français pour faciliter la maintenan
 from __future__ import annotations
 
 import hashlib
+import importlib
 import io
 import json
 import os
@@ -25,11 +26,6 @@ import time
 import unicodedata
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-
-ROOT_DIR = Path(__file__).resolve().parent.parent
-BACKEND_DIR = ROOT_DIR / "backend"
-if str(BACKEND_DIR) not in sys.path:
-    sys.path.insert(0, str(BACKEND_DIR))
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -67,27 +63,37 @@ except Exception:
     redis = None
 
 
+ROOT_DIR = Path(__file__).resolve().parent.parent
+BACKEND_DIR = ROOT_DIR / "backend"
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
+
 # -----------------------------------------------------------------------------
 # Imports locaux
 # -----------------------------------------------------------------------------
-from academy_service import router as academy_router
-from audio_service import audio_service as audio_service_instance
-from audio_service import router as audio_router
-from auth import install_auth_middleware
-from auth import router as auth_router
-from community_service import router as community_router
-from database import init_db
-from farmcast_service import router as farmcast_router
-from farmmanager_service import router as farmmanager_router
-from gamification_api import router as gamification_router
-from langue_detector import detecter_langue, get_prompt_pour_langue
-from notification_service import router as notification_router
-from nutrition_engine import NutritionEngine
-from paiement_service import router as paiement_router
-from pasturemap_service import router as pasturemap_router
-from reprotrack_service import router as reprotrack_router
-from scraper_prix import router as marche_router
-from vetscan_service import router as vetscan_router
+academy_router = importlib.import_module("academy_service").router
+_audio_service_module = importlib.import_module("audio_service")
+audio_service_instance = _audio_service_module.audio_service
+audio_router = _audio_service_module.router
+auth_module = importlib.import_module("auth")
+install_auth_middleware = auth_module.install_auth_middleware
+auth_router = auth_module.router
+community_router = importlib.import_module("community_service").router
+init_db = importlib.import_module("database").init_db
+farmcast_router = importlib.import_module("farmcast_service").router
+farmmanager_router = importlib.import_module("farmmanager_service").router
+gamification_router = importlib.import_module("gamification_api").router
+detecter_langue = importlib.import_module("langue_detector").detecter_langue
+get_prompt_pour_langue = importlib.import_module(
+    "langue_detector"
+).get_prompt_pour_langue
+notification_router = importlib.import_module("notification_service").router
+NutritionEngine = importlib.import_module("nutrition_engine").NutritionEngine
+paiement_router = importlib.import_module("paiement_service").router
+pasturemap_router = importlib.import_module("pasturemap_service").router
+reprotrack_router = importlib.import_module("reprotrack_service").router
+marche_router = importlib.import_module("scraper_prix").router
+vetscan_router = importlib.import_module("vetscan_service").router
 
 # -----------------------------------------------------------------------------
 # Configuration projet / environnement
@@ -670,9 +676,12 @@ app = FastAPI(
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
+static_path = os.path.join(os.path.dirname(__file__), "..", "static")
 
 if os.path.exists(frontend_path):
     app.mount("/app", StaticFiles(directory=frontend_path, html=True), name="frontend")
+if os.path.exists(static_path):
+    app.mount("/static", StaticFiles(directory=static_path), name="static")
 
 # Initialisation base de données au démarrage.
 if os.getenv("SKIP_DB_INIT", "0").strip() != "1" and APP_ENV not in {"test", "testing"}:
