@@ -158,9 +158,27 @@ def _ensure_defis_du_jour(db: Session) -> Dict[str, Any]:
     pool = list(getattr(ENGINE, "DEFIS_QUOTIDIENS", []) or [])
     if len(pool) < 3:
         pool = [
-            {"id": "d1_connexion", "nom": "Présence du jour", "action": "connexion_jour", "objectif": 1, "bonus_points": 10},
-            {"id": "d2_ration", "nom": "Une ration utile", "action": "generation_ration", "objectif": 1, "bonus_points": 20},
-            {"id": "d3_communaute", "nom": "Aide communautaire", "action": "commentaire_utile_farmcommunity", "objectif": 1, "bonus_points": 12},
+            {
+                "id": "d1_connexion",
+                "nom": "Présence du jour",
+                "action": "connexion_jour",
+                "objectif": 1,
+                "bonus_points": 10,
+            },
+            {
+                "id": "d2_ration",
+                "nom": "Une ration utile",
+                "action": "generation_ration",
+                "objectif": 1,
+                "bonus_points": 20,
+            },
+            {
+                "id": "d3_communaute",
+                "nom": "Aide communautaire",
+                "action": "commentaire_utile_farmcommunity",
+                "objectif": 1,
+                "bonus_points": 12,
+            },
         ]
 
     # Sélection déterministe par jour (évite les variations entre appels).
@@ -232,7 +250,9 @@ def _calculer_ligue(points_total: int) -> Dict[str, Any]:
         "nom": ligue.get("nom", "Bronze"),
         "icone": ligue.get("icone", "🥉"),
         "code": ligue.get("code", "bronze"),
-        "points_restant_pour_monter": details.get("points_restant_pour_monter", 0) if isinstance(details, dict) else 0,
+        "points_restant_pour_monter": details.get("points_restant_pour_monter", 0)
+        if isinstance(details, dict)
+        else 0,
     }
 
 
@@ -285,7 +305,9 @@ router = APIRouter(prefix="/gamification", tags=["gamification"])
 
 
 @router.post("/action")
-def enregistrer_action(payload: ActionRequest, db: Session = Depends(get_db)) -> Dict[str, Any]:
+def enregistrer_action(
+    payload: ActionRequest, db: Session = Depends(get_db)
+) -> Dict[str, Any]:
     """
     Enregistre une action utilisateur, applique l'anti-abus et persiste le log.
     """
@@ -301,7 +323,9 @@ def enregistrer_action(payload: ActionRequest, db: Session = Depends(get_db)) ->
     last_same_action_at = get_last_action_at(db, payload.user_id, payload.action)
     cooldown_actif = False
     if last_same_action_at is not None:
-        cooldown_actif = (datetime.utcnow() - last_same_action_at) < timedelta(seconds=20)
+        cooldown_actif = (
+            datetime.now(timezone.utc).replace(tzinfo=None) - last_same_action_at
+        ) < timedelta(seconds=20)
 
     # Contexte pour le moteur de points.
     contexte = {
@@ -331,11 +355,17 @@ def enregistrer_action(payload: ActionRequest, db: Session = Depends(get_db)) ->
 
     # Mémoires complémentaires (langues/modules/espèces) pour trophées.
     if payload.code_langue:
-        USER_LANGUES.setdefault(payload.user_id, set()).add(payload.code_langue.strip().lower())
+        USER_LANGUES.setdefault(payload.user_id, set()).add(
+            payload.code_langue.strip().lower()
+        )
     if payload.module:
-        USER_MODULES.setdefault(payload.user_id, set()).add(payload.module.strip().lower())
+        USER_MODULES.setdefault(payload.user_id, set()).add(
+            payload.module.strip().lower()
+        )
     if payload.espece:
-        USER_ESPECES.setdefault(payload.user_id, set()).add(payload.espece.strip().lower())
+        USER_ESPECES.setdefault(payload.user_id, set()).add(
+            payload.espece.strip().lower()
+        )
 
     # Persistance région utilisateur.
     if payload.region:
@@ -496,7 +526,9 @@ def classement_par_region(region: str, db: Session = Depends(get_db)) -> Dict[st
                     "prenom": getattr(u, "prenom", ""),
                     "points_total": _safe_int(getattr(u, "points_total", 0), 0),
                     "niveau_actuel": _safe_int(getattr(u, "niveau_actuel", 1), 1),
-                    "ligue": _calculer_ligue(_safe_int(getattr(u, "points_total", 0), 0)),
+                    "ligue": _calculer_ligue(
+                        _safe_int(getattr(u, "points_total", 0), 0)
+                    ),
                     "region": region_user,
                 }
             )
@@ -514,7 +546,9 @@ def classement_par_region(region: str, db: Session = Depends(get_db)) -> Dict[st
 
 
 @router.post("/defi/completer")
-def completer_defi(payload: DefiCompleterRequest, db: Session = Depends(get_db)) -> Dict[str, Any]:
+def completer_defi(
+    payload: DefiCompleterRequest, db: Session = Depends(get_db)
+) -> Dict[str, Any]:
     """
     Marque un défi quotidien comme complété (si objectif atteint) et crédite les points bonus.
     """
@@ -552,7 +586,8 @@ def completer_defi(payload: DefiCompleterRequest, db: Session = Depends(get_db))
     # Vérifie déjà complété.
     completions = list_user_completions_defis(db, payload.user_id, limit=500)
     deja = any(
-        str(c.defi_id) == defi_id and _safe_int(getattr(c, "defi_numero", 0), 0) == payload.defi_numero
+        str(c.defi_id) == defi_id
+        and _safe_int(getattr(c, "defi_numero", 0), 0) == payload.defi_numero
         for c in completions
     )
     if deja:

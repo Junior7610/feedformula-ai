@@ -27,13 +27,6 @@ import re
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
-from jose import JWTError, jwt
-from pydantic import BaseModel, Field, field_validator
-from sqlalchemy.orm import Session
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import Response
-
 # ---------------------------------------------------------------------------
 # Imports locaux
 # ---------------------------------------------------------------------------
@@ -45,9 +38,16 @@ from database import (
     serialize_user,
     update_user_last_login,
     upsert_otp_code,
+)
+from database import (
     verify_otp_code as verify_otp_code_db,
 )
-
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from jose import JWTError, jwt
+from pydantic import BaseModel, Field, field_validator
+from sqlalchemy.orm import Session
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
 # ---------------------------------------------------------------------------
 # Configuration sécurité
@@ -145,7 +145,9 @@ def enregistrer_otp(db: Session, telephone: str, code: str) -> None:
     if not tel:
         raise ValueError("Téléphone invalide pour enregistrement OTP.")
 
-    expires_at = datetime.utcnow() + timedelta(minutes=OTP_EXPIRE_MINUTES)
+    expires_at = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(
+        minutes=OTP_EXPIRE_MINUTES
+    )
     upsert_otp_code(
         db=db,
         telephone=tel,
@@ -423,7 +425,9 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/inscription")
-def inscription(payload: InscriptionRequest, db: Session = Depends(get_db)) -> Dict[str, Any]:
+def inscription(
+    payload: InscriptionRequest, db: Session = Depends(get_db)
+) -> Dict[str, Any]:
     """
     Crée un nouvel utilisateur puis génère un OTP.
     """
@@ -461,7 +465,9 @@ def inscription(payload: InscriptionRequest, db: Session = Depends(get_db)) -> D
 
 
 @router.post("/connexion")
-def connexion(payload: ConnexionRequest, db: Session = Depends(get_db)) -> Dict[str, Any]:
+def connexion(
+    payload: ConnexionRequest, db: Session = Depends(get_db)
+) -> Dict[str, Any]:
     """
     Déclenche un OTP pour un utilisateur existant.
     """
@@ -485,7 +491,9 @@ def connexion(payload: ConnexionRequest, db: Session = Depends(get_db)) -> Dict[
 
 
 @router.post("/verifier-otp")
-def verifier_otp_endpoint(payload: VerificationOtpRequest, db: Session = Depends(get_db)) -> Dict[str, Any]:
+def verifier_otp_endpoint(
+    payload: VerificationOtpRequest, db: Session = Depends(get_db)
+) -> Dict[str, Any]:
     """
     Vérifie l'OTP puis émet un JWT valide 30 jours.
     """

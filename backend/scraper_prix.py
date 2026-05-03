@@ -15,12 +15,8 @@ Tous les commentaires sont en français pour faciliter la maintenance.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
-
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session
 
 # ---------------------------------------------------------------------------
 # Imports locaux compatibles package / exécution directe
@@ -31,7 +27,9 @@ from database import (
     get_latest_prix_for_ingredient,
     serialize_prix_marche,
 )
-
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
 
 # ---------------------------------------------------------------------------
 # Routeur FastAPI
@@ -102,7 +100,7 @@ def _enregistrer_historique(
         "prix_fcfa_kg": float(prix_fcfa_kg),
         "source": source,
         "region": region,
-        "date_mise_a_jour": datetime.utcnow().isoformat(),
+        "date_mise_a_jour": datetime.now(timezone.utc).replace(tzinfo=None).isoformat(),
     }
     HISTORIQUE_MEMOIRE.setdefault(cle, []).append(entree)
     HISTORIQUE_MEMOIRE[cle] = HISTORIQUE_MEMOIRE[cle][-30:]
@@ -211,7 +209,9 @@ def lire_prix_actuels(db: Session = Depends(get_db)) -> Dict[str, Any]:
 
 
 @router.get("/prix/{ingredient}")
-def lire_prix_ingredient(ingredient: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
+def lire_prix_ingredient(
+    ingredient: str, db: Session = Depends(get_db)
+) -> Dict[str, Any]:
     """
     Retourne le prix actuel d'un ingrédient.
     """

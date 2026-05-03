@@ -22,7 +22,7 @@ import json
 import os
 import re
 import tempfile
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -215,10 +215,19 @@ def _structure_event_text(texte: str) -> Dict[str, Any]:
     date_rappel = None
     if rappel_jours is not None:
         date_rappel = (
-            (datetime.utcnow() + timedelta(days=rappel_jours)).date().isoformat()
+            (
+                datetime.now(timezone.utc).replace(tzinfo=None)
+                + timedelta(days=rappel_jours)
+            )
+            .date()
+            .isoformat()
         )  # type: ignore[name-defined]
     elif "demain" in lower:
-        date_rappel = (datetime.utcnow() + timedelta(days=1)).date().isoformat()  # type: ignore[name-defined]
+        date_rappel = (
+            (datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(days=1))
+            .date()
+            .isoformat()
+        )  # type: ignore[name-defined]
 
     cout_total = 0.0
     revenu = 0.0
@@ -252,7 +261,7 @@ def _save_event(db: Session, user_id: str, event: Dict[str, Any]) -> Dict[str, A
         action="farmmanager_event",
         points_awarded=0,
         meta_json=json.dumps(event, ensure_ascii=False),
-        created_at=datetime.utcnow(),
+        created_at=datetime.now(timezone.utc).replace(tzinfo=None),
     )
     db.add(row)
     db.commit()

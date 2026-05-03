@@ -17,7 +17,7 @@ dans une application FastAPI existante.
 
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 # -----------------------------------------------------------------------------
@@ -294,7 +294,7 @@ class ReproTrackService:
             date_evenement=dt_evt,
             date_prevue_prochain=dt_next,
             notes=_clean_text(notes) or None,
-            date_creation=datetime.utcnow(),
+            date_creation=datetime.now(timezone.utc).replace(tzinfo=None),
         )
         db.add(evenement)
         db.commit()

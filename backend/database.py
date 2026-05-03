@@ -18,7 +18,7 @@ from __future__ import annotations
 import json
 import os
 import uuid
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, Generator, List, Optional
 
@@ -94,6 +94,11 @@ def _from_json_text(value: Optional[str], default: Any) -> Any:
         return default
 
 
+def _utcnow_naive() -> datetime:
+    """Retourne un timestamp UTC naïf sans utiliser datetime.utcnow()."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
 def _niveau_depuis_points(points_total: int) -> int:
     """
     Convertit un total de points en niveau.
@@ -125,7 +130,7 @@ class User(Base):
     langue_preferee = Column(String(20), nullable=False, default="fr")
     espece_principale = Column(String(80), nullable=True)
     departement = Column(String(120), nullable=False, default="")
-    date_inscription = Column(DateTime, nullable=False, default=datetime.utcnow)
+    date_inscription = Column(DateTime, nullable=False, default=_utcnow_naive)
     derniere_connexion = Column(DateTime, nullable=True)
     points_total = Column(Integer, nullable=False, default=0)
     niveau_actuel = Column(Integer, nullable=False, default=1)
@@ -189,9 +194,7 @@ class Ration(Base):
     cout_7_jours = Column(Float, nullable=False, default=0.0)
     langue = Column(String(20), nullable=False, default="fr")
     points_gagnes = Column(Integer, nullable=False, default=0)
-    date_creation = Column(
-        DateTime, nullable=False, default=datetime.utcnow, index=True
-    )
+    date_creation = Column(DateTime, nullable=False, default=_utcnow_naive, index=True)
 
     user = relationship("User", back_populates="rations")
 
@@ -214,7 +217,7 @@ class TropheeUtilisateur(Base):
         index=True,
     )
     trophee_code = Column(String(120), nullable=False, index=True)
-    date_obtention = Column(DateTime, nullable=False, default=datetime.utcnow)
+    date_obtention = Column(DateTime, nullable=False, default=_utcnow_naive)
 
     user = relationship("User", back_populates="trophees")
 
@@ -263,7 +266,7 @@ class CompletionDefi(Base):
         index=True,
     )
     defi_numero = Column(Integer, nullable=False)  # 1, 2 ou 3
-    date_completion = Column(DateTime, nullable=False, default=datetime.utcnow)
+    date_completion = Column(DateTime, nullable=False, default=_utcnow_naive)
     points_gagnes = Column(Integer, nullable=False, default=0)
 
     user = relationship("User", back_populates="completions_defis")
@@ -281,7 +284,7 @@ class PrixMarche(Base):
     ingredient = Column(String(120), nullable=False, index=True)
     prix_fcfa_kg = Column(Float, nullable=False)
     date_mise_a_jour = Column(
-        DateTime, nullable=False, default=datetime.utcnow, index=True
+        DateTime, nullable=False, default=_utcnow_naive, index=True
     )
     source = Column(String(120), nullable=True)
     region = Column(String(120), nullable=False, default="Bénin")
@@ -302,9 +305,9 @@ class OtpCode(Base):
     attempts = Column(Integer, nullable=False, default=0)
     max_attempts = Column(Integer, nullable=False, default=5)
     expires_at = Column(DateTime, nullable=False, index=True)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=_utcnow_naive)
     updated_at = Column(
-        DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
+        DateTime, nullable=False, default=_utcnow_naive, onupdate=_utcnow_naive
     )
 
 
@@ -327,7 +330,7 @@ class UserActionLog(Base):
     action = Column(String(120), nullable=False, index=True)
     points_awarded = Column(Integer, nullable=False, default=0)
     meta_json = Column(Text, nullable=False, default="{}")
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    created_at = Column(DateTime, nullable=False, default=_utcnow_naive, index=True)
 
 
 # ---------------------------------------------------------------------------
@@ -361,9 +364,7 @@ class DiagnosticVetScan(Base):
     protocole_soins = Column(Text, nullable=False)
     decision_triage = Column(String(50), nullable=False, default="autonome")
     points_gagnes = Column(Integer, nullable=False, default=0)
-    date_creation = Column(
-        DateTime, nullable=False, default=datetime.utcnow, index=True
-    )
+    date_creation = Column(DateTime, nullable=False, default=_utcnow_naive, index=True)
 
     user = relationship("User", back_populates="diagnostics_vetscan")
 
@@ -388,9 +389,7 @@ class EvenementReproduction(Base):
     date_evenement = Column(DateTime, nullable=False, index=True)
     date_prevue_prochain = Column(DateTime, nullable=True, index=True)
     notes = Column(Text, nullable=True)
-    date_creation = Column(
-        DateTime, nullable=False, default=datetime.utcnow, index=True
-    )
+    date_creation = Column(DateTime, nullable=False, default=_utcnow_naive, index=True)
 
     user = relationship("User", back_populates="evenements_reproduction")
 
@@ -421,7 +420,7 @@ class FormationCompletee(Base):
     lecon_numero = Column(Integer, nullable=False, default=1)
     score_quiz = Column(Integer, nullable=True)
     date_completion = Column(
-        DateTime, nullable=False, default=datetime.utcnow, index=True
+        DateTime, nullable=False, default=_utcnow_naive, index=True
     )
 
     user = relationship("User", back_populates="formations_completees")
@@ -444,9 +443,7 @@ class Post(Base):
     contenu = Column(Text, nullable=False)
     type = Column(String(50), nullable=False, default="texte")
     likes = Column(Integer, nullable=False, default=0)
-    date_creation = Column(
-        DateTime, nullable=False, default=datetime.utcnow, index=True
-    )
+    date_creation = Column(DateTime, nullable=False, default=_utcnow_naive, index=True)
 
     user = relationship("User", back_populates="posts")
     commentaires = relationship(
@@ -475,9 +472,7 @@ class Commentaire(Base):
         index=True,
     )
     contenu = Column(Text, nullable=False)
-    date_creation = Column(
-        DateTime, nullable=False, default=datetime.utcnow, index=True
-    )
+    date_creation = Column(DateTime, nullable=False, default=_utcnow_naive, index=True)
 
     post = relationship("Post", back_populates="commentaires")
     user = relationship("User", back_populates="commentaires")
@@ -503,9 +498,7 @@ class AnnonceMarche(Base):
     prix = Column(String(50), nullable=False)
     localisation = Column(String(120), nullable=False)
     statut = Column(String(30), nullable=False, default="active")
-    date_creation = Column(
-        DateTime, nullable=False, default=datetime.utcnow, index=True
-    )
+    date_creation = Column(DateTime, nullable=False, default=_utcnow_naive, index=True)
 
     user = relationship("User", back_populates="annonces_marche")
 
@@ -601,7 +594,7 @@ def upsert_otp_code(
         otp.attempts = 0
         otp.max_attempts = max(1, int(max_attempts or 5))
         otp.expires_at = expires_at
-        otp.updated_at = datetime.utcnow()
+        otp.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
 
     db.commit()
     db.refresh(otp)
@@ -627,7 +620,7 @@ def verify_otp_code(db: Session, telephone: str, code_saisi: str) -> bool:
     if otp is None:
         return False
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     if otp.expires_at < now:
         db.delete(otp)
         db.commit()
@@ -665,7 +658,7 @@ def update_user_last_login(
     user = get_user_by_id(db, user_id)
     if not user:
         return None
-    user.derniere_connexion = dt or datetime.utcnow()
+    user.derniere_connexion = dt or datetime.now(timezone.utc).replace(tzinfo=None)
     db.commit()
     db.refresh(user)
     return user
@@ -725,7 +718,7 @@ def log_user_action(
         action=(action or "").strip(),
         points_awarded=int(points_awarded or 0),
         meta_json=_to_json_text(meta or {}),
-        created_at=created_at or datetime.utcnow(),
+        created_at=created_at or datetime.now(timezone.utc).replace(tzinfo=None),
     )
     db.add(row)
     db.commit()
@@ -753,7 +746,7 @@ def count_user_actions_last_24h(db: Session, user_id: str) -> int:
     """
     Compte le nombre d'actions utilisateur sur les dernières 24h.
     """
-    since = datetime.utcnow() - timedelta(hours=24)
+    since = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(hours=24)
     return (
         db.query(UserActionLog)
         .filter(
@@ -771,7 +764,7 @@ def get_user_action_counts(
     Retourne le volume d'actions par type pour un utilisateur sur une période.
     """
     horizon = max(1, int(days or 365))
-    since = datetime.utcnow() - timedelta(days=horizon)
+    since = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=horizon)
     rows = (
         db.query(UserActionLog)
         .filter(
@@ -990,7 +983,8 @@ def add_prix_marche(
         prix_fcfa_kg=float(prix_fcfa_kg or 0.0),
         source=(source or "").strip() or None,
         region=(region or "Bénin").strip(),
-        date_mise_a_jour=date_mise_a_jour or datetime.utcnow(),
+        date_mise_a_jour=date_mise_a_jour
+        or datetime.now(timezone.utc).replace(tzinfo=None),
     )
     db.add(prix)
     db.commit()
@@ -1092,14 +1086,14 @@ def create_evenement_reproduction(
         type_evenement=(type_evenement or "").strip(),
         date_evenement=date_evenement
         if isinstance(date_evenement, datetime)
-        else datetime.utcnow(),
+        else datetime.now(timezone.utc).replace(tzinfo=None),
         date_prevue_prochain=date_prevue_prochain
         if isinstance(date_prevue_prochain, datetime)
         else None,
         notes=(notes or "").strip() or None,
     )
     if not isinstance(date_evenement, datetime):
-        row.date_evenement = datetime.utcnow()
+        row.date_evenement = datetime.now(timezone.utc).replace(tzinfo=None)
     db.add(row)
     db.commit()
     db.refresh(row)
@@ -1164,7 +1158,7 @@ def create_post(
         contenu=(contenu or "").strip(),
         type=(type_contenu or "texte").strip().lower(),
         likes=max(0, int(likes or 0)),
-        date_creation=date_creation or datetime.utcnow(),
+        date_creation=date_creation or datetime.now(timezone.utc).replace(tzinfo=None),
     )
     db.add(row)
     db.commit()
@@ -1201,7 +1195,7 @@ def create_commentaire(
         post_id=post_id,
         user_id=user_id,
         contenu=(contenu or "").strip(),
-        date_creation=date_creation or datetime.utcnow(),
+        date_creation=date_creation or datetime.now(timezone.utc).replace(tzinfo=None),
     )
     db.add(row)
     db.commit()
@@ -1243,7 +1237,7 @@ def create_annonce_marche(
         prix=(prix or "").strip(),
         localisation=(localisation or "").strip(),
         statut=(statut or "active").strip().lower(),
-        date_creation=date_creation or datetime.utcnow(),
+        date_creation=date_creation or datetime.now(timezone.utc).replace(tzinfo=None),
     )
     db.add(row)
     db.commit()
