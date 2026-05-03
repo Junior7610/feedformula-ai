@@ -20,6 +20,7 @@ import os
 import re
 import unicodedata
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
@@ -30,18 +31,32 @@ from sqlalchemy.orm import Session
 # Imports locaux robustes
 # -----------------------------------------------------------------------------
 try:
-    from database import add_points_to_user, get_db, get_user_by_id, log_user_action
+    from database import (
+        add_points_to_user,
+        create_diagnostic_vetscan,
+        get_db,
+        get_user_by_id,
+        list_user_diagnostics_vetscan,
+        log_user_action,
+        serialize_diagnostic_vetscan,
+    )
 except Exception:  # pragma: no cover
     try:
         from backend.database import (  # type: ignore
             add_points_to_user,
+            create_diagnostic_vetscan,
             get_db,
             get_user_by_id,
+            list_user_diagnostics_vetscan,
             log_user_action,
+            serialize_diagnostic_vetscan,
         )
     except Exception:  # pragma: no cover
         add_points_to_user = None  # type: ignore
+        create_diagnostic_vetscan = None  # type: ignore
+        list_user_diagnostics_vetscan = None  # type: ignore
         log_user_action = None  # type: ignore
+        serialize_diagnostic_vetscan = None  # type: ignore
         get_db = None  # type: ignore
         get_user_by_id = None  # type: ignore
 
@@ -77,6 +92,21 @@ AFRI_VETSCAN_VISION_MODEL = (
 ).strip()
 
 router = APIRouter(prefix="/vetscan", tags=["VetScan"])
+PROMPT_PATH = (
+    Path(__file__).resolve().parent.parent / "prompts" / "system_prompt_vetscan.txt"
+)
+
+
+def _load_prompt_fallback() -> str:
+    try:
+        if PROMPT_PATH.exists():
+            return PROMPT_PATH.read_text(encoding="utf-8")
+    except Exception:
+        pass
+    return (
+        "Tu es un vétérinaire expert en pathologies animales tropicales africaines. "
+        "Réponds en JSON strict et dans la langue de l'éleveur."
+    )
 
 
 # -----------------------------------------------------------------------------
@@ -331,24 +361,7 @@ def _fallback_diagnostic(espece: str, symptomes: str, langue: str) -> Dict[str, 
 
 def _system_prompt_vetscan() -> str:
     """System prompt spécialisé VetScan."""
-    return (
-        "Tu es un vétérinaire expert en pathologies animales tropicales africaines. "
-        "Tu analyses les symptômes décrits et génères un diagnostic différentiel probabiliste avec 3 diagnostics classés par probabilité. "
-        "Tu proposes un protocole de soins étape par étape. "
-        "Tu décides clairement : soins autonomes ou urgence. "
-        "Tu réponds toujours dans la langue de l'éleveur. "
-        "Tu réponds en JSON STRICT sans texte autour. "
-        "Format exact attendu : "
-        "{"
-        '"diagnostic_1":{"nom":"...","probabilite":0.87,"description":"...","symptomes_correspondants":["..."]},'
-        '"diagnostic_2":{...},'
-        '"diagnostic_3":{...},'
-        '"protocole_soins":["..."],'
-        '"decision":"autonome|urgence",'
-        '"message_urgence":"...",'
-        '"prevention":"..."'
-        "}"
-    )
+    return _load_prompt_fallback()
 
 
 def _format_user_prompt(espece: str, symptomes: str, langue: str) -> str:
@@ -445,6 +458,41 @@ def _award_user_points(
             )
     except Exception:
         # On n'interrompt jamais un diagnostic pour un problème de gamification.
+        pass
+
+
+def _save_diagnostic(
+    db: Optional[Session],
+    user_id: Optional[str],
+    espece: str,
+    symptomes: str,
+    photo_path: Optional[str],
+    result: Dict[str, Any],
+    points: int,
+) -> None:
+    if not db or not user_id or create_diagnostic_vetscan is None:
+        return
+    try:
+        diag1 = result.get("diagnostic_1") or {}
+        diag2 = result.get("diagnostic_2") or {}
+        diag3 = result.get("diagnostic_3") or {}
+        create_diagnostic_vetscan(
+            db=db,
+            user_id=user_id,
+            espece=espece,
+            symptomes_decrits=symptomes,
+            photo_path=photo_path,
+            diagnostic_1=str(diag1.get("nom") or ""),
+            score_1=float(diag1.get("probabilite") or 0.0),
+            diagnostic_2=str(diag2.get("nom") or ""),
+            score_2=float(diag2.get("probabilite") or 0.0),
+            diagnostic_3=str(diag3.get("nom") or ""),
+            score_3=float(diag3.get("probabilite") or 0.0),
+            protocole_soins=result.get("protocole_soins") or [],
+            decision_triage=str(result.get("decision") or "autonome"),
+            points_gagnes=points,
+        )
+    except Exception:
         pass
 
 
@@ -681,24 +729,28 @@ async def diagnostiquer(
     payload: VetScanDiagnoseRequest,
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
-    """
-    Endpoint de diagnostic VetScan basé sur les symptômes.
-    """
+    """Endpoint de diagnostic VetScan basé sur les symptômes."""
     result = await vetscan_service.analyser_symptomes(
         espece=payload.espece,
         symptomes=payload.symptomes,
         langue=payload.langue,
     )
 
-    # Attribution de points gamification si un user est fourni.
-    _award_user_points(
-        db,
-        payload.user_id,
-        20 if result.get("decision") == "urgence" else 15,
+    points = 20 if result.get("decision") == "urgence" else 15
+    _award_user_points(db, payload.user_id, points)
+    _save_diagnostic(
+        db=db,
+        user_id=payload.user_id,
+        espece=payload.espece,
+        symptomes=payload.symptomes,
+        photo_path=None,
+        result=result,
+        points=points,
     )
 
     return {
         "message": "Diagnostic VetScan généré avec succès.",
+        "points_gagnes": points,
         "resultat": result,
     }
 
@@ -731,14 +783,21 @@ async def analyser_photo_endpoint(
         langue=langue,
     )
 
-    _award_user_points(
-        db,
-        user_id,
-        20 if result.get("decision") == "urgence" else 15,
+    points = 20 if result.get("decision") == "urgence" else 15
+    _award_user_points(db, user_id, points)
+    _save_diagnostic(
+        db=db,
+        user_id=user_id,
+        espece=espece,
+        symptomes="photo analysée",
+        photo_path=getattr(image, "filename", None),
+        result=result,
+        points=points,
     )
 
     return {
         "message": "Analyse photo VetScan générée avec succès.",
+        "points_gagnes": points,
         "resultat": result,
     }
 
@@ -748,14 +807,116 @@ def veterinaires_proches(
     latitude: float,
     longitude: float,
 ) -> Dict[str, Any]:
-    """
-    Fournit une liste simulée de vétérinaires proches.
-    """
+    """Fournit une liste simulée de vétérinaires proches."""
     return {
         "latitude": latitude,
         "longitude": longitude,
         "veterinaires": vetscan_service.trouver_veterinaire_proche(latitude, longitude),
     }
+
+
+@router.get("/veterinaires/{departement}")
+def veterinaires_par_departement(departement: str) -> Dict[str, Any]:
+    """Retourne une liste simulée de vétérinaires par département béninois."""
+    dept = (departement or "").strip().lower()
+    base = {
+        "cotonou": [
+            {
+                "nom": "Clinique Vétérinaire du Littoral",
+                "telephone": "+229 01 40 00 00 01",
+                "ville": "Cotonou",
+            },
+            {
+                "nom": "AgroVet Sud",
+                "telephone": "+229 01 40 00 00 02",
+                "ville": "Cotonou",
+            },
+            {
+                "nom": "Cabinet Santé Animale",
+                "telephone": "+229 01 40 00 00 03",
+                "ville": "Cotonou",
+            },
+            {
+                "nom": "Clinique des Éleveurs",
+                "telephone": "+229 01 40 00 00 04",
+                "ville": "Cotonou",
+            },
+            {
+                "nom": "Urgences Animales Littoral",
+                "telephone": "+229 01 40 00 00 05",
+                "ville": "Cotonou",
+            },
+        ],
+        "parakou": [
+            {
+                "nom": "Vet Nord Parakou",
+                "telephone": "+229 01 50 00 00 01",
+                "ville": "Parakou",
+            },
+            {
+                "nom": "Cabinet Borgou Vet",
+                "telephone": "+229 01 50 00 00 02",
+                "ville": "Parakou",
+            },
+            {
+                "nom": "Urgence Élevage Nord",
+                "telephone": "+229 01 50 00 00 03",
+                "ville": "Parakou",
+            },
+        ],
+        "abomey-calavi": [
+            {
+                "nom": "Calavi Vet Center",
+                "telephone": "+229 01 60 00 00 01",
+                "ville": "Abomey-Calavi",
+            },
+            {
+                "nom": "Santé Animale Calavi",
+                "telephone": "+229 01 60 00 00 02",
+                "ville": "Abomey-Calavi",
+            },
+        ],
+    }
+    items = base.get(dept)
+    if not items:
+        nice = departement.title() if departement else "Bénin"
+        items = [
+            {
+                "nom": f"Service vétérinaire {nice}",
+                "telephone": "+229 01 70 00 00 01",
+                "ville": nice,
+            },
+            {
+                "nom": f"Urgence élevage {nice}",
+                "telephone": "+229 01 70 00 00 02",
+                "ville": nice,
+            },
+        ]
+    return {"departement": departement, "total": len(items), "veterinaires": items}
+
+
+@router.get("/historique/{user_id}")
+def historique(user_id: str, limit: int = 10) -> Dict[str, Any]:
+    """Retourne les derniers diagnostics VetScan d'un utilisateur."""
+    if (
+        list_user_diagnostics_vetscan is None
+        or serialize_diagnostic_vetscan is None
+        or get_db is None
+    ):
+        return {"user_id": user_id, "total": 0, "diagnostics": []}
+    db = next(get_db())
+    try:
+        rows = list_user_diagnostics_vetscan(db, user_id, limit=limit)
+        return {
+            "user_id": user_id,
+            "total": len(rows),
+            "diagnostics": [serialize_diagnostic_vetscan(row) for row in rows],
+        }
+    finally:
+        try:
+            db.close()
+        except Exception:
+            pass
 
 
 __all__ = [

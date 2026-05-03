@@ -242,6 +242,14 @@
           query: { latitude, longitude },
         });
       },
+      veterinaireParDepartement(departement) {
+        return get(`/vetscan/veterinaires/${encodeURIComponent(departement)}`);
+      },
+      historique(userId, limit = 10) {
+        return get(`/vetscan/historique/${encodeURIComponent(userId)}`, {
+          query: { limit },
+        });
+      },
     },
 
     reprotrack: {
@@ -257,6 +265,9 @@
       stats(userId) {
         return get(`/reprotrack/stats/${encodeURIComponent(userId)}`);
       },
+      animaux(userId) {
+        return get(`/reprotrack/animaux/${encodeURIComponent(userId)}`);
+      },
     },
 
     academy: {
@@ -268,6 +279,37 @@
       },
       quiz(payload) {
         return post("/academy/quiz", payload);
+      },
+    },
+
+    pasturemap: {
+      analyser(payload) {
+        return post("/pasturemap/analyser", payload);
+      },
+      recommandations(userId) {
+        return get(`/pasturemap/recommandations/${encodeURIComponent(userId)}`);
+      },
+    },
+
+    farmmanager: {
+      evenement(payload) {
+        return post("/farmmanager/evenement", payload);
+      },
+      evenementVocal(payload) {
+        return post("/farmmanager/evenement-vocal", payload);
+      },
+      evenements(userId, params = {}) {
+        return get(`/farmmanager/evenements/${encodeURIComponent(userId)}`, {
+          query: params,
+        });
+      },
+      finances(userId) {
+        return get(`/farmmanager/finances/${encodeURIComponent(userId)}`);
+      },
+      rapportMensuel(payload) {
+        return post("/farmmanager/rapport-mensuel", payload, {
+          responseType: "blob",
+        });
       },
     },
 

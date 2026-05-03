@@ -19,7 +19,7 @@ import json
 import os
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field, field_validator
 
 try:
@@ -30,7 +30,7 @@ try:
         OpenAI,
         OpenAIError,
     )
-except Exception:  # pragma: no cover - fallback si le package est absent
+except ImportError:  # pragma: no cover - fallback si le package est absent
     OpenAI = None  # type: ignore
     APIConnectionError = Exception  # type: ignore
     APITimeoutError = Exception  # type: ignore
@@ -42,6 +42,21 @@ except Exception:  # pragma: no cover - fallback si le package est absent
 # Configuration
 # -----------------------------------------------------------------------------
 router = APIRouter(prefix="/pasturemap", tags=["PastureMap"])
+
+
+try:
+    from database import UserActionLog, get_db, log_user_action
+except Exception:  # pragma: no cover
+    try:
+        from backend.database import (  # type: ignore
+            UserActionLog,
+            get_db,
+            log_user_action,
+        )
+    except Exception:  # pragma: no cover
+        UserActionLog = None  # type: ignore
+        get_db = None  # type: ignore
+        log_user_action = None  # type: ignore
 
 AFRI_BASE_URL = (
     os.getenv("AFRI_BASE_URL")
@@ -75,6 +90,10 @@ class AnalysePastureMapRequest(BaseModel):
 
     espece: str = Field(..., min_length=1)
     nombre_animaux: int = Field(..., ge=1)
+    superficie_hectares: Optional[float] = Field(default=None, gt=0)
+    nombre_paddocks: Optional[int] = Field(default=None, ge=1)
+    saison: Optional[str] = Field(default=None)
+    langue: Optional[str] = Field(default="fr")
     parcelles: List[Parcelle] = Field(default_factory=list)
     objectif: str = Field(default="rotation équilibrée")
 
@@ -199,6 +218,82 @@ def _fallback_recommendation(
     }
 
 
+def calculer_charge_animale(
+    espece: str, nombre_animaux: int, superficie: float
+) -> float:
+    coeffs = {
+        "vache": 1.0,
+        "zebu": 0.8,
+        "mouton": 0.15,
+        "chevre": 0.15,
+        "porc": 0.25,
+        "cheval": 1.25,
+    }
+    key = (espece or "").lower()
+    coeff = next((v for k, v in coeffs.items() if k in key), 0.2)
+    return round((nombre_animaux * coeff) / max(superficie, 0.01), 3)
+
+
+async def analyser_paturage(
+    superficie_hectares: float,
+    nombre_paddocks: int,
+    espece: str,
+    nombre_animaux: int,
+    saison: str,
+    langue: str,
+) -> Dict[str, Any]:
+    total = max(superficie_hectares, 0.01)
+    charge = calculer_charge_animale(espece, nombre_animaux, total)
+    charge_recommandee = 0.5
+    statut = "optimal"
+    if charge > charge_recommandee * 1.25:
+        statut = "surpature"
+    elif charge < charge_recommandee * 0.7:
+        statut = "sous-utilise"
+    plan_rotation = []
+    pads = max(1, int(nombre_paddocks or 1))
+    for i in range(1, pads + 1):
+        plan_rotation.append(
+            {
+                "paddock": i,
+                "duree_jours": 7 if saison != "saison sèche" else 5,
+                "repos_jours": 21 if saison != "saison sèche" else 30,
+                "periode": saison,
+            }
+        )
+    recommandations = _rotation_recommendations(
+        espece, statut == "surpature", charge, charge_recommandee, total
+    )
+    alerte = "SURPÂTURAGE DÉTECTÉ" if statut == "surpature" else None
+    return {
+        "charge_animale_actuelle": round(charge, 3),
+        "charge_recommandee": charge_recommandee,
+        "statut": statut,
+        "plan_rotation": plan_rotation,
+        "recommandations": recommandations,
+        "alerte": alerte,
+        "langue": langue,
+        "mode": "local",
+    }
+
+
+def _store_recommendation(user_id: str, payload: Dict[str, Any]) -> None:
+    if log_user_action is None or not user_id:
+        return
+    try:
+        from database import get_db as _get_db
+    except Exception:
+        return
+    db = next(_get_db())
+    try:
+        log_user_action(db, user_id, "pasturemap_analysis", meta=payload)
+    finally:
+        try:
+            db.close()
+        except Exception:
+            pass
+
+
 # -----------------------------------------------------------------------------
 # Route principale
 # -----------------------------------------------------------------------------
@@ -213,6 +308,8 @@ def analyser(payload: AnalysePastureMapRequest) -> Dict[str, Any]:
     - propose des recommandations de rotation.
     """
     total_area = sum(p.superficie_ha for p in payload.parcelles)
+    if payload.superficie_hectares and payload.superficie_hectares > 0:
+        total_area = max(total_area, payload.superficie_hectares)
 
     if total_area <= 0:
         raise HTTPException(
@@ -317,4 +414,38 @@ def analyser(payload: AnalysePastureMapRequest) -> Dict[str, Any]:
         )
 
 
-__all__ = ["router", "AnalysePastureMapRequest", "Parcelle"]
+@router.get("/recommandations/{user_id}")
+def recommandations(user_id: str, db: Any = Depends(get_db)) -> Dict[str, Any]:
+    """Retourne les dernières analyses PastureMap de l'utilisateur."""
+    if UserActionLog is None:
+        return {"user_id": user_id, "total": 0, "recommandations": []}
+    rows = (
+        db.query(UserActionLog)
+        .filter(
+            UserActionLog.user_id == user_id,
+            UserActionLog.action == "pasturemap_analysis",
+        )
+        .order_by(UserActionLog.created_at.desc())
+        .limit(10)
+        .all()
+    )
+    return {
+        "user_id": user_id,
+        "total": len(rows),
+        "recommandations": [
+            {
+                "date": row.created_at.isoformat() if row.created_at else None,
+                "meta": json.loads(row.meta_json or "{}"),
+            }
+            for row in rows
+        ],
+    }
+
+
+__all__ = [
+    "router",
+    "AnalysePastureMapRequest",
+    "Parcelle",
+    "analyser_paturage",
+    "calculer_charge_animale",
+]

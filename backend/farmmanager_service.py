@@ -22,7 +22,7 @@ import json
 import os
 import re
 import tempfile
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -70,6 +70,7 @@ class VocalEventRequest(BaseModel):
 
     texte: str = Field(..., min_length=3)
     user_id: str = Field(..., min_length=3)
+    langue: str = Field(default="fr", min_length=2)
 
     @field_validator("texte", "user_id")
     @classmethod
@@ -261,7 +262,9 @@ def _save_event(db: Session, user_id: str, event: Dict[str, Any]) -> Dict[str, A
         "id": row.id,
         "user_id": row.user_id,
         "action": row.action,
-        "created_at": row.created_at.isoformat() if row.created_at else None,
+        "created_at": row.created_at.isoformat()
+        if row.created_at is not None
+        else None,
         "event": event,
     }
 
@@ -282,7 +285,8 @@ def _load_events(db: Session, user_id: str) -> List[UserActionLog]:
 def _extract_meta(row: UserActionLog) -> Dict[str, Any]:
     """Décodage défensif du JSON d'un événement."""
     try:
-        data = json.loads(row.meta_json or "{}")
+        raw_meta = row.meta_json if isinstance(row.meta_json, str) else "{}"
+        data = json.loads(raw_meta or "{}")
         return data if isinstance(data, dict) else {}
     except Exception:
         return {}
@@ -379,7 +383,7 @@ def _build_report_text(summary: Dict[str, Any], events: List[UserActionLog]) -> 
     Construit un texte de synthèse pour l'IA ou le fallback PDF.
     """
     lines = [
-        f"Rapport mensuel FarmManager",
+        "Rapport mensuel FarmManager",
         f"Utilisateur: {summary['user_id']}",
         f"Mois: {summary['mois']}",
         "",
@@ -398,8 +402,12 @@ def _build_report_text(summary: Dict[str, Any], events: List[UserActionLog]) -> 
 
     for row in events[:10]:
         meta = _extract_meta(row)
+        created_at = getattr(row, "created_at", None)
+        created_at_txt = (
+            created_at.isoformat() if isinstance(created_at, datetime) else ""
+        )
         lines.append(
-            f"- {meta.get('date_evenement', row.created_at.isoformat() if row.created_at else '')} | "
+            f"- {meta.get('date_evenement', created_at_txt)} | "
             f"{meta.get('animal_id', 'animal inconnu')} | "
             f"{meta.get('type_evenement', 'événement')} | "
             f"{_normalize_text(str(meta.get('details') or ''))[:120]}"
@@ -445,7 +453,7 @@ def _build_openai_prompt_for_report(
             {
                 "date": _extract_meta(evt).get(
                     "date_evenement",
-                    evt.created_at.isoformat() if evt.created_at else "",
+                    evt.created_at.isoformat() if evt.created_at is not None else "",
                 ),
                 "animal_id": _extract_meta(evt).get("animal_id", ""),
                 "type_evenement": _extract_meta(evt).get("type_evenement", ""),
@@ -491,7 +499,7 @@ def _write_pdf_report(path: Path, title: str, body: str) -> None:
 
 
 async def traiter_evenement_vocal(
-    texte: str, user_id: str, db: Session
+    texte: str, user_id: str, langue: str, db: Session
 ) -> Dict[str, Any]:
     """
     Extrait l'événement depuis un texte dicté, sauvegarde en base et retourne
@@ -499,6 +507,7 @@ async def traiter_evenement_vocal(
     """
     texte = _normalize_text(texte)
     user_id = _normalize_text(user_id)
+    langue = _normalize_text(langue or "fr") or "fr"
 
     if not texte:
         raise HTTPException(
@@ -623,8 +632,9 @@ async def generer_rapport_mensuel(user_id: str, mois: str, db: Session) -> Path:
     selected: List[UserActionLog] = []
     for row in all_events:
         meta = _extract_meta(row)
+        created_at = getattr(row, "created_at", None)
         raw_date = meta.get("date_evenement") or (
-            row.created_at.isoformat() if row.created_at else None
+            created_at.isoformat() if isinstance(created_at, datetime) else None
         )
         if not raw_date:
             continue
@@ -674,7 +684,7 @@ async def generer_rapport_mensuel(user_id: str, mois: str, db: Session) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
     pdf_path = output_dir / f"rapport_farmmanager_{user_id}_{mois}.pdf"
 
-    title = f"FeedFormula AI — Rapport mensuel FarmManager ({mois})"
+    title = "FeedFormula AI — Rapport mensuel FarmManager ({})".format(mois)
     _write_pdf_report(pdf_path, title, report_text)
     return pdf_path
 
@@ -688,7 +698,9 @@ async def evenement_vocal(
 ) -> Dict[str, Any]:
     """Enregistre un événement dicté à la voix."""
     try:
-        event = await traiter_evenement_vocal(payload.texte, payload.user_id, db)
+        event = await traiter_evenement_vocal(
+            payload.texte, payload.user_id, payload.langue, db
+        )
         return {
             "message": "Événement vocal traité avec succès.",
             "event": event,
@@ -719,8 +731,9 @@ def lister_evenements(
             filtered_rows: List[UserActionLog] = []
             for row in rows:
                 meta = _extract_meta(row)
+                created_at = getattr(row, "created_at", None)
                 raw_date = meta.get("date_evenement") or (
-                    row.created_at.isoformat() if row.created_at else None
+                    created_at.isoformat() if isinstance(created_at, datetime) else None
                 )
                 if not raw_date:
                     continue
@@ -761,9 +774,11 @@ def lister_evenements(
                 {
                     "id": row.id,
                     "action": row.action,
-                    "created_at": row.created_at.isoformat()
-                    if row.created_at
-                    else None,
+                    "created_at": (
+                        getattr(row, "created_at", None).isoformat()
+                        if isinstance(getattr(row, "created_at", None), datetime)
+                        else None
+                    ),
                     "event": _extract_meta(row),
                 }
                 for row in rows
@@ -893,10 +908,41 @@ async def rapport_mensuel(
         )
 
 
-__all__ = [
-    "router",
-    "traiter_evenement_vocal",
-    "generer_rapport_mensuel",
-    "VocalEventRequest",
-    "MonthlyReportRequest",
-]
+@router.post("/evenement")
+async def evenement(
+    payload: VocalEventRequest, db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """Alias POST /farmmanager/evenement."""
+    return await evenement_vocal(payload, db)
+
+
+@router.get("/finances/{user_id}")
+def finances(user_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
+    """Retourne l'analyse financière complète."""
+    rows = _load_events(db, user_id)
+    dashboard = _financial_dashboard(rows)
+    return {
+        "user_id": user_id,
+        "dashboard_financier": dashboard,
+        "analyse": {
+            "cout_revient_par_kg_viande": 0.0,
+            "cout_revient_par_litre_lait": 0.0,
+            "marge_brute": dashboard.get("revenus_ventes_animaux", 0)
+            - dashboard.get("cout_total_alimentation_mois", 0),
+            "marge_nette": dashboard.get("marge_nette_estimee", 0),
+            "benchmarks": "à compléter localement",
+            "optimisations": [
+                "Réduire les pertes d'aliment.",
+                "Sécuriser la saisie des ventes et achats.",
+                "Suivre les traitements et coûts vétérinaires séparément.",
+            ],
+        },
+    }
+
+
+@router.post("/rapport-mensuel")
+async def rapport_mensuel_post(
+    payload: MonthlyReportRequest, db: Session = Depends(get_db)
+) -> FileResponse:
+    """Alias POST /farmmanager/rapport-mensuel."""
+    return await rapport_mensuel(payload.user_id, payload.mois, db)

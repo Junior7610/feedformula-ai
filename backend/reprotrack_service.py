@@ -18,7 +18,7 @@ dans une application FastAPI existante.
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional
 
 # -----------------------------------------------------------------------------
 # Imports locaux
@@ -426,6 +426,48 @@ class ReproTrackService:
             "total_evenements": len(evenements),
             "evenements": items,
         }
+
+    def animaux_par_user(self, db: Session, user_id: str) -> Dict[str, Any]:
+        """Retourne un regroupement des animaux suivis par l'utilisateur."""
+        evenements = self.lister_evenements(db, user_id, limit=500)
+        animaux: Dict[str, Dict[str, Any]] = {}
+        for evt in evenements:
+            ident = _clean_text(getattr(evt, "animal_id", "")) or "animal inconnu"
+            entry = animaux.setdefault(
+                ident,
+                {
+                    "animal_id": ident,
+                    "espece": getattr(evt, "espece", ""),
+                    "evenements": 0,
+                    "dernier_evenement": None,
+                },
+            )
+            entry["evenements"] += 1
+            date_evt = getattr(evt, "date_evenement", None)
+            if date_evt is not None:
+                current = entry.get("dernier_evenement")
+                iso = date_evt.isoformat()
+                if current is None or iso > current:
+                    entry["dernier_evenement"] = iso
+        return {
+            "user_id": user_id,
+            "total_animaux": len(animaux),
+            "animaux": list(animaux.values()),
+        }
+
+    def get_calendrier_reproduction(self, db: Session, user_id: str) -> Dict[str, Any]:
+        """Alias lisible pour le calendrier reproduction."""
+        return self.calendrier_mensuel(db, user_id)
+
+    def get_alertes_reprotrack(self, db: Session, user_id: str) -> List[Dict[str, Any]]:
+        """Alias lisible pour les alertes reproduction."""
+        return self.obtenir_alertes(db, user_id)
+
+    def calculer_statistiques_troupeau(
+        self, user_id: str, db: Session
+    ) -> Dict[str, Any]:
+        """Alias lisible pour les statistiques du troupeau."""
+        return self.calculer_taux_gestation(user_id, db)
 
 
 # Instance globale

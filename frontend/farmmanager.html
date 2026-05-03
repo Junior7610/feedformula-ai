@@ -256,7 +256,7 @@
                     `/farmmanager/evenements/${encodeURIComponent(userId)}?${params.toString()}`,
                 ).then((r) => r.json());
                 const stats = await fetch(
-                    `/farmmanager/stats/${encodeURIComponent(userId)}`,
+                    `/farmmanager/finances/${encodeURIComponent(userId)}`,
                 ).then((r) => r.json());
                 renderEvents(cal.evenements || []);
                 renderDashboard(stats || {});
@@ -271,7 +271,7 @@
                     texte: voiceText.value || "",
                     user_id: userId,
                 };
-                const res = await fetch("/farmmanager/evenement-vocal", {
+                const res = await fetch("/farmmanager/evenement", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload),
