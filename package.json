@@ -9,7 +9,7 @@
     "dev": "concurrently \"npm run frontend\" \"npm run backend\"",
     "frontend": "cd frontend && npm start",
     "backend": "cd backend && uvicorn main:app --reload --port 8000",
-    "build": "cd frontend && npm run build",
+    "build": "node -e \"process.stdout.write('Static frontend handled by vercel.json\\n')\"",
     "test": "echo \"Tests à configurer au Jour 7\""
   },
   "keywords": [
