@@ -12,12 +12,24 @@
     {
       "src": "frontend/**",
       "use": "@vercel/static"
+    },
+    {
+      "src": "static/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
     {
+      "src": "/app",
+      "dest": "/frontend/index.html"
+    },
+    {
       "src": "/app/(.*)",
       "dest": "/frontend/$1"
+    },
+    {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
     },
     {
       "src": "/api/(.*)",
@@ -27,11 +39,5 @@
       "src": "/(.*)",
       "dest": "/backend/main.py"
     }
-  ],
-  "env": {
-    "AFRI_API_KEY": "@afri_api_key",
-    "AFRI_BASE_URL": "@afri_base_url",
-    "MODEL_LLM": "gpt-5.5",
-    "MODEL_CODEX": "gpt-5.3-codex"
-  }
+  ]
 }

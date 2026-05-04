@@ -275,7 +275,7 @@
 
   function registerServiceWorker() {
     if (!('serviceWorker' in navigator)) return;
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
+    navigator.serviceWorker.register('./service_worker.js').catch(() => {});
   }
 
   async function warmUpData() {
@@ -1118,6 +1118,14 @@
 
   function boot() {
     registerServiceWorker();
+    try {
+      const liveScript = document.createElement('script');
+      liveScript.defer = true;
+      liveScript.src = './gamification_live.js';
+      document.head.appendChild(liveScript);
+    } catch (error) {
+      console.warn('[FeedFormula Live]', error);
+    }
     bindRationPage();
     bindVetScanPage();
     bindReproTrackPage();

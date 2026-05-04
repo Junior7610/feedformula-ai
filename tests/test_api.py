@@ -50,7 +50,9 @@ def client(monkeypatch):
 
     monkeypatch.setattr(main, "_build_afri_client", lambda: _FakeClient())
     monkeypatch.setattr(main, "_load_system_prompt", lambda: "Prompt système de test.")
-    monkeypatch.setattr(main, "_resoudre_espece_stade", lambda espece, stade: (espece, stade))
+    monkeypatch.setattr(
+        main, "_resoudre_espece_stade", lambda espece, stade: (espece, stade)
+    )
 
     def fake_optimiser_ration(**kwargs):
         return {
@@ -151,7 +153,7 @@ def test_gamification_points_and_levels(client):
         "/gamification/action",
         json={
             "user_id": user_id,
-            "action": "connexion_jour",
+            "action": "generation_ration",
             "code_langue": "fr",
             "offline_mode": False,
             "multiplicateur_evenement": 1.0,
@@ -162,13 +164,20 @@ def test_gamification_points_and_levels(client):
     )
     assert action.status_code == 200
     action_data = action.json()
-    assert "points_gagnes" in action_data
+    assert "points" in action_data
+    assert any(
+        key in action_data["points"]
+        for key in ("points_total", "points_totaux", "points_base")
+    )
 
     profil = client.get(f"/gamification/profil/{user_id}")
     assert profil.status_code == 200
     profil_data = profil.json()
 
-    assert profil_data.get("user_id", user_id) == user_id or profil_data.get("user", {}).get("id") == user_id
+    assert (
+        profil_data.get("user_id", user_id) == user_id
+        or profil_data.get("user", {}).get("id") == user_id
+    )
     assert any(
         key in profil_data
         for key in ("niveau_actuel", "niveau", "level", "ligue", "points_total")

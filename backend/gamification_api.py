@@ -240,6 +240,25 @@ def _attribuer_nouveaux_trophees(db: Session, user_id: str) -> List[Dict[str, An
     return attribues
 
 
+def _broadcast_live_update(
+    user_id: str, event_type: str, payload: Dict[str, Any]
+) -> None:
+    try:
+        from gamification_live import notify_user_update
+
+        notify_user_update(
+            user_id,
+            {
+                "type": event_type,
+                "user_id": user_id,
+                "payload": payload,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            },
+        )
+    except Exception:
+        pass
+
+
 def _calculer_ligue(points_total: int) -> Dict[str, Any]:
     """
     Calcule la ligue via le moteur central de gamification.
@@ -318,6 +337,9 @@ def enregistrer_action(
             detail="Utilisateur introuvable.",
         )
 
+    ancien_niveau = _safe_int(getattr(user, "niveau_actuel", 1), 1)
+    user_state: Any = user
+
     # Contexte anti-abus persistant (basé sur les logs DB).
     nb_actions_24h = count_user_actions_last_24h(db, payload.user_id)
     last_same_action_at = get_last_action_at(db, payload.user_id, payload.action)
@@ -326,6 +348,8 @@ def enregistrer_action(
         cooldown_actif = (
             datetime.now(timezone.utc).replace(tzinfo=None) - last_same_action_at
         ) < timedelta(seconds=20)
+    if payload.action == "connexion_jour":
+        cooldown_actif = False
 
     # Contexte pour le moteur de points.
     contexte = {
@@ -346,7 +370,9 @@ def enregistrer_action(
             detail=str(exc),
         )
 
-    points_total_action = _safe_int(points_info.get("points_total", 0), 0)
+    points_total_action = _safe_int(
+        points_info.get("points_total", points_info.get("points_totaux", 0)), 0
+    )
     if points_total_action <= 0:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -369,9 +395,9 @@ def enregistrer_action(
 
     # Persistance région utilisateur.
     if payload.region:
-        user.region = _normaliser_region(payload.region)
+        setattr(user_state, "region", _normaliser_region(payload.region))
         db.commit()
-        db.refresh(user)
+        db.refresh(user_state)
 
     # Gestion de série pour connexion journalière.
     serie_info: Optional[Dict[str, Any]] = None
@@ -386,9 +412,13 @@ def enregistrer_action(
             elif diff == 1:
                 serie_calculee = _safe_int(getattr(user, "serie_actuelle", 0), 0) + 1
             elif diff == 2 and _safe_int(getattr(user, "graines_secours", 0), 0) > 0:
-                user.graines_secours = max(0, _safe_int(user.graines_secours, 0) - 1)
+                setattr(
+                    user_state,
+                    "graines_secours",
+                    max(0, _safe_int(getattr(user_state, "graines_secours", 0), 0) - 1),
+                )
                 db.commit()
-                db.refresh(user)
+                db.refresh(user_state)
                 serie_calculee = _safe_int(getattr(user, "serie_actuelle", 0), 0) + 1
             else:
                 serie_calculee = 1
@@ -397,7 +427,9 @@ def enregistrer_action(
         update_user_last_login(db, payload.user_id)
         serie_info = {
             "serie_actuelle": serie_calculee,
-            "graines_restantes": _safe_int(getattr(user, "graines_secours", 0), 0),
+            "graines_restantes": _safe_int(
+                getattr(user_state, "graines_secours", 0), 0
+            ),
         }
 
     # Persistance points utilisateur.
@@ -430,6 +462,31 @@ def enregistrer_action(
     # Données niveau/progression.
     niveau_info = ENGINE.determiner_niveau(_safe_int(user_updated.points_total, 0))
     ligue = _calculer_ligue(_safe_int(user_updated.points_total, 0))
+
+    _broadcast_live_update(
+        payload.user_id,
+        "points_update",
+        {
+            "points_gagnes": points_total_action,
+            "points_total": _safe_int(user_updated.points_total, 0),
+            "niveau": niveau_info,
+            "ligue": ligue,
+        },
+    )
+    niveau_actuel_apres = _safe_int(
+        niveau_info.get(
+            "niveau_actuel", getattr(user_updated, "niveau_actuel", ancien_niveau)
+        ),
+        ancien_niveau,
+    )
+    if niveau_actuel_apres > ancien_niveau:
+        _broadcast_live_update(payload.user_id, "level_up", {"niveau": niveau_info})
+    if nouveaux_trophees:
+        for trophee in nouveaux_trophees:
+            _broadcast_live_update(payload.user_id, "trophy_unlocked", trophee)
+    _broadcast_live_update(
+        payload.user_id, "ranking_refresh", {"user_id": payload.user_id}
+    )
 
     return {
         "message": "Action enregistrée avec succès.",
@@ -627,6 +684,18 @@ def completer_defi(
 
     # Ré-évalue trophées.
     nouveaux_trophees = _attribuer_nouveaux_trophees(db, payload.user_id)
+
+    _broadcast_live_update(
+        payload.user_id,
+        "challenge_completed",
+        {
+            "defi_numero": payload.defi_numero,
+            "bonus_points": bonus_points,
+            "user": serialize_user(user_updated)
+            if user_updated
+            else serialize_user(user),
+        },
+    )
 
     return {
         "message": "Défi complété avec succès.",

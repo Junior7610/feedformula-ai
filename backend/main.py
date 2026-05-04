@@ -88,6 +88,7 @@ get_prompt_pour_langue = importlib.import_module(
     "langue_detector"
 ).get_prompt_pour_langue
 notification_router = importlib.import_module("notification_service").router
+gamification_live_router = importlib.import_module("gamification_live").router
 NutritionEngine = importlib.import_module("nutrition_engine").NutritionEngine
 paiement_router = importlib.import_module("paiement_service").router
 pasturemap_router = importlib.import_module("pasturemap_service").router
@@ -132,6 +133,15 @@ RATION_CACHE_PREFIX = "feedformula:ration:"
 RATION_CACHE_MEMORY: Dict[str, Dict[str, Any]] = {}
 REDIS_CACHE_URL = (os.getenv("REDIS_URL") or os.getenv("REDIS_CACHE_URL") or "").strip()
 REDIS_CACHE_CLIENT: Any = None
+
+# Caches applicatifs génériques pour les services métier.
+APP_CACHE: Dict[str, Any] = {
+    "prix_marche": {},
+    "rations_similaires": {},
+    "farmacademy_contenus": {},
+    "messages_aya": {},
+    "notifications_du_jour": {},
+}
 
 
 def _get_redis_cache_client() -> Any:
@@ -719,6 +729,7 @@ app.include_router(community_router)
 app.include_router(academy_router)
 app.include_router(paiement_router)
 app.include_router(notification_router)
+app.include_router(gamification_live_router)
 app.include_router(marche_router)
 
 
