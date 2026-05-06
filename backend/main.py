@@ -30,7 +30,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import Response
+from fastapi.responses import RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 
@@ -746,6 +746,12 @@ app.include_router(marche_router)
 # -----------------------------------------------------------------------------
 # Endpoints
 # -----------------------------------------------------------------------------
+@app.get("/")
+def racine() -> RedirectResponse:
+    """Redirige la racine vers l’interface web principale."""
+    return RedirectResponse(url="/app", status_code=307)
+
+
 @app.get("/sante")
 @app.get("/health")
 def sante() -> Dict[str, Any]:
