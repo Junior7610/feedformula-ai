@@ -14,6 +14,10 @@
       "use": "@vercel/static"
     },
     {
+      "src": "assets/**",
+      "use": "@vercel/static"
+    },
+    {
       "src": "static/**",
       "use": "@vercel/static"
     }
@@ -24,12 +28,20 @@
       "dest": "/frontend/index.html"
     },
     {
+      "src": "/app/",
+      "dest": "/frontend/index.html"
+    },
+    {
       "src": "/app/(.*)",
       "dest": "/frontend/$1"
     },
     {
       "src": "/static/(.*)",
       "dest": "/static/$1"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
     },
     {
       "src": "/api/(.*)",

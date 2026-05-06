@@ -749,7 +749,7 @@ app.include_router(marche_router)
 @app.get("/")
 def racine() -> RedirectResponse:
     """Redirige la racine vers l’interface web principale."""
-    return RedirectResponse(url="/app", status_code=307)
+    return RedirectResponse(url="/app/", status_code=307)
 
 
 @app.get("/sante")
