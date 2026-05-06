@@ -10,3 +10,4 @@ reportlab==4.2.5
 redis==5.0.8
 python-multipart==0.0.12
 openai==1.55.3
+psycopg2-binary==2.9.9

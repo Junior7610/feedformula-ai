@@ -5,7 +5,7 @@
 Module base de données de FeedFormula AI.
 
 Ce module fournit :
-- La configuration SQLAlchemy (SQLite en développement),
+- La configuration SQLAlchemy avec PostgreSQL en production et SQLite en développement,
 - Les modèles ORM des tables métier,
 - L'initialisation de la base,
 - Les fonctions CRUD principales.
@@ -46,24 +46,32 @@ from sqlalchemy.orm import Session, declarative_base, relationship, sessionmaker
 # Racine du projet : .../feedformula-ai
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
-# Fichier SQLite par défaut pour le développement local.
-DATA_DIR = ROOT_DIR / "data"
-DATA_DIR.mkdir(parents=True, exist_ok=True)
+# On lit l'environnement une seule fois pour décider du moteur SQLAlchemy.
+APP_ENV: str = (os.getenv("APP_ENV", "development") or "development").strip().lower()
 
-DEFAULT_SQLITE_PATH = DATA_DIR / "feedformula.db"
-DEFAULT_DATABASE_URL = f"sqlite:///{DEFAULT_SQLITE_PATH.as_posix()}"
 
-# Possibilité de surcharger via variable d'environnement.
-DATABASE_URL = (
-    os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL).strip() or DEFAULT_DATABASE_URL
-)
+def _resolve_database_url() -> str:
+    """Retourne l'URL de base de données selon l'environnement."""
+    if APP_ENV == "production":
+        database_url = (os.getenv("DATABASE_URL") or "").strip()
+        if not database_url:
+            raise RuntimeError(
+                "La variable d'environnement DATABASE_URL est requise en production."
+            )
+        return database_url
+    return "sqlite:///./feedformula.db"
 
-# Option nécessaire pour SQLite en environnement web multithread.
+
+DATABASE_URL: str = _resolve_database_url()
+
+# Les options SQLite sont nécessaires uniquement en local.
 connect_args: Dict[str, Any] = {}
 if DATABASE_URL.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
 
+# SQLAlchemy reçoit des options SQLite seulement lorsque le moteur est SQLite.
 engine = create_engine(DATABASE_URL, future=True, connect_args=connect_args)
+
 SessionLocal = sessionmaker(
     bind=engine, autoflush=False, autocommit=False, expire_on_commit=False, future=True
 )

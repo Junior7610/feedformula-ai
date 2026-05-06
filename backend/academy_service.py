@@ -17,6 +17,7 @@ from __future__ import annotations
 import io
 import os
 import re
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, cast
@@ -39,8 +40,17 @@ from sqlalchemy.orm import Session
 router = APIRouter(prefix="/academy", tags=["FarmAcademy"])
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
+APP_ENV = (os.getenv("APP_ENV", "development") or "development").strip().lower()
 DATA_DIR = ROOT_DIR / "data"
-CERTIFICATS_DIR = DATA_DIR / "academy_certificats"
+
+# En production sur Vercel, le code est déployé sur un système de fichiers en lecture seule.
+# On bascule donc les fichiers générés vers un dossier temporaire inscriptible.
+if APP_ENV == "production":
+    BASE_STORAGE_DIR = Path(tempfile.gettempdir()) / "feedformula_ai"
+else:
+    BASE_STORAGE_DIR = DATA_DIR
+
+CERTIFICATS_DIR = BASE_STORAGE_DIR / "academy_certificats"
 CERTIFICATS_DIR.mkdir(parents=True, exist_ok=True)
 
 AFRI_BASE_URL = (

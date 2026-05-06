@@ -13,6 +13,7 @@ import base64
 import io
 import json
 import os
+import tempfile
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -35,7 +36,16 @@ from sqlalchemy.orm import Session
 router = APIRouter(prefix="/farmcast", tags=["FarmCast"])
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
-STATIC_DIR = ROOT_DIR / "static" / "farmcast"
+APP_ENV = (os.getenv("APP_ENV", "development") or "development").strip().lower()
+
+# En production, on évite d'écrire dans l'arborescence du déploiement Vercel,
+# car elle est en lecture seule au runtime.
+if APP_ENV == "production":
+    STATIC_BASE_DIR = Path(tempfile.gettempdir()) / "feedformula_ai" / "farmcast"
+else:
+    STATIC_BASE_DIR = ROOT_DIR / "static" / "farmcast"
+
+STATIC_DIR = STATIC_BASE_DIR
 AUDIO_DIR = STATIC_DIR / "audio"
 IMAGE_DIR = STATIC_DIR / "images"
 PDF_DIR = STATIC_DIR / "pdf"
@@ -319,6 +329,7 @@ def contenus(user_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
     rows = list_farmcast_contenus(db, user_id, limit=20)
     contenus = []
     for row in rows:
+        images_json: str = cast(str, row.images_json or "[]")
         contenus.append(
             {
                 "id": row.id,
@@ -328,7 +339,8 @@ def contenus(user_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
                 "public_cible": row.public_cible,
                 "script": row.script,
                 "audio_url": row.audio_url,
-                "images_urls": json.loads(row.images_json or "[]"),
+                # On force une chaîne typée pour satisfaire le vérificateur statique.
+                "images_urls": json.loads(images_json),
                 "fiche_url": row.fiche_url,
                 "whatsapp_link": row.whatsapp_link,
                 "points_gagnes": row.points_gagnes,
