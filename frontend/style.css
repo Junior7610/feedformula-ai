@@ -712,17 +712,27 @@ textarea.text-input {
    Espèces animales
    ========================================================= */
 
-.species-grid {
+.species-section {
+    display: grid;
+    gap: 16px;
+}
+
+.species-grid,
+.species-grid-cards {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
 }
 
+.species-grid-cards {
+    align-items: stretch;
+}
+
 .species-card {
-    min-height: 100px;
-    padding: 12px 10px;
+    min-height: 112px;
+    padding: 14px 10px;
     border-radius: var(--radius-md);
-    border: 1px solid rgba(27, 94, 32, 0.16);
+    border: 1px solid rgba(27, 94, 32, 0.14);
     background: linear-gradient(180deg, #fff, #fbfffb);
     color: var(--color-text);
     display: flex;
@@ -737,12 +747,26 @@ textarea.text-input {
         box-shadow var(--transition-base),
         border-color var(--transition-base),
         background var(--transition-base);
-    font-size: 1rem;
-    font-weight: 700;
+    font-size: 0.98rem;
+    font-weight: 800;
+    cursor: pointer;
+    touch-action: manipulation;
 }
 
-.species-card span {
-    line-height: 1.15;
+.species-card:hover {
+    border-color: rgba(27, 94, 32, 0.24);
+    box-shadow: 0 10px 22px rgba(27, 94, 32, 0.09);
+    transform: translateY(-1px);
+}
+
+.species-emoji {
+    font-size: 1.9rem;
+    line-height: 1;
+}
+
+.species-name {
+    line-height: 1.2;
+    font-size: 0.95rem;
 }
 
 .species-card.is-active {
@@ -2083,12 +2107,13 @@ textarea.text-input {
     }
 
     .species-grid,
+    .species-grid-cards,
     .profile-stats,
     .result-grid,
     .objective-group,
     .module-grid,
     .academy-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
     .action-row {
@@ -2132,7 +2157,8 @@ textarea.text-input {
         grid-template-columns: repeat(6, minmax(0, 1fr));
     }
 
-    .species-grid {
+    .species-grid,
+    .species-grid-cards {
         grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 

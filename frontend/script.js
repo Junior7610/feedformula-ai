@@ -55,13 +55,7 @@
       icon: "🥚",
       stages: ["Pré-ponte", "Ponte active", "Fin de ponte"],
       baseCost: 540,
-      ingredients: [
-        "maïs",
-        "tourteau soja",
-        "calcium",
-        "son de riz",
-        "phosphate",
-      ],
+      ingredients: ["maïs", "tourteau soja", "calcium", "son de riz", "phosphate"],
       profileKey: "pondeuse",
     },
     pintade: {
@@ -69,27 +63,71 @@
       icon: "🦜",
       stages: ["Démarrage", "Croissance", "Production"],
       baseCost: 590,
-      ingredients: [
-        "maïs",
-        "tourteau arachide",
-        "son de blé",
-        "minéral",
-        "huile",
-      ],
+      ingredients: ["maïs", "tourteau arachide", "son de blé", "minéral", "huile"],
       profileKey: "pintade",
+    },
+    canard: {
+      label: "Canard",
+      icon: "🦆",
+      stages: ["Démarrage", "Croissance", "Finition"],
+      baseCost: 600,
+      ingredients: ["maïs", "tourteau soja", "son de riz", "huile", "minéral"],
+      profileKey: "canard",
+    },
+    dinde: {
+      label: "Dinde",
+      icon: "🦃",
+      stages: ["Démarrage", "Croissance", "Finition"],
+      baseCost: 680,
+      ingredients: ["maïs", "tourteau soja", "son de blé", "lysine", "huile"],
+      profileKey: "dinde",
+    },
+    oie: {
+      label: "Oie",
+      icon: "🪿",
+      stages: ["Démarrage", "Croissance", "Finition"],
+      baseCost: 640,
+      ingredients: ["maïs", "son de blé", "tourteau soja", "minéral", "huile"],
+      profileKey: "oie",
+    },
+    caille: {
+      label: "Caille",
+      icon: "🐦",
+      stages: ["Démarrage", "Ponte", "Finition"],
+      baseCost: 450,
+      ingredients: ["mil", "maïs", "tourteau soja", "pré-mix", "calcium"],
+      profileKey: "caille",
+    },
+    pigeon: {
+      label: "Pigeon",
+      icon: "🕊️",
+      stages: ["Démarrage", "Croissance", "Reproduction"],
+      baseCost: 430,
+      ingredients: ["maïs", "mil", "tourteau soja", "minéral", "graines"],
+      profileKey: "pigeon",
+    },
+    faisan: {
+      label: "Faisan",
+      icon: "🦚",
+      stages: ["Démarrage", "Croissance", "Finition"],
+      baseCost: 620,
+      ingredients: ["maïs", "tourteau soja", "son de blé", "huile", "minéral"],
+      profileKey: "faisan",
+    },
+    lapin: {
+      label: "Lapin",
+      icon: "🐰",
+      stages: ["Sevrage", "Croissance", "Reproduction"],
+      baseCost: 510,
+      ingredients: ["foin", "maïs", "tourteau soja", "son de blé", "carotte"],
+      profileKey: "lapin",
     },
     vache: {
       label: "Vache laitière",
       icon: "🐄",
       stages: ["Vêlage", "Lactation", "Tarissement"],
       baseCost: 780,
-      ingredients: [
-        "maïs",
-        "tourteau coton",
-        "herbe sèche",
-        "son de blé",
-        "minéral",
-      ],
+      ingredients: ["maïs", "tourteau coton", "herbe sèche", "son de blé", "minéral"],
       profileKey: "vache",
     },
     mouton: {
@@ -97,13 +135,7 @@
       icon: "🐑",
       stages: ["Agneau", "Croissance", "Engraissement"],
       baseCost: 470,
-      ingredients: [
-        "maïs",
-        "son de riz",
-        "tourteau soja",
-        "sels minéraux",
-        "herbe",
-      ],
+      ingredients: ["maïs", "son de riz", "tourteau soja", "sels minéraux", "herbe"],
       profileKey: "mouton",
     },
     chevre: {
@@ -111,13 +143,7 @@
       icon: "🐐",
       stages: ["Chevreau", "Croissance", "Lactation"],
       baseCost: 490,
-      ingredients: [
-        "maïs",
-        "tourteau soja",
-        "feuilles sèches",
-        "son de blé",
-        "minéral",
-      ],
+      ingredients: ["maïs", "tourteau soja", "feuilles sèches", "son de blé", "minéral"],
       profileKey: "chevre",
     },
     porc: {
@@ -125,13 +151,7 @@
       icon: "🐷",
       stages: ["Démarrage", "Croissance", "Finition"],
       baseCost: 730,
-      ingredients: [
-        "maïs",
-        "tourteau soja",
-        "son de blé",
-        "acides aminés",
-        "pré-mix",
-      ],
+      ingredients: ["maïs", "tourteau soja", "son de blé", "acides aminés", "pré-mix"],
       profileKey: "porc",
     },
     tilapia: {
@@ -139,13 +159,7 @@
       icon: "🐟",
       stages: ["Alevin", "Croissance", "Finition"],
       baseCost: 650,
-      ingredients: [
-        "farine poisson",
-        "maïs",
-        "son de riz",
-        "huile",
-        "vitamines",
-      ],
+      ingredients: ["farine poisson", "maïs", "son de riz", "huile", "vitamines"],
       profileKey: "tilapia",
     },
   };
@@ -1188,6 +1202,13 @@
     if (normalized.includes("pondeuse") || normalized.includes("poule"))
       return "pondeuse";
     if (normalized.includes("pintade")) return "pintade";
+    if (normalized.includes("canard")) return "canard";
+    if (normalized.includes("dinde")) return "dinde";
+    if (normalized.includes("oie")) return "oie";
+    if (normalized.includes("caille")) return "caille";
+    if (normalized.includes("pigeon")) return "pigeon";
+    if (normalized.includes("faisan")) return "faisan";
+    if (normalized.includes("lapin")) return "lapin";
     if (normalized.includes("vache") || normalized.includes("lait"))
       return "vache";
     if (normalized.includes("mouton")) return "mouton";
@@ -1595,8 +1616,11 @@
       Croissance: 4,
       Finition: 2,
       "Pré-ponte": 5,
+      Ponte: 4,
       "Ponte active": 3,
       "Fin de ponte": 2,
+      Sevrage: 5,
+      Reproduction: 4,
       Lactation: 6,
       Tarissement: 3,
       Vêlage: 5,

@@ -8,7 +8,7 @@
  * - Accélérer le chargement des ressources statiques
  */
 
-const CACHE_VERSION = "feedformula-ai-v4";
+const CACHE_VERSION = "feedformula-ai-v5";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
