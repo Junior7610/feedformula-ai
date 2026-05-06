@@ -329,7 +329,7 @@ def contenus(user_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
     rows = list_farmcast_contenus(db, user_id, limit=20)
     contenus = []
     for row in rows:
-        images_json: str = cast(str, row.images_json or "[]")
+        images_json = row.images_json if isinstance(row.images_json, str) else "[]"
         contenus.append(
             {
                 "id": row.id,
