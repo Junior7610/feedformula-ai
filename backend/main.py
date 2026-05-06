@@ -693,9 +693,19 @@ if os.path.exists(frontend_path):
 if os.path.exists(static_path):
     app.mount("/static", StaticFiles(directory=static_path), name="static")
 
-# Initialisation base de données au démarrage.
+# Initialisation de la base au démarrage.
+# En production serverless, on évite de bloquer le démarrage si la base
+# est momentanément indisponible : l'erreur est signalée mais ne stoppe pas la fonction.
 if os.getenv("SKIP_DB_INIT", "0").strip() != "1" and APP_ENV not in {"test", "testing"}:
-    init_db()
+    try:
+        init_db()
+    except Exception as exc:
+        if APP_ENV == "production":
+            print(
+                f"[database] Initialisation ignorée au démarrage en production: {exc}"
+            )
+        else:
+            raise
 
 # CORS permissif en phase de dev (index.html local + serveurs locaux).
 # En production, remplacez par une liste explicite d'origines.
