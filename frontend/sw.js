@@ -8,7 +8,7 @@
  * - Accélérer le chargement des ressources statiques
  */
 
-const CACHE_VERSION = "feedformula-ai-v1";
+const CACHE_VERSION = "feedformula-ai-v2";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -21,8 +21,8 @@ const CORE_ASSETS = [
   "./classement.html",
   "./farmacademy.html",
   "./modules.html",
-  "./style.css",
-  "./script.js",
+  "./style.min.css",
+  "./script.min.js",
   "./api.js",
   "../assets/logo_feedformula_minimal.png",
   "../assets/aya_joie.png"
