@@ -39,7 +39,8 @@
       }
 
       const explicitAsset = img.dataset.asset || img.getAttribute("data-asset");
-      const explicitSrc = img.dataset.assetSrc || img.getAttribute("data-asset-src");
+      const explicitSrc =
+        img.dataset.assetSrc || img.getAttribute("data-asset-src");
       const source = explicitAsset || explicitSrc;
       if (source && !img.dataset.assetResolved) {
         const resolved = normalizeAssetName(source);
@@ -54,9 +55,9 @@
   function preloadAsset(path, as = "image") {
     const resolved = normalizeAssetName(path);
     if (!resolved) return null;
-    const exists = Array.from(document.head.querySelectorAll("link[rel='preload']")).some(
-      (link) => link.getAttribute("href") === resolved
-    );
+    const exists = Array.from(
+      document.head.querySelectorAll("link[rel='preload']"),
+    ).some((link) => link.getAttribute("href") === resolved);
     if (exists) return resolved;
 
     const link = document.createElement("link");
@@ -67,7 +68,18 @@
     return resolved;
   }
 
+  function ensureApiBase() {
+    if (window.API_BASE && String(window.API_BASE).trim()) return;
+
+    const host = window.location.hostname || "";
+    const isLocalHost =
+      host === "localhost" || host === "127.0.0.1" || host === "0.0.0.0";
+
+    window.API_BASE = isLocalHost ? "http://127.0.0.1:8000" : "/api";
+  }
+
   function register(root = document) {
+    ensureApiBase();
     applyLazyLoading(root);
 
     const criticalAssets = [
