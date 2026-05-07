@@ -55,7 +55,13 @@
       icon: "🥚",
       stages: ["Pré-ponte", "Ponte active", "Fin de ponte"],
       baseCost: 540,
-      ingredients: ["maïs", "tourteau soja", "calcium", "son de riz", "phosphate"],
+      ingredients: [
+        "maïs",
+        "tourteau soja",
+        "calcium",
+        "son de riz",
+        "phosphate",
+      ],
       profileKey: "pondeuse",
     },
     pintade: {
@@ -63,7 +69,13 @@
       icon: "🦜",
       stages: ["Démarrage", "Croissance", "Production"],
       baseCost: 590,
-      ingredients: ["maïs", "tourteau arachide", "son de blé", "minéral", "huile"],
+      ingredients: [
+        "maïs",
+        "tourteau arachide",
+        "son de blé",
+        "minéral",
+        "huile",
+      ],
       profileKey: "pintade",
     },
     canard: {
@@ -127,7 +139,13 @@
       icon: "🐄",
       stages: ["Vêlage", "Lactation", "Tarissement"],
       baseCost: 780,
-      ingredients: ["maïs", "tourteau coton", "herbe sèche", "son de blé", "minéral"],
+      ingredients: [
+        "maïs",
+        "tourteau coton",
+        "herbe sèche",
+        "son de blé",
+        "minéral",
+      ],
       profileKey: "vache",
     },
     mouton: {
@@ -135,7 +153,13 @@
       icon: "🐑",
       stages: ["Agneau", "Croissance", "Engraissement"],
       baseCost: 470,
-      ingredients: ["maïs", "son de riz", "tourteau soja", "sels minéraux", "herbe"],
+      ingredients: [
+        "maïs",
+        "son de riz",
+        "tourteau soja",
+        "sels minéraux",
+        "herbe",
+      ],
       profileKey: "mouton",
     },
     chevre: {
@@ -143,7 +167,13 @@
       icon: "🐐",
       stages: ["Chevreau", "Croissance", "Lactation"],
       baseCost: 490,
-      ingredients: ["maïs", "tourteau soja", "feuilles sèches", "son de blé", "minéral"],
+      ingredients: [
+        "maïs",
+        "tourteau soja",
+        "feuilles sèches",
+        "son de blé",
+        "minéral",
+      ],
       profileKey: "chevre",
     },
     porc: {
@@ -151,7 +181,13 @@
       icon: "🐷",
       stages: ["Démarrage", "Croissance", "Finition"],
       baseCost: 730,
-      ingredients: ["maïs", "tourteau soja", "son de blé", "acides aminés", "pré-mix"],
+      ingredients: [
+        "maïs",
+        "tourteau soja",
+        "son de blé",
+        "acides aminés",
+        "pré-mix",
+      ],
       profileKey: "porc",
     },
     tilapia: {
@@ -159,7 +195,13 @@
       icon: "🐟",
       stages: ["Alevin", "Croissance", "Finition"],
       baseCost: 650,
-      ingredients: ["farine poisson", "maïs", "son de riz", "huile", "vitamines"],
+      ingredients: [
+        "farine poisson",
+        "maïs",
+        "son de riz",
+        "huile",
+        "vitamines",
+      ],
       profileKey: "tilapia",
     },
   };
@@ -170,14 +212,32 @@
     yor: "Yorùbá",
     den: "Dendi",
     en: "English",
+    ha: "Hausa",
+    sw: "Swahili",
+    ar: "العربية",
+    es: "Español",
+    pt: "Português",
+    ig: "Igbo",
+    bm: "Bambara",
+    wo: "Wolof",
+    am: "አማርኛ",
   };
 
   const LOCALIZED_HINTS = {
     fr: "Décrivez vos animaux et vos ingrédients...",
-    fon: "Xɔ̀ yì xɔ̀n tɔ́n wá á kplọn...",
+    fon: "Xɔ̀ yì xɔ̀n tɔn wá á kplọn...",
     yor: "Ṣàpèjúwe ẹranko rẹ àti àwọn eroja rẹ...",
     den: "Baa bo kulu wono nda gandi...",
     en: "Describe your animals and ingredients...",
+    ha: "Bayyana dabbobinka da sinadaran ka...",
+    sw: "Eleza wanyama wako na viungo vyako...",
+    ar: "صف حيواناتك ومكوناتك...",
+    es: "Describe sus animales e ingredientes...",
+    pt: "Descreva seus animais e ingredientes...",
+    ig: "Kọwaa anụmanụ gị na ihe oriri gị...",
+    bm: "N kɛrɛka fɛnw ye aniw bɛɛ ni na...",
+    wo: "Décrire sa biddëek ak se ceet...",
+    am: "የእንስሳትዎን እና የንጥረ ነገሮችዎን ይግለጹ...",
   };
 
   const INGREDIENT_SUGGESTIONS = [
@@ -2008,7 +2068,23 @@
     }
 
     const utterance = new SpeechSynthesisUtterance(content);
-    utterance.lang = APP.selectedLanguage === "en" ? "en-US" : "fr-FR";
+    const voiceLangByCode = {
+      fr: "fr-FR",
+      fon: "fr-FR",
+      yor: "yo-NG",
+      den: "fr-FR",
+      en: "en-US",
+      ha: "ha-NG",
+      sw: "sw-KE",
+      ar: "ar-SA",
+      es: "es-ES",
+      pt: "pt-BR",
+      ig: "ig-NG",
+      bm: "fr-FR",
+      wo: "wo-SN",
+      am: "am-ET",
+    };
+    utterance.lang = voiceLangByCode[APP.selectedLanguage] || "fr-FR";
     utterance.rate = 1;
     utterance.pitch = 1;
     utterance.onstart = () => startMicState("processing");

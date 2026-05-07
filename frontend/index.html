@@ -192,6 +192,10 @@
                     Choisissez votre langue
                 </div>
 
+                <p class="section-subtitle" style="margin-bottom: 12px;">
+                    Choisissez une langue rapide, puis ouvrez la liste complète
+                    pour accéder à plus d'options.
+                </p>
                 <div
                     class="language-list"
                     role="list"
@@ -204,6 +208,14 @@
                         aria-pressed="true"
                     >
                         🇫🇷 FR
+                    </button>
+                    <button
+                        class="lang-item"
+                        type="button"
+                        data-lang="en"
+                        aria-pressed="false"
+                    >
+                        🇬🇧 EN
                     </button>
                     <button
                         class="lang-item"
@@ -224,18 +236,34 @@
                     <button
                         class="lang-item"
                         type="button"
-                        data-lang="den"
+                        data-lang="ha"
                         aria-pressed="false"
                     >
-                        🇧🇯 DEN
+                        🇳🇬 HA
                     </button>
                     <button
                         class="lang-item"
                         type="button"
-                        data-lang="en"
+                        data-lang="sw"
                         aria-pressed="false"
                     >
-                        🇬🇧 EN
+                        🇰🇪 SW
+                    </button>
+                    <button
+                        class="lang-item"
+                        type="button"
+                        data-lang="ar"
+                        aria-pressed="false"
+                    >
+                        🇴🇲 AR
+                    </button>
+                    <button
+                        class="lang-item"
+                        type="button"
+                        data-lang="den"
+                        aria-pressed="false"
+                    >
+                        🇧🇯 DEN
                     </button>
                     <button
                         class="lang-more"
@@ -244,8 +272,9 @@
                         data-lang-toggle
                         aria-expanded="false"
                         aria-controls="languagePanel"
+                        aria-label="Afficher davantage de langues"
                     >
-                        50 langues ▼
+                        Plus de langues ▼
                     </button>
                 </div>
 
@@ -263,6 +292,14 @@
                             data-lang-button
                         >
                             Français
+                        </button>
+                        <button
+                            class="lang-item"
+                            type="button"
+                            data-lang="en"
+                            data-lang-button
+                        >
+                            English
                         </button>
                         <button
                             class="lang-item"
@@ -287,14 +324,6 @@
                             data-lang-button
                         >
                             Dendi
-                        </button>
-                        <button
-                            class="lang-item"
-                            type="button"
-                            data-lang="en"
-                            data-lang-button
-                        >
-                            English
                         </button>
                         <button
                             class="lang-item"
@@ -363,10 +392,10 @@
                         <button
                             class="lang-item"
                             type="button"
-                            data-lang="sn"
+                            data-lang="am"
                             data-lang-button
                         >
-                            Shona
+                            Amharic
                         </button>
                         <button
                             class="lang-item"
