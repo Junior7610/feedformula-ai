@@ -1256,8 +1256,7 @@ textarea.text-input {
     border-color: var(--color-green);
 }
 
-.module-grid,
-.modules-grid {
+.module-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: 12px;
@@ -2173,8 +2172,7 @@ textarea.text-input {
         padding-inline: 20px;
     }
 
-    .module-grid,
-    .modules-grid {
+    .module-grid {
         grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
