@@ -17,6 +17,16 @@ def update_html(text: str) -> str:
     text = text.replace("src='script.js'", "src='script.min.js'")
     text = text.replace("./sw.js", "./service_worker.js")
 
+    if 'src="assets_manager.js"' not in text and "src='assets_manager.js'" not in text:
+        text = text.replace(
+            '<script defer src="script.min.js"></script>',
+            '<script defer src="assets_manager.js"></script>\n        <script defer src="script.min.js"></script>',
+        )
+        text = text.replace(
+            "<script defer src='script.min.js'></script>",
+            "<script defer src='assets_manager.js'></script>\n        <script defer src='script.min.js'></script>",
+        )
+
     def repl(match: re.Match[str]) -> str:
         tag = match.group(0)
         if "${" in tag:
