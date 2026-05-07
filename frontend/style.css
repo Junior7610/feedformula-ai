@@ -720,7 +720,7 @@ textarea.text-input {
 .species-grid,
 .species-grid-cards {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 10px;
 }
 
@@ -729,9 +729,9 @@ textarea.text-input {
 }
 
 .species-card {
-    min-height: 112px;
+    min-height: 116px;
     padding: 14px 10px;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     border: 1px solid rgba(27, 94, 32, 0.14);
     background: linear-gradient(180deg, #fff, #fbfffb);
     color: var(--color-text);
@@ -760,13 +760,14 @@ textarea.text-input {
 }
 
 .species-emoji {
-    font-size: 1.9rem;
+    font-size: 2rem;
     line-height: 1;
 }
 
 .species-name {
     line-height: 1.2;
-    font-size: 0.95rem;
+    font-size: 0.93rem;
+    text-wrap: balance;
 }
 
 .species-card.is-active {
@@ -2106,6 +2107,10 @@ textarea.text-input {
         padding-inline: 18px;
     }
 
+    .page-shell {
+        padding-inline: 16px;
+    }
+
     .species-grid,
     .species-grid-cards,
     .profile-stats,
@@ -2114,6 +2119,24 @@ textarea.text-input {
     .module-grid,
     .academy-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .language-list {
+        flex-wrap: wrap;
+        overflow-x: visible;
+    }
+
+    .level-title {
+        flex-wrap: nowrap;
+    }
+
+    .level-meta,
+    .challenge-head {
+        flex-wrap: nowrap;
+    }
+
+    .challenge-head {
+        align-items: center;
     }
 
     .action-row {
@@ -2142,6 +2165,10 @@ textarea.text-input {
 @media (min-width: 900px) {
     .app-main {
         padding-top: calc(var(--header-height) + 18px);
+        padding-inline: 20px;
+    }
+
+    .page-shell {
         padding-inline: 20px;
     }
 
@@ -2272,7 +2299,8 @@ textarea.text-input {
    ========================================================= */
 
 .home-page {
-    background: radial-gradient(
+    background:
+        radial-gradient(
             circle at top,
             rgba(249, 168, 37, 0.1),
             transparent 30%
@@ -2395,10 +2423,10 @@ textarea.text-input {
 }
 
 .page-shell {
-    max-width: var(--container-max);
+    max-width: min(var(--container-max), calc(100vw - 24px));
     margin: 0 auto;
-    padding: calc(var(--header-height) + 12px) 14px
-        calc(var(--bottom-nav-height) + 18px);
+    padding: calc(var(--header-height) + 12px) 12px
+        calc(var(--bottom-nav-height) + 20px);
 }
 
 .xp-sticky {
@@ -2415,6 +2443,7 @@ textarea.text-input {
     margin-bottom: 10px;
     font-size: 0.98rem;
     flex-wrap: wrap;
+    line-height: 1.35;
 }
 
 .xp-track {
@@ -2439,17 +2468,18 @@ textarea.text-input {
     gap: 10px;
     margin-top: 10px;
     color: var(--color-text-muted);
-    font-size: 0.95rem;
+    font-size: 0.92rem;
+    line-height: 1.45;
     flex-wrap: wrap;
 }
 
 .card {
     background: rgba(255, 255, 255, 0.92);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
+    border-radius: clamp(18px, 3vw, var(--radius-lg));
     box-shadow: var(--shadow-card);
-    padding: 16px;
-    margin-bottom: 14px;
+    padding: clamp(14px, 2.2vw, 20px);
+    margin-bottom: clamp(12px, 2vw, 16px);
     backdrop-filter: blur(8px);
 }
 
@@ -2465,13 +2495,17 @@ textarea.text-input {
     width: 180px;
     height: 180px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(249, 168, 37, 0.24), transparent 65%);
+    background: radial-gradient(
+        circle,
+        rgba(249, 168, 37, 0.24),
+        transparent 65%
+    );
     pointer-events: none;
 }
 
 .challenge-head {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 10px;
     flex-wrap: wrap;
@@ -2487,7 +2521,8 @@ textarea.text-input {
     background: rgba(27, 94, 32, 0.1);
     color: var(--color-green);
     font-weight: 800;
-    font-size: 0.92rem;
+    font-size: 0.9rem;
+    line-height: 1.2;
 }
 
 .challenge-progress {
@@ -2507,18 +2542,22 @@ textarea.text-input {
 
 .section-title {
     margin: 0 0 8px;
-    font-size: 1.15rem;
+    font-size: clamp(1.08rem, 2vw, 1.32rem);
     font-weight: 800;
+    line-height: 1.15;
 }
 
 .section-subtitle {
     margin: 0 0 12px;
     color: var(--color-text-muted);
+    line-height: 1.55;
+    max-width: 60ch;
 }
 
 .offline-banner {
     background: linear-gradient(180deg, #fff4cc, #fff);
     border-color: rgba(249, 168, 37, 0.18);
+    font-weight: 600;
 }
 
 .offline-rations-list {
@@ -2531,7 +2570,7 @@ textarea.text-input {
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-card);
-    padding: 16px;
+    padding: clamp(14px, 2vw, 18px);
     margin-bottom: 14px;
 }
 
@@ -2539,14 +2578,16 @@ textarea.text-input {
     margin-bottom: 10px;
     font-size: 1.05rem;
     font-weight: 800;
+    line-height: 1.2;
 }
 
 .language-list {
     display: flex;
     gap: 8px;
     overflow-x: auto;
-    padding-bottom: 4px;
+    padding-bottom: 6px;
     scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
 }
 
 .language-list::-webkit-scrollbar {
@@ -2557,6 +2598,7 @@ textarea.text-input {
 .lang-more {
     flex: 0 0 auto;
     min-height: 48px;
+    min-width: 92px;
     padding: 0 14px;
     border-radius: var(--radius-round);
     border: 1px solid rgba(27, 94, 32, 0.14);
@@ -2615,7 +2657,11 @@ textarea.text-input {
     width: 100%;
     height: 112px;
     border-radius: var(--radius-md);
-    background: linear-gradient(180deg, rgba(27, 94, 32, 0.04), rgba(249, 168, 37, 0.04));
+    background: linear-gradient(
+        180deg,
+        rgba(27, 94, 32, 0.04),
+        rgba(249, 168, 37, 0.04)
+    );
     margin-bottom: 12px;
 }
 
