@@ -13,25 +13,25 @@
  */
 
 (function apiBindings(global) {
-  'use strict';
+  "use strict";
 
   const API = global.FeedFormulaAPI || null;
 
   const STORAGE_KEYS = {
-    app: 'feedformula_app_state_v1',
-    profile: 'feedformula_profile_state_v1',
-    diagnostics: 'feedformula_diagnostics_history_v1',
-    repro: 'feedformula_repro_state_v1',
-    academy: 'feedformula_academy_state_v1',
-    cache: 'feedformula_offline_cache_v1'
+    app: "feedformula_app_state_v1",
+    profile: "feedformula_profile_state_v1",
+    diagnostics: "feedformula_diagnostics_history_v1",
+    repro: "feedformula_repro_state_v1",
+    academy: "feedformula_academy_state_v1",
+    cache: "feedformula_offline_cache_v1",
   };
 
   const DEFAULTS = {
-    userId: '',
-    langue: 'fr',
-    espece: 'poulet',
-    stage: 'croissance',
-    objectifs: 'equilibre'
+    userId: "",
+    langue: "fr",
+    espece: "poulet",
+    stage: "croissance",
+    objectifs: "equilibre",
   };
 
   function qs(selector, root = document) {
@@ -40,6 +40,14 @@
 
   function qsa(selector, root = document) {
     return Array.from(root.querySelectorAll(selector));
+  }
+
+  function pick(...selectors) {
+    for (const selector of selectors) {
+      const node = qs(selector);
+      if (node) return node;
+    }
+    return null;
   }
 
   function loadJSON(key, fallback) {
@@ -67,7 +75,7 @@
   }
 
   function ensureFunction(fn, fallback) {
-    return typeof fn === 'function' ? fn : fallback;
+    return typeof fn === "function" ? fn : fallback;
   }
 
   function getAppState() {
@@ -87,7 +95,7 @@
       app.userId ||
       app.user_id ||
       DEFAULTS.userId ||
-      ''
+      ""
     );
   }
 
@@ -98,7 +106,7 @@
       profile.langue_preferee ||
       profile.language ||
       app.language ||
-      localStorage.getItem('feedformula_language_v1') ||
+      localStorage.getItem("feedformula_language_v1") ||
       DEFAULTS.langue
     );
   }
@@ -127,17 +135,17 @@
   function getIngredients() {
     const app = getAppState();
     const ingredients = Array.isArray(app.ingredients) ? app.ingredients : [];
-    return ingredients.map((item) => String(item || '').trim()).filter(Boolean);
+    return ingredients.map((item) => String(item || "").trim()).filter(Boolean);
   }
 
-  function notify(message, tone = 'success') {
-    if (typeof global.toast === 'function') {
+  function notify(message, tone = "success") {
+    if (typeof global.toast === "function") {
       global.toast(message, tone);
       return;
     }
-    if (tone === 'warning') {
+    if (tone === "warning") {
       console.warn(message);
-    } else if (tone === 'error') {
+    } else if (tone === "error") {
       console.error(message);
     } else {
       console.info(message);
@@ -145,13 +153,13 @@
   }
 
   function speakAya(message) {
-    if (typeof global.updateAya === 'function') {
+    if (typeof global.updateAya === "function") {
       global.updateAya(message);
     }
   }
 
   function addLocalPoints(points, reason) {
-    if (typeof global.addPoints === 'function') {
+    if (typeof global.addPoints === "function") {
       global.addPoints(points, reason);
       return;
     }
@@ -162,11 +170,11 @@
   }
 
   function parseResponseError(error) {
-    if (!error) return 'Erreur inconnue.';
-    if (typeof error === 'string') return error;
+    if (!error) return "Erreur inconnue.";
+    if (typeof error === "string") return error;
     if (error.detail) return String(error.detail);
     if (error.message) return String(error.message);
-    return 'Erreur inconnue.';
+    return "Erreur inconnue.";
   }
 
   function normalizeComposition(composition) {
@@ -175,18 +183,29 @@
     if (Array.isArray(composition)) {
       return composition
         .map((item) => ({
-          name: String(item.name || item.label || item.ingredient || 'Ingrédient'),
-          share: Number(item.share ?? item.pct ?? item.percent ?? item.value ?? 0),
-          color: String(item.color || '#2E7D32')
+          name: String(
+            item.name || item.label || item.ingredient || "Ingrédient",
+          ),
+          share: Number(
+            item.share ?? item.pct ?? item.percent ?? item.value ?? 0,
+          ),
+          color: String(item.color || "#2E7D32"),
         }))
         .filter((item) => item.name);
     }
 
-    if (typeof composition === 'object') {
+    if (typeof composition === "object") {
       return Object.entries(composition).map(([name, value], index) => ({
         name,
         share: Number(value || 0),
-        color: ['#2E7D32', '#F9A825', '#1E88E5', '#8E24AA', '#EF5350', '#43A047'][index % 6]
+        color: [
+          "#2E7D32",
+          "#F9A825",
+          "#1E88E5",
+          "#8E24AA",
+          "#EF5350",
+          "#43A047",
+        ][index % 6],
       }));
     }
 
@@ -194,21 +213,25 @@
   }
 
   function normalizeRationResponse(response, payload) {
-    const composition = normalizeComposition(response.composition || response.composition_json);
+    const composition = normalizeComposition(
+      response.composition || response.composition_json,
+    );
     const totalCost = Number(
       response.cout_7_jours ??
         response.cout_fcfa_kg ??
         response.totalCost ??
         response.total_cost ??
-        0
+        0,
     );
-    const totalKg = Number(response.totalKg ?? response.total_kg ?? payload.nombre_animaux ?? 50);
+    const totalKg = Number(
+      response.totalKg ?? response.total_kg ?? payload.nombre_animaux ?? 50,
+    );
     const protein = Number(
       response.protein ??
         response.prot ??
         response.protein_pct ??
         response.protein_percent ??
-        0
+        0,
     );
 
     const steps = [];
@@ -218,42 +241,53 @@
     if (Array.isArray(response.recommandations)) {
       steps.push(...response.recommandations.map((step) => String(step)));
     }
-    if (!steps.length && typeof response.ration === 'string') {
-      steps.push(...response.ration.split('\n').map((line) => line.trim()).filter(Boolean).slice(0, 6));
+    if (!steps.length && typeof response.ration === "string") {
+      steps.push(
+        ...response.ration
+          .split("\n")
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .slice(0, 6),
+      );
     }
     if (!steps.length) {
-      steps.push('Mélanger les ingrédients selon les proportions conseillées.');
-      steps.push('Vérifier l’eau propre et l’accessibilité de l’aliment.');
+      steps.push("Mélanger les ingrédients selon les proportions conseillées.");
+      steps.push("Vérifier l’eau propre et l’accessibilité de l’aliment.");
     }
 
-    const text = String(response.ration || response.texte || response.message || '').trim();
+    const text = String(
+      response.ration || response.texte || response.message || "",
+    ).trim();
 
     return {
-      species: payload.espece || payload.species || 'général',
-      stage: payload.stade || payload.stage || 'général',
-      objective: payload.objectif || 'equilibre',
+      species: payload.espece || payload.species || "général",
+      stage: payload.stade || payload.stage || "général",
+      objective: payload.objectif || "equilibre",
       count: Number(payload.nombre_animaux || payload.count || 50),
       totalCost,
       totalKg,
       protein,
       composition,
       steps,
-      text
+      text,
     };
   }
 
   function persistRationHistory(ration) {
-    const history = loadJSON('feedformula_rations_history_v1', []);
+    const history = loadJSON("feedformula_rations_history_v1", []);
     history.unshift({
       date: new Date().toISOString(),
       species: ration.species,
       stage: ration.stage,
       cost: ration.totalCost,
-      text: ration.text || '',
-      composition: ration.composition
+      text: ration.text || "",
+      composition: ration.composition,
     });
-    saveJSON('feedformula_rations_history_v1', history.slice(0, 20));
-    saveJSON(STORAGE_KEYS.cache, { lastRation: history[0], rations: history.slice(0, 20) });
+    saveJSON("feedformula_rations_history_v1", history.slice(0, 20));
+    saveJSON(STORAGE_KEYS.cache, {
+      lastRation: history[0],
+      rations: history.slice(0, 20),
+    });
   }
 
   async function apiOrNull(task) {
@@ -261,21 +295,21 @@
     try {
       return await task(API);
     } catch (error) {
-      console.warn('[FeedFormula API]', error);
+      console.warn("[FeedFormula API]", error);
       return null;
     }
   }
 
   function getAuthHeaders() {
-    if (typeof API?.getAuthHeaders === 'function') {
+    if (typeof API?.getAuthHeaders === "function") {
       return API.getAuthHeaders();
     }
     return {};
   }
 
   function registerServiceWorker() {
-    if (!('serviceWorker' in navigator)) return;
-    navigator.serviceWorker.register('./service_worker.js').catch(() => {});
+    if (!("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.register("./service_worker.js").catch(() => {});
   }
 
   async function warmUpData() {
@@ -292,22 +326,22 @@
   }
 
   function bindRationPage() {
-    const generateButton = qs('#generateButton');
-    const speakButton = qs('#speakButton');
-    const saveHistoryButton = qs('#saveHistoryButton');
-    const whatsappButton = qs('#whatsappButton');
-    const pdfButton = qs('#pdfButton');
+    const generateButton = qs("#generateButton");
+    const speakButton = qs("#speakButton");
+    const saveHistoryButton = qs("#saveHistoryButton");
+    const whatsappButton = qs("#whatsappButton");
+    const pdfButton = qs("#pdfButton");
 
     if (generateButton) {
       const button = cloneAndReplace(generateButton);
-      button.addEventListener('click', async () => {
+      button.addEventListener("click", async () => {
         const payload = {
           espece: getSelectedSpecies(),
           stade: getSelectedStage(),
           ingredients_disponibles: getIngredients(),
           nombre_animaux: getAnimalCount(),
           langue: getLanguage(),
-          objectif: getObjective()
+          objectif: getObjective(),
         };
 
         const result = await apiOrNull((api) => api.genererRation(payload));
@@ -316,38 +350,41 @@
           const ration = normalizeRationResponse(result, payload);
           global.__FF_LAST_RATION__ = ration;
 
-          if (typeof global.renderRationResult === 'function') {
+          if (typeof global.renderRationResult === "function") {
             global.renderRationResult(ration);
           }
 
-          if (typeof global.storeRation === 'function') {
+          if (typeof global.storeRation === "function") {
             global.storeRation(ration);
           } else {
             persistRationHistory(ration);
           }
 
-          addLocalPoints(Number(result.points_gagnes || 10), 'la génération de votre ration');
-          speakAya('Ration générée avec le backend.');
+          addLocalPoints(
+            Number(result.points_gagnes || 10),
+            "la génération de votre ration",
+          );
+          speakAya("Ration générée avec le backend.");
 
           const userId = getUserId();
           if (userId) {
             await apiOrNull((api) =>
               api.gamification.action({
                 user_id: userId,
-                action: 'generation_ration',
+                action: "generation_ration",
                 code_langue: getLanguage(),
                 offline_mode: false,
                 multiplicateur_evenement: 1,
-                region: getProfileState().region || 'Bénin',
-                module: 'nutricore',
-                espece: payload.espece
-              })
+                region: getProfileState().region || "Bénin",
+                module: "nutricore",
+                espece: payload.espece,
+              }),
             );
           }
           return;
         }
 
-        if (typeof global.genererRation === 'function') {
+        if (typeof global.genererRation === "function") {
           const local = global.genererRation();
           global.__FF_LAST_RATION__ = local;
         }
@@ -356,38 +393,42 @@
 
     if (speakButton) {
       const button = cloneAndReplace(speakButton);
-      button.addEventListener('click', async () => {
+      button.addEventListener("click", async () => {
         const text =
-          (global.__FF_LAST_RATION__ && (global.__FF_LAST_RATION__.text || global.__FF_LAST_RATION__.ration)) ||
-          qs('#rationText')?.textContent ||
-          '';
+          (global.__FF_LAST_RATION__ &&
+            (global.__FF_LAST_RATION__.text ||
+              global.__FF_LAST_RATION__.ration)) ||
+          qs("#rationText")?.textContent ||
+          "";
 
         if (!text) {
-          notify('Aucun texte disponible pour la synthèse.', 'warning');
+          notify("Aucun texte disponible pour la synthèse.", "warning");
           return;
         }
 
         const result = await apiOrNull((api) =>
-          api.request('/audio/synthese', {
-            method: 'POST',
+          api.request("/audio/synthese", {
+            method: "POST",
             body: {
               texte: text,
-              langue: getLanguage()
+              langue: getLanguage(),
             },
-            responseType: 'blob'
-          })
+            responseType: "blob",
+          }),
         );
 
         if (result instanceof Blob) {
           const url = URL.createObjectURL(result);
           const audio = new Audio(url);
           audio.onended = () => URL.revokeObjectURL(url);
-          audio.play().catch(() => notify('Impossible de lire l’audio.', 'warning'));
-          speakAya('Synthèse audio lancée.');
+          audio
+            .play()
+            .catch(() => notify("Impossible de lire l’audio.", "warning"));
+          speakAya("Synthèse audio lancée.");
           return;
         }
 
-        if (typeof global.lireRationVocalement === 'function') {
+        if (typeof global.lireRationVocalement === "function") {
           global.lireRationVocalement(text);
         }
       });
@@ -395,22 +436,22 @@
 
     if (saveHistoryButton) {
       const button = cloneAndReplace(saveHistoryButton);
-      button.addEventListener('click', () => {
+      button.addEventListener("click", () => {
         if (global.__FF_LAST_RATION__) {
-          if (typeof global.storeRation === 'function') {
+          if (typeof global.storeRation === "function") {
             global.storeRation(global.__FF_LAST_RATION__);
           } else {
             persistRationHistory(global.__FF_LAST_RATION__);
           }
-          notify('Ration enregistrée dans l’historique.');
+          notify("Ration enregistrée dans l’historique.");
         }
       });
     }
 
     if (whatsappButton) {
       const button = cloneAndReplace(whatsappButton);
-      button.addEventListener('click', async () => {
-        if (typeof global.partagerWhatsApp === 'function') {
+      button.addEventListener("click", async () => {
+        if (typeof global.partagerWhatsApp === "function") {
           global.partagerWhatsApp();
         }
         const userId = getUserId();
@@ -418,14 +459,14 @@
           await apiOrNull((api) =>
             api.gamification.action({
               user_id: userId,
-              action: 'partage_whatsapp',
+              action: "partage_whatsapp",
               code_langue: getLanguage(),
               offline_mode: false,
               multiplicateur_evenement: 1,
-              region: getProfileState().region || 'Bénin',
-              module: 'nutricore',
-              espece: getSelectedSpecies()
-            })
+              region: getProfileState().region || "Bénin",
+              module: "nutricore",
+              espece: getSelectedSpecies(),
+            }),
           );
         }
       });
@@ -433,8 +474,8 @@
 
     if (pdfButton) {
       const button = cloneAndReplace(pdfButton);
-      button.addEventListener('click', () => {
-        if (typeof global.telechargerPDF === 'function') {
+      button.addEventListener("click", () => {
+        if (typeof global.telechargerPDF === "function") {
           global.telechargerPDF();
         }
       });
@@ -442,12 +483,12 @@
   }
 
   function renderVetScanResult(result, fallbackSpecies, fallbackSymptoms) {
-    const resultPanel = qs('#vetscanResult');
-    const confidence = qs('#confidenceScore');
-    const diagnosisList = qs('#diagnosisList');
-    const protocol = qs('#careProtocol');
-    const decision = qs('#decisionBanner');
-    const findVetButton = qs('#findVetButton');
+    const resultPanel = qs("#vetscanResult");
+    const confidence = qs("#confidenceScore");
+    const diagnosisList = qs("#diagnosisList");
+    const protocol = qs("#careProtocol");
+    const decision = qs("#decisionBanner");
+    const findVetButton = qs("#findVetButton");
 
     if (resultPanel) resultPanel.hidden = false;
 
@@ -455,12 +496,16 @@
     if (result.diagnostics && Array.isArray(result.diagnostics)) {
       items.push(...result.diagnostics);
     } else {
-      ['diagnostic_1', 'diagnostic_2', 'diagnostic_3'].forEach((key) => {
+      ["diagnostic_1", "diagnostic_2", "diagnostic_3"].forEach((key) => {
         if (result[key]) items.push(result[key]);
       });
     }
 
-    if (!items.length && result.hypotheses && Array.isArray(result.hypotheses)) {
+    if (
+      !items.length &&
+      result.hypotheses &&
+      Array.isArray(result.hypotheses)
+    ) {
       items.push(...result.hypotheses);
     }
 
@@ -469,7 +514,7 @@
         result.score ??
         result.confidence ??
         result.confidence_score ??
-        0
+        0,
     );
 
     if (confidence) {
@@ -479,7 +524,7 @@
     if (diagnosisList) {
       diagnosisList.innerHTML = items
         .map((item) => {
-          const label = item.nom || item.label || item.name || 'Hypothèse';
+          const label = item.nom || item.label || item.name || "Hypothèse";
           const prob = Number(item.score ?? item.probability ?? item.prob ?? 0);
           const pct = prob <= 1 ? Math.round(prob * 100) : Math.round(prob);
           return `
@@ -491,30 +536,39 @@
               <div class="progress-track">
                 <span class="progress-track__bar" style="width:${pct}%"></span>
               </div>
-              ${item.description ? `<p>${item.description}</p>` : ''}
+              ${item.description ? `<p>${item.description}</p>` : ""}
             </div>
           `;
         })
-        .join('');
+        .join("");
     }
 
-    const protocolSteps = result.protocole_soins || result.protocol || result.care_protocol || result.steps || [];
+    const protocolSteps =
+      result.protocole_soins ||
+      result.protocol ||
+      result.care_protocol ||
+      result.steps ||
+      [];
     if (protocol) {
       protocol.innerHTML = protocolSteps
         .map((step) => `<li>${step}</li>`)
-        .join('');
+        .join("");
     }
 
     const isUrgent =
-      String(result.decision || result.status || '').toLowerCase().includes('urgence') ||
-      String(result.message_urgence || result.alert || '').toLowerCase().includes('urgence') ||
+      String(result.decision || result.status || "")
+        .toLowerCase()
+        .includes("urgence") ||
+      String(result.message_urgence || result.alert || "")
+        .toLowerCase()
+        .includes("urgence") ||
       Boolean(result.urgent);
 
     if (decision) {
-      decision.className = `decision-banner ${isUrgent ? 'decision-banner--danger' : 'decision-banner--ok'}`;
+      decision.className = `decision-banner ${isUrgent ? "decision-banner--danger" : "decision-banner--ok"}`;
       decision.textContent = isUrgent
-        ? '⚠️ URGENCE VÉTÉRINAIRE'
-        : '✅ Soins autonomes possibles';
+        ? "⚠️ URGENCE VÉTÉRINAIRE"
+        : "✅ Soins autonomes possibles";
     }
 
     if (findVetButton) {
@@ -527,78 +581,86 @@
       species: fallbackSpecies,
       symptoms: fallbackSymptoms,
       score: confidenceValue,
-      urgent: isUrgent
+      urgent: isUrgent,
     });
     saveJSON(STORAGE_KEYS.diagnostics, history.slice(0, 5));
 
-    addLocalPoints(20, 'le diagnostic VetScan');
+    addLocalPoints(20, "le diagnostic VetScan");
   }
 
   function bindVetScanPage() {
-    const diagnoseButton = qs('#diagnoseButton');
-    const analyzePhotoButton = qs('#analyzePhotoButton');
-    const photoInput = qs('#photoInput');
-    const symptomsInput = qs('#symptomsInput');
-    const speciesSelect = qs('#vetscanSpecies');
-    const micButton = qs('#vetscanMicButton');
+    const diagnoseButton = qs("#diagnoseButton");
+    const analyzePhotoButton = qs("#analyzePhotoButton");
+    const photoInput = qs("#photoInput");
+    const symptomsInput = qs("#symptomsInput");
+    const speciesSelect = qs("#vetscanSpecies");
+    const micButton = qs("#vetscanMicButton");
 
     if (diagnoseButton) {
       const button = cloneAndReplace(diagnoseButton);
-      button.addEventListener('click', async () => {
+      button.addEventListener("click", async () => {
         const payload = {
-          espece: speciesSelect?.value || 'poulet',
-          symptomes: symptomsInput?.value || '',
+          espece: speciesSelect?.value || "poulet",
+          symptomes: symptomsInput?.value || "",
           langue: getLanguage(),
-          user_id: getUserId() || undefined
+          user_id: getUserId() || undefined,
         };
 
-        const result = await apiOrNull((api) => api.vetscan.diagnostiquer(payload));
+        const result = await apiOrNull((api) =>
+          api.vetscan.diagnostiquer(payload),
+        );
         if (result) {
           renderVetScanResult(result, payload.espece, payload.symptomes);
-          speakAya('Diagnostic backend terminé.');
+          speakAya("Diagnostic backend terminé.");
           return;
         }
 
-        if (typeof global.diagnose === 'function') {
+        if (typeof global.diagnose === "function") {
           global.diagnose();
           return;
         }
 
-        notify('Diagnostic indisponible.', 'warning');
+        notify("Diagnostic indisponible.", "warning");
       });
     }
 
     if (analyzePhotoButton) {
       const button = cloneAndReplace(analyzePhotoButton);
-      button.addEventListener('click', async () => {
+      button.addEventListener("click", async () => {
         const file = photoInput?.files?.[0];
         if (!file) {
-          notify('Veuillez d’abord choisir une photo.', 'warning');
+          notify("Veuillez d’abord choisir une photo.", "warning");
           return;
         }
 
         const formData = new FormData();
-        formData.append('image', file);
-        formData.append('espece', speciesSelect?.value || 'poulet');
-        formData.append('langue', getLanguage());
+        formData.append("image", file);
+        formData.append("espece", speciesSelect?.value || "poulet");
+        formData.append("langue", getLanguage());
         const userId = getUserId();
-        if (userId) formData.append('user_id', userId);
+        if (userId) formData.append("user_id", userId);
 
-        const result = await apiOrNull((api) => api.vetscan.analyserPhoto(formData));
+        const result = await apiOrNull((api) =>
+          api.vetscan.analyserPhoto(formData),
+        );
         if (result) {
-          renderVetScanResult(result, speciesSelect?.value || 'poulet', 'photo analysée');
-          speakAya('Photo envoyée au backend.');
+          renderVetScanResult(
+            result,
+            speciesSelect?.value || "poulet",
+            "photo analysée",
+          );
+          speakAya("Photo envoyée au backend.");
           return;
         }
 
-        notify('Analyse photo indisponible.', 'warning');
+        notify("Analyse photo indisponible.", "warning");
       });
     }
 
     if (micButton) {
       const button = cloneAndReplace(micButton);
-      button.addEventListener('click', async () => {
-        if (typeof global.initMicrophone === 'function') {
+      button.addEventListener("click", async () => {
+        if (typeof global.initMicrophone === "function") {
           global.initMicrophone();
         }
       });
@@ -606,21 +668,21 @@
   }
 
   function renderReproTrackFromApi(data) {
-    const calendar = qs('#reproCalendar');
-    const monthLabel = qs('#calendarMonthLabel');
-    const trackedAnimals = qs('#trackedAnimals');
-    const fertilityRate = qs('#fertilityRate');
-    const calvingInterval = qs('#calvingInterval');
-    const birthsThisMonth = qs('#birthsThisMonth');
+    const calendar = qs("#reproCalendar");
+    const monthLabel = qs("#calendarMonthLabel");
+    const trackedAnimals = qs("#trackedAnimals");
+    const fertilityRate = qs("#fertilityRate");
+    const calvingInterval = qs("#calvingInterval");
+    const birthsThisMonth = qs("#birthsThisMonth");
 
     if (!data) return;
 
     if (monthLabel && data.date) {
       const date = new Date(data.date);
       if (!Number.isNaN(date.getTime())) {
-        monthLabel.textContent = date.toLocaleDateString('fr-FR', {
-          month: 'long',
-          year: 'numeric'
+        monthLabel.textContent = date.toLocaleDateString("fr-FR", {
+          month: "long",
+          year: "numeric",
         });
       }
     }
@@ -628,27 +690,29 @@
     if (trackedAnimals && Array.isArray(data.evenements)) {
       trackedAnimals.innerHTML = data.evenements
         .slice(0, 12)
-        .map((evt) => `
+        .map(
+          (evt) => `
           <article class="tracked-item">
             <div>
-              <strong>${evt.animal_id || evt.animal || 'Animal'}</strong>
-              <p>${evt.type_evenement || evt.type || ''}</p>
+              <strong>${evt.animal_id || evt.animal || "Animal"}</strong>
+              <p>${evt.type_evenement || evt.type || ""}</p>
             </div>
             <span class="tracked-item__days">✓</span>
           </article>
-        `)
-        .join('');
+        `,
+        )
+        .join("");
     }
 
-    if (fertilityRate && typeof data.taux_gestation_global !== 'undefined') {
+    if (fertilityRate && typeof data.taux_gestation_global !== "undefined") {
       fertilityRate.textContent = `${Number(data.taux_gestation_global || 0).toFixed(0)}%`;
     }
 
-    if (calvingInterval && typeof data.calving_interval !== 'undefined') {
+    if (calvingInterval && typeof data.calving_interval !== "undefined") {
       calvingInterval.textContent = `${data.calving_interval} jours`;
     }
 
-    if (birthsThisMonth && typeof data.total_mises_bas !== 'undefined') {
+    if (birthsThisMonth && typeof data.total_mises_bas !== "undefined") {
       birthsThisMonth.textContent = String(data.total_mises_bas);
     }
 
@@ -658,27 +722,32 @@
   }
 
   function bindReproTrackPage() {
-    const saveEventButton = qs('#saveEventButton');
-    const eventType = qs('#eventType');
-    const eventAnimal = qs('#eventAnimal');
+    const saveEventButton = qs("#saveEventButton");
+    const eventType = qs("#eventType");
+    const eventAnimal = qs("#eventAnimal");
 
     if (saveEventButton) {
       const button = cloneAndReplace(saveEventButton);
-      button.addEventListener('click', async () => {
+      button.addEventListener("click", async () => {
         const payload = {
-          user_id: getUserId() || 'local-user',
-          animal_id: (eventAnimal?.value || '').trim() || 'animal-local',
-          espece: getProfileState().espece_principale || getSelectedSpecies() || 'vache',
-          type_evenement: eventType?.value || 'saillie',
+          user_id: getUserId() || "local-user",
+          animal_id: (eventAnimal?.value || "").trim() || "animal-local",
+          espece:
+            getProfileState().espece_principale ||
+            getSelectedSpecies() ||
+            "vache",
+          type_evenement: eventType?.value || "saillie",
           date_evenement: new Date().toISOString(),
           date_prevue_prochain: null,
-          notes: ''
+          notes: "",
         };
 
-        const result = await apiOrNull((api) => api.reprotrack.evenement(payload));
+        const result = await apiOrNull((api) =>
+          api.reprotrack.evenement(payload),
+        );
         if (result) {
-          notify('Événement reproduction enregistré.');
-          if (eventAnimal) eventAnimal.value = '';
+          notify("Événement reproduction enregistré.");
+          if (eventAnimal) eventAnimal.value = "";
 
           const userId = payload.user_id;
           await apiOrNull((api) => api.reprotrack.calendrier(userId));
@@ -686,7 +755,7 @@
           return;
         }
 
-        if (typeof global.saveEventButton?.click === 'function') {
+        if (typeof global.saveEventButton?.click === "function") {
           global.saveEventButton.click();
         }
       });
@@ -703,20 +772,22 @@
     });
     apiOrNull((api) => api.reprotrack.alertes(userId)).then((data) => {
       if (data && Array.isArray(data.alertes)) {
-        const trackedAnimals = qs('#trackedAnimals');
+        const trackedAnimals = qs("#trackedAnimals");
         if (trackedAnimals && !trackedAnimals.dataset.hasAlerts) {
-          trackedAnimals.dataset.hasAlerts = 'true';
+          trackedAnimals.dataset.hasAlerts = "true";
           trackedAnimals.innerHTML = data.alertes
-            .map((alert) => `
+            .map(
+              (alert) => `
               <article class="tracked-item">
                 <div>
-                  <strong>${alert.animal_id || alert.animal || 'Alerte'}</strong>
-                  <p>${alert.message || alert.type || 'Alerte reproduction'}</p>
+                  <strong>${alert.animal_id || alert.animal || "Alerte"}</strong>
+                  <p>${alert.message || alert.type || "Alerte reproduction"}</p>
                 </div>
                 <span class="tracked-item__days">!</span>
               </article>
-            `)
-            .join('');
+            `,
+            )
+            .join("");
         }
       }
     });
@@ -726,26 +797,35 @@
     const profile = getProfileState();
     const userId = getUserId();
 
-    const name = qs('#profileName');
-    const region = qs('#profileRegion');
-    const memberSince = qs('#profileMemberSince');
-    const avatar = qs('#profileAvatar');
-    const levelBadge = qs('#profileLevelBadge');
-    const points = qs('#profilePoints');
-    const nextLevel = qs('#profileNextLevel');
-    const goldSeeds = qs('#goldSeeds');
+    const name = pick("#profileName", "[data-profile-name]");
+    const region = pick("#profileRegion", "[data-profile-region]");
+    const memberSince = pick("#profileMemberSince", "[data-profile-joined]");
+    const avatar = pick("#profileAvatar", "[data-profile-avatar]");
+    const levelBadge = pick("#profileLevelBadge", "[data-profile-level-badge]");
+    const points = pick("#profilePoints", "[data-profile-xp-meta]");
+    const nextLevel = pick(
+      "#profileNextLevel",
+      ".level-meta span:last-child",
+      "[data-profile-next-level]",
+    );
+    const goldSeeds = pick("#goldSeeds", "[data-gold-balance]");
 
     if (avatar && profile.prenom) {
-      avatar.textContent = profile.prenom
-        .split(' ')
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((part) => part[0]?.toUpperCase() || '')
-        .join('');
+      if (avatar.tagName === "IMG") {
+        avatar.alt = profile.prenom;
+      } else {
+        avatar.textContent = profile.prenom
+          .split(" ")
+          .filter(Boolean)
+          .slice(0, 2)
+          .map((part) => part[0]?.toUpperCase() || "")
+          .join("");
+      }
     }
 
     if (name && profile.prenom) name.textContent = profile.prenom;
-    if (region && profile.region) region.textContent = `Région : ${profile.region}`;
+    if (region && profile.region)
+      region.textContent = `Région : ${profile.region}`;
     if (memberSince && profile.date_inscription) {
       memberSince.textContent = `Inscription : ${profile.date_inscription}`;
     }
@@ -756,7 +836,8 @@
       if (payload && payload.user) {
         const user = payload.user;
         if (name && user.prenom) name.textContent = user.prenom;
-        if (region && user.region) region.textContent = `Région : ${user.region}`;
+        if (region && user.region)
+          region.textContent = `Région : ${user.region}`;
         if (memberSince && user.date_inscription) {
           memberSince.textContent = `Inscription : ${user.date_inscription}`;
         }
@@ -768,88 +849,111 @@
       if (levelBadge && payload.ligue?.icone && payload.ligue?.nom) {
         levelBadge.textContent = `${payload.ligue.icone} ${payload.ligue.nom}`;
       }
-      if (points && typeof payload.points_total !== 'undefined') {
-        const next = Number(payload.points_pour_niveau_suivant || payload.points_restant || 0);
-        points.textContent = `${Number(payload.points_total || 0).toLocaleString('fr-FR')} pts`;
+      if (points && typeof payload.points_total !== "undefined") {
+        const next = Number(
+          payload.points_pour_niveau_suivant || payload.points_restant || 0,
+        );
+        points.textContent = `${Number(payload.points_total || 0).toLocaleString("fr-FR")} pts`;
         if (nextLevel) {
-          nextLevel.textContent = `Niveau suivant : ${payload.niveau_suivant || '—'}`;
+          nextLevel.textContent = `Niveau suivant : ${payload.niveau_suivant || (next > 0 ? `${next} pts restants` : "—")}`;
         }
       }
-      if (goldSeeds && typeof payload.graines_or !== 'undefined') {
-        goldSeeds.textContent = `🌟 ${Number(payload.graines_or || 0).toLocaleString('fr-FR')}`;
+      if (goldSeeds && typeof payload.graines_or !== "undefined") {
+        goldSeeds.textContent = `🌟 ${Number(payload.graines_or || 0).toLocaleString("fr-FR")}`;
       }
     });
   }
 
   function renderRanking(payload) {
-    const podium = qs('#podium');
-    const rankingList = qs('#rankingList');
-    const status = qs('#leagueStatus');
+    const podium = qs("#podium");
+    const rankingList = qs("#rankingList");
+    const status = qs("#leagueStatus");
 
     if (!payload) return;
 
-    const rows = payload.classement || payload.top || payload.users || payload.ranking || [];
+    const rows =
+      payload.classement ||
+      payload.top ||
+      payload.users ||
+      payload.ranking ||
+      [];
     if (!Array.isArray(rows) || !rows.length) return;
 
-    const toName = (row, index) => row.prenom || row.name || row.nom || `Éleveur ${index + 1}`;
-    const toPoints = (row) => Number(row.points_total ?? row.points ?? row.score ?? 0);
-    const toLevel = (row) => Number(row.niveau_actuel ?? row.level ?? row.niveau ?? 1);
+    const toName = (row, index) =>
+      row.prenom || row.name || row.nom || `Éleveur ${index + 1}`;
+    const toPoints = (row) =>
+      Number(row.points_total ?? row.points ?? row.score ?? 0);
+    const toLevel = (row) =>
+      Number(row.niveau_actuel ?? row.level ?? row.niveau ?? 1);
 
     if (podium && rows.length >= 3) {
       podium.innerHTML = `
         <article class="podium-card podium-card--second">
           <span>🥈</span>
           <strong>${toName(rows[1], 2)}</strong>
-          <p>${toPoints(rows[1]).toLocaleString('fr-FR')} pts</p>
+          <p>${toPoints(rows[1]).toLocaleString("fr-FR")} pts</p>
         </article>
         <article class="podium-card podium-card--first">
           <span>🥇</span>
           <strong>${toName(rows[0], 1)}</strong>
-          <p>${toPoints(rows[0]).toLocaleString('fr-FR')} pts</p>
+          <p>${toPoints(rows[0]).toLocaleString("fr-FR")} pts</p>
         </article>
         <article class="podium-card podium-card--third">
           <span>🥉</span>
           <strong>${toName(rows[2], 3)}</strong>
-          <p>${toPoints(rows[2]).toLocaleString('fr-FR')} pts</p>
+          <p>${toPoints(rows[2]).toLocaleString("fr-FR")} pts</p>
         </article>
       `;
     }
 
     if (rankingList) {
-      rankingList.innerHTML = rows.slice(3).map((row, index) => `
-        <article class="ranking-row ${row.me ? 'is-me' : ''}">
+      rankingList.innerHTML = rows
+        .slice(3)
+        .map(
+          (row, index) => `
+        <article class="ranking-row ${row.me ? "is-me" : ""}">
           <strong>#${index + 4}</strong>
-          <div class="ranking-row__avatar">${String(toName(row, index + 4)).split(' ').filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase() || '').join('')}</div>
+          <div class="ranking-row__avatar">${String(toName(row, index + 4))
+            .split(" ")
+            .filter(Boolean)
+            .slice(0, 2)
+            .map((part) => part[0]?.toUpperCase() || "")
+            .join("")}</div>
           <div class="ranking-row__meta">
             <strong>${toName(row, index + 4)}</strong>
             <span>Niveau ${toLevel(row)}</span>
           </div>
-          <span class="ranking-row__points">${toPoints(row).toLocaleString('fr-FR')} pts</span>
+          <span class="ranking-row__points">${toPoints(row).toLocaleString("fr-FR")} pts</span>
         </article>
-      `).join('');
+      `,
+        )
+        .join("");
     }
 
     if (status && rows[0]) {
-      const me = rows.find((row) => row.me) || rows[Math.min(rows.length - 1, 10)] || rows[0];
+      const me =
+        rows.find((row) => row.me) ||
+        rows[Math.min(rows.length - 1, 10)] ||
+        rows[0];
       const rank = Number(me.rank || me.position || 0);
-      const zone = rank <= 3 ? 'monte' : rank <= 10 ? 'neutre' : 'descente';
+      const zone = rank <= 3 ? "monte" : rank <= 10 ? "neutre" : "descente";
       status.className = `league-status league-status--${zone}`;
       status.textContent =
-        zone === 'monte'
-          ? '⬆️ Tu es en zone montée'
-          : zone === 'descente'
-            ? '⬇️ Tu es en zone descente'
-            : '➡️ Tu es en zone neutre';
+        zone === "monte"
+          ? "⬆️ Tu es en zone montée"
+          : zone === "descente"
+            ? "⬇️ Tu es en zone descente"
+            : "➡️ Tu es en zone neutre";
     }
   }
 
   function bindClassementPage() {
-    const tabs = qsa('[data-board]');
+    const tabs = qsa("[data-board]");
     if (!tabs.length || !API) return;
 
     const refresh = async (region) => {
       const payload =
-        region && region !== 'national'
+        region && region !== "national"
           ? await apiOrNull((api) => api.gamification.classementRegion(region))
           : await apiOrNull((api) => api.gamification.classement());
 
@@ -857,74 +961,93 @@
     };
 
     tabs.forEach((tab) => {
-      tab.addEventListener('click', async () => {
-        const board = tab.dataset.board || 'commune';
-        await refresh(board === 'departement' ? 'Département' : board === 'national' ? 'national' : 'Commune');
+      tab.addEventListener("click", async () => {
+        const board = tab.dataset.board || "commune";
+        await refresh(
+          board === "departement"
+            ? "Département"
+            : board === "national"
+              ? "national"
+              : "Commune",
+        );
       });
     });
 
-    refresh('Commune');
+    refresh("Commune");
   }
 
   function renderAcademyCatalog(payload) {
-    const catalog = qs('#academyCatalog');
+    const catalog = qs("#academyCatalog");
     if (!catalog) return;
 
-    const formations = payload.formations || payload.catalogue || payload.items || [];
+    const formations =
+      payload.formations || payload.catalogue || payload.items || [];
     if (!Array.isArray(formations) || !formations.length) return;
 
     catalog.innerHTML = formations
-      .map((formation, index) => `
-        <article class="academy-card ${index === 0 ? 'is-active' : ''}" data-index="${index}" data-id="${formation.id}">
-          <div class="academy-card__icon">${formation.icone || formation.icon || '📘'}</div>
+      .map(
+        (formation, index) => `
+        <article class="academy-card ${index === 0 ? "is-active" : ""}" data-index="${index}" data-id="${formation.id}">
+          <div class="academy-card__icon">${formation.icone || formation.icon || "📘"}</div>
           <div class="academy-card__body">
-            <h3>${formation.titre || formation.title || 'Formation'}</h3>
-            <p>${formation.niveau || formation.level || ''} · ${formation.duree || formation.duration || ''}</p>
-            <small>${formation.resume || formation.description || ''}</small>
+            <h3>${formation.titre || formation.title || "Formation"}</h3>
+            <p>${formation.niveau || formation.level || ""} · ${formation.duree || formation.duration || ""}</p>
+            <small>${formation.resume || formation.description || ""}</small>
           </div>
         </article>
-      `)
-      .join('');
+      `,
+      )
+      .join("");
 
-    qsa('.academy-card', catalog).forEach((card) => {
-      card.addEventListener('click', async () => {
-        qsa('.academy-card', catalog).forEach((item) => item.classList.toggle('is-active', item === card));
+    qsa(".academy-card", catalog).forEach((card) => {
+      card.addEventListener("click", async () => {
+        qsa(".academy-card", catalog).forEach((item) =>
+          item.classList.toggle("is-active", item === card),
+        );
         const formationId = card.dataset.id;
         if (!formationId) return;
 
         const lesson = await apiOrNull((api) =>
           api.academy.lecon({
             formation_id: formationId,
-            lesson_index: 0
-          })
+            lesson_index: 0,
+          }),
         );
 
         if (lesson) {
-          const title = qs('#lessonTitle');
-          const content = qs('#lessonContent');
-          const quiz = qs('#lessonQuiz');
-          const progress = qs('#lessonProgress');
+          const title = qs("#lessonTitle");
+          const content = qs("#lessonContent");
+          const quiz = qs("#lessonQuiz");
+          const progress = qs("#lessonProgress");
 
-          if (title) title.textContent = lesson.lecon?.titre || lesson.formation?.titre || 'Leçon';
+          if (title)
+            title.textContent =
+              lesson.lecon?.titre || lesson.formation?.titre || "Leçon";
           if (content) {
             content.innerHTML = `
-              <p>${lesson.lecon?.contenu || lesson.formation?.resume || ''}</p>
+              <p>${lesson.lecon?.contenu || lesson.formation?.resume || ""}</p>
               <div class="lesson-image-placeholder">Image pédagogique</div>
             `;
           }
           if (quiz && lesson.quiz) {
             quiz.innerHTML = (lesson.quiz.questions || [])
-              .map((question) => `
+              .map(
+                (question) => `
                 <div class="quiz-card">
                   <strong>${question.question}</strong>
                   <div class="quiz-options">
-                    ${(question.choix || []).map((choice) => `
+                    ${(question.choix || [])
+                      .map(
+                        (choice) => `
                       <button type="button" class="quiz-option">${choice}</button>
-                    `).join('')}
+                    `,
+                      )
+                      .join("")}
                   </div>
                 </div>
-              `)
-              .join('');
+              `,
+              )
+              .join("");
           }
           if (progress) {
             progress.textContent = `${lesson.progression?.lecon_courante || 1} / ${lesson.progression?.total_lecons || formations.length}`;
@@ -935,16 +1058,16 @@
   }
 
   function bindAcademyPage() {
-    const catalog = qs('#academyCatalog');
-    const prevButton = qs('#prevLessonButton');
-    const nextButton = qs('#nextLessonButton');
+    const catalog = qs("#academyCatalog");
+    const prevButton = qs("#prevLessonButton");
+    const nextButton = qs("#nextLessonButton");
 
     if (!catalog || !API) return;
 
     const state = {
       formations: [],
       currentFormationIndex: 0,
-      currentLessonIndex: 0
+      currentLessonIndex: 0,
     };
 
     const renderLesson = async () => {
@@ -954,21 +1077,21 @@
       const lesson = await apiOrNull((api) =>
         api.academy.lecon({
           formation_id: formation.id,
-          lesson_index: state.currentLessonIndex
-        })
+          lesson_index: state.currentLessonIndex,
+        }),
       );
 
       if (!lesson) return;
 
-      const title = qs('#lessonTitle');
-      const content = qs('#lessonContent');
-      const quiz = qs('#lessonQuiz');
-      const progress = qs('#lessonProgress');
+      const title = qs("#lessonTitle");
+      const content = qs("#lessonContent");
+      const quiz = qs("#lessonQuiz");
+      const progress = qs("#lessonProgress");
 
       if (title) title.textContent = lesson.lecon?.titre || formation.titre;
       if (content) {
         content.innerHTML = `
-          <p>${lesson.lecon?.contenu || formation.resume || ''}</p>
+          <p>${lesson.lecon?.contenu || formation.resume || ""}</p>
           <div class="lesson-image-placeholder">Image pédagogique</div>
         `;
       }
@@ -976,31 +1099,37 @@
         const quizData = await apiOrNull((api) =>
           api.academy.quiz({
             formation_id: formation.id,
-            lesson_index: state.currentLessonIndex
-          })
+            lesson_index: state.currentLessonIndex,
+          }),
         );
 
         if (quizData) {
           quiz.innerHTML = (quizData.quiz?.questions || [])
-            .map((question) => `
+            .map(
+              (question) => `
               <div class="quiz-card">
                 <strong>${question.question}</strong>
                 <div class="quiz-options">
-                  ${(question.choix || []).map((choice, index) => `
+                  ${(question.choix || [])
+                    .map(
+                      (choice, index) => `
                     <button type="button" class="quiz-option" data-correct="${index === Number(question.bonne_reponse || 0)}">${choice}</button>
-                  `).join('')}
+                  `,
+                    )
+                    .join("")}
                 </div>
               </div>
-            `)
-            .join('');
+            `,
+            )
+            .join("");
 
-          qsa('.quiz-option', quiz).forEach((btn) => {
-            btn.addEventListener('click', () => {
-              if (btn.dataset.correct === 'true') {
-                notify('Bonne réponse ! +20 🌟');
-                addLocalPoints(20, 'une bonne réponse');
+          qsa(".quiz-option", quiz).forEach((btn) => {
+            btn.addEventListener("click", () => {
+              if (btn.dataset.correct === "true") {
+                notify("Bonne réponse ! +20 🌟");
+                addLocalPoints(20, "une bonne réponse");
               } else {
-                notify('Réponse incorrecte, essayez encore.', 'warning');
+                notify("Réponse incorrecte, essayez encore.", "warning");
               }
             });
           });
@@ -1016,12 +1145,12 @@
       if (!formations.length) return;
       state.formations = formations.map((item) => ({
         id: item.id,
-        titre: item.titre || item.title || 'Formation',
-        resume: item.resume || item.description || '',
-        niveau: item.niveau || item.level || '',
-        duree: item.duree || item.duration || '',
-        icon: item.icone || item.icon || '📘',
-        total_lecons: Number(item.total_lecons || item.lessons || 1)
+        titre: item.titre || item.title || "Formation",
+        resume: item.resume || item.description || "",
+        niveau: item.niveau || item.level || "",
+        duree: item.duree || item.duration || "",
+        icon: item.icone || item.icon || "📘",
+        total_lecons: Number(item.total_lecons || item.lessons || 1),
       }));
       renderAcademyCatalog({ formations: state.formations });
     };
@@ -1037,7 +1166,7 @@
 
     if (prevButton) {
       const button = cloneAndReplace(prevButton);
-      button.addEventListener('click', async () => {
+      button.addEventListener("click", async () => {
         state.currentLessonIndex = Math.max(0, state.currentLessonIndex - 1);
         await renderLesson();
       });
@@ -1045,12 +1174,12 @@
 
     if (nextButton) {
       const button = cloneAndReplace(nextButton);
-      button.addEventListener('click', async () => {
+      button.addEventListener("click", async () => {
         const formation = state.formations[state.currentFormationIndex];
         if (!formation) return;
         state.currentLessonIndex = Math.min(
           Math.max(0, Number(formation.total_lecons || 1) - 1),
-          state.currentLessonIndex + 1
+          state.currentLessonIndex + 1,
         );
         await renderLesson();
       });
@@ -1065,35 +1194,37 @@
 
     apiOrNull((api) => api.paiement.offres()).then((payload) => {
       if (!payload || !Array.isArray(payload.offres)) return;
-      const list = qs('#subscriptionOffers');
+      const list = qs("#subscriptionOffers");
       if (!list) return;
 
       list.innerHTML = payload.offres
-        .map((offer) => `
-          <article class="pricing-card ${offer.code === 'free' ? 'is-free' : ''}" data-offer="${offer.code}">
+        .map(
+          (offer) => `
+          <article class="pricing-card ${offer.code === "free" ? "is-free" : ""}" data-offer="${offer.code}">
             <h3>${offer.label}</h3>
-            <p>${Number(offer.prix_fcfa || 0).toLocaleString('fr-FR')} FCFA</p>
+            <p>${Number(offer.prix_fcfa || 0).toLocaleString("fr-FR")} FCFA</p>
             <ul>
-              ${(offer.benefices || []).map((benefit) => `<li>${benefit}</li>`).join('')}
+              ${(offer.benefices || []).map((benefit) => `<li>${benefit}</li>`).join("")}
             </ul>
             <button type="button" class="primary-action subscribe-button" data-code="${offer.code}">S'abonner</button>
           </article>
-        `)
-        .join('');
+        `,
+        )
+        .join("");
 
-      qsa('.subscribe-button', list).forEach((button) => {
-        button.addEventListener('click', async () => {
+      qsa(".subscribe-button", list).forEach((button) => {
+        button.addEventListener("click", async () => {
           const userId = getUserId();
           if (!userId) {
-            notify('Veuillez vous connecter pour souscrire.', 'warning');
+            notify("Veuillez vous connecter pour souscrire.", "warning");
             return;
           }
 
-          const telephone = getProfileState().telephone || '';
+          const telephone = getProfileState().telephone || "";
           const payload = {
             user_id: userId,
-            abonnement: button.dataset.code || 'free',
-            telephone
+            abonnement: button.dataset.code || "free",
+            telephone,
           };
 
           const result = await apiOrNull((api) => api.paiement.creer(payload));
@@ -1119,12 +1250,12 @@
   function boot() {
     registerServiceWorker();
     try {
-      const liveScript = document.createElement('script');
+      const liveScript = document.createElement("script");
       liveScript.defer = true;
-      liveScript.src = './gamification_live.js';
+      liveScript.src = "./gamification_live.js";
       document.head.appendChild(liveScript);
     } catch (error) {
-      console.warn('[FeedFormula Live]', error);
+      console.warn("[FeedFormula Live]", error);
     }
     bindRationPage();
     bindVetScanPage();
@@ -1137,9 +1268,9 @@
     warmUpData();
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
   } else {
     boot();
   }
-})(typeof window !== 'undefined' ? window : globalThis);
+})(typeof window !== "undefined" ? window : globalThis);
