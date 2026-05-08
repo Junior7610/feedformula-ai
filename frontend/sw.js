@@ -21,7 +21,7 @@ const CORE_ASSETS = [
   "./classement.html",
   "./farmacademy.html",
   "./modules.html",
-  "./style.min.css",
+  "./style.css",
   "./script.min.js",
   "./api.js",
   "../assets/logo_feedformula_minimal.png",

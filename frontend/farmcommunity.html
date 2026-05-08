@@ -2,8 +2,52 @@
 <html lang="fr">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>FarmCommunity | FeedFormula AI</title>
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+        />
+        <title>FeedFormula AI — Nutrition Animale IA | Bénin</title>
+        <meta name="keywords" content="élevage bénin, nutrition animale, IA agricole, fon, poulet, vache, ration animale" />
+        <meta name="author" content="Leonel TOGBE" />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href="https://feedformula-ai.vercel.app/app/" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://feedformula-ai.vercel.app" />
+        <meta property="og:title" content="FeedFormula AI — L IA au service de l élevage africain" />
+        <meta property="og:description" content="Formulez la ration parfaite de vos animaux en 30 secondes. En fon, yoruba, français et 47 autres langues africaines." />
+        <meta property="og:image" content="https://feedformula-ai.vercel.app/assets/branding/hero_image_accueil.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:locale" content="fr_BJ" />
+        <meta property="og:site_name" content="FeedFormula AI" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="FeedFormula AI — Nutrition Animale IA" />
+        <meta name="twitter:description" content="L intelligence africaine au service de vos animaux." />
+        <meta name="twitter:image" content="https://feedformula-ai.vercel.app/assets/branding/hero_image_accueil.png" />
+        <meta name="description" content="FeedFormula AI génère la ration parfaite pour vos animaux en 30 secondes. 50 langues africaines. 8 modules IA. Gratuit pour les éleveurs béninois." />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta
+            name="apple-mobile-web-app-status-bar-style"
+            content="black-translucent"
+        />
+        <meta name="apple-mobile-web-app-title" content="FeedFormula AI" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="application-name" content="FeedFormula AI" />
+        <link rel="manifest" href="/app/manifest.json" />
+        <link
+            rel="apple-touch-icon"
+            href="/assets/branding/logo_principal_hd.png"
+        />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link rel="preload" href="/assets/branding/logo_principal_hd.png" as="image" />
+        <link rel="preload" href="/app/style.css" as="style" />
+
+        <link rel="stylesheet" href="style.css" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+            rel="stylesheet"
+        />
         <style>
             :root {
                 --green: #19733f;
@@ -18,7 +62,7 @@
             }
             body {
                 margin: 0;
-                font-family: Arial, sans-serif;
+                font-family: var(--font-primary);
                 background: var(--bg);
                 color: var(--text);
             }
@@ -216,7 +260,7 @@
                 }
             }
         </style>
-            <script defer src="assets_manager.js"></script>
+        <script defer src="assets_manager.js"></script>
     </head>
     <body>
         <header>
@@ -272,7 +316,12 @@
                         </select></label
                     >
                     <button onclick="createPost()">Publier</button>
-                    <div class="loading" id="postLoading">
+                    <div
+                        class="loading"
+                        id="postLoading"
+                        aria-live="polite"
+                        aria-busy="false"
+                    >
                         <span class="spinner"></span
                         ><span>Publication en cours...</span>
                     </div>

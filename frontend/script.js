@@ -21,6 +21,7 @@
     league: "feedformula_league_v3",
     language: "feedformula_language_v3",
     tutorial: "feedformula_tutorial_v3",
+    theme: "feedformula_theme_v1",
   };
 
   const APP = {
@@ -993,30 +994,354 @@
     if (!container) {
       container = document.createElement("div");
       container.className = "toast-container";
+      container.setAttribute("role", "status");
+      container.setAttribute("aria-live", "polite");
+      container.setAttribute("aria-atomic", "true");
       document.body.appendChild(container);
     }
     return container;
   }
 
-  function toast(message, type = "info", duration = 2400) {
+  function showToast(message, type = "info", duration = 2400) {
     const container = ensureToastContainer();
     const el = document.createElement("div");
     el.className = `toast toast-${type}`;
     el.textContent = message;
     container.appendChild(el);
 
+    while (container.children.length > 3) {
+      container.removeChild(container.firstElementChild);
+    }
+
+    window.requestAnimationFrame(() => {
+      el.classList.add("is-visible");
+    });
+
     window.setTimeout(
       () => {
-        el.style.opacity = "0";
-        el.style.transform = "translateY(-4px)";
-        el.style.transition = "opacity 180ms ease, transform 180ms ease";
+        el.classList.remove("is-visible");
+        el.classList.add("is-leaving");
       },
-      Math.max(900, duration - 260),
+      Math.max(1000, duration - 220),
     );
 
     window.setTimeout(() => {
       el.remove();
     }, duration);
+
+    return el;
+  }
+
+  function toast(message, type = "info", duration = 2400) {
+    return showToast(message, type, duration);
+  }
+
+  function vibrer(pattern) {
+    if (navigator.vibrate) {
+      navigator.vibrate(pattern);
+    }
+  }
+
+  function confirmerAction(message) {
+    return new Promise((resolve) => {
+      const overlay = document.createElement("div");
+      overlay.className = "modal-overlay confirm-overlay";
+      overlay.setAttribute("role", "dialog");
+      overlay.setAttribute("aria-modal", "true");
+      overlay.setAttribute("aria-labelledby", "confirmActionTitle");
+      overlay.setAttribute("aria-live", "polite");
+
+      overlay.innerHTML = `
+        <div class="modal-box confirm-modal">
+          <h2 id="confirmActionTitle">Confirmation requise</h2>
+          <p>${escapeHtml(message || "Confirmez cette action.")}</p>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-ghost" data-confirm-cancel>Annuler</button>
+            <button type="button" class="btn btn-primary" data-confirm-ok>Confirmer</button>
+          </div>
+        </div>
+      `;
+
+      const cleanup = (value) => {
+        document.removeEventListener("keydown", handleKeydown, true);
+        overlay.remove();
+        resolve(value);
+      };
+
+      const handleKeydown = (event) => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          cleanup(false);
+        }
+      };
+
+      overlay.addEventListener("click", (event) => {
+        if (
+          event.target === overlay ||
+          event.target.closest("[data-confirm-cancel]")
+        ) {
+          cleanup(false);
+        }
+        if (event.target.closest("[data-confirm-ok]")) {
+          vibrer([100, 50, 100]);
+          cleanup(true);
+        }
+      });
+
+      document.addEventListener("keydown", handleKeydown, true);
+      document.body.appendChild(overlay);
+      const ok = overlay.querySelector("[data-confirm-ok]");
+      if (ok) ok.focus();
+    });
+  }
+
+  function afficherEtatVide(
+    conteneur,
+    message,
+    icone,
+    actionLabel = "Action principale",
+    actionCallback = null,
+  ) {
+    const target =
+      typeof conteneur === "string"
+        ? document.querySelector(conteneur)
+        : conteneur;
+    if (!target) return null;
+
+    const safeMessage = message || "Aucun résultat à afficher pour le moment.";
+    const safeIcon = icone || "🤗";
+    const hasAction = typeof actionCallback === "function";
+
+    target.innerHTML = `
+      <div class="empty-state animate-fadeInUp" role="status" aria-live="polite">
+        <div class="empty-state__icon" aria-hidden="true">${safeIcon}</div>
+        <p class="empty-state__message">${escapeHtml(safeMessage)}</p>
+        ${hasAction ? `<button type="button" class="btn btn-primary btn-full empty-state__action">${escapeHtml(actionLabel)}</button>` : ""}
+      </div>
+    `;
+
+    const button = target.querySelector(".empty-state__action");
+    if (button && hasAction) {
+      button.addEventListener("click", actionCallback);
+    }
+    return target.querySelector(".empty-state");
+  }
+
+  function filtrerListe(items, query, filtres = {}) {
+    const normalizedQuery = safeString(query).trim().toLowerCase();
+    const normalizedFilters = Object.entries(filtres || {}).reduce(
+      (acc, [key, value]) => {
+        acc[key] = Array.isArray(value)
+          ? value.map((item) => safeString(item).toLowerCase())
+          : safeString(value).toLowerCase();
+        return acc;
+      },
+      {},
+    );
+
+    return (Array.isArray(items) ? items : [])
+      .filter((item) => {
+        if (!item) return false;
+        const haystack = safeString(
+          item.searchableText ||
+            item.label ||
+            item.name ||
+            item.title ||
+            item.text ||
+            item.description,
+        ).toLowerCase();
+        const matchesQuery =
+          !normalizedQuery || haystack.includes(normalizedQuery);
+        const matchesFilters = Object.entries(normalizedFilters).every(
+          ([key, value]) => {
+            if (!value || value.length === 0) return true;
+            const candidate = safeString(
+              item[key] ?? item.dataset?.[key] ?? item.category ?? item.type,
+            ).toLowerCase();
+            return Array.isArray(value)
+              ? value.includes(candidate)
+              : candidate === value;
+          },
+        );
+        return matchesQuery && matchesFilters;
+      })
+      .map((item) => {
+        const label = safeString(
+          item.label ||
+            item.name ||
+            item.title ||
+            item.text ||
+            item.description,
+        );
+        const highlightedLabel = normalizedQuery
+          ? label.replace(
+              new RegExp(`(${escapeRegExp(normalizedQuery)})`, "ig"),
+              "<mark>$1</mark>",
+            )
+          : label;
+        return { ...item, highlightedLabel };
+      });
+  }
+
+  function setupInfiniteScroll(conteneur, callback) {
+    const element =
+      typeof conteneur === "string"
+        ? document.querySelector(conteneur)
+        : conteneur;
+    if (!element || typeof callback !== "function") return null;
+
+    let loading = false;
+    const threshold = 240;
+
+    const trigger = () => {
+      if (loading) return;
+      loading = true;
+      Promise.resolve(callback())
+        .catch(() => {})
+        .finally(() => {
+          loading = false;
+        });
+    };
+
+    const onScroll = () => {
+      const isWindowTarget =
+        element === window || element === document || element === document.body;
+      const scrollTop = isWindowTarget ? window.scrollY : element.scrollTop;
+      const visibleHeight = isWindowTarget
+        ? window.innerHeight
+        : element.clientHeight;
+      const totalHeight = isWindowTarget
+        ? document.documentElement.scrollHeight
+        : element.scrollHeight;
+
+      if (scrollTop + visibleHeight >= totalHeight - threshold) {
+        trigger();
+      }
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }
+
+  async function copierTexte(texte) {
+    const content = safeString(texte);
+    if (!content) {
+      showToast("Aucun texte à copier.", "warning", 1800);
+      return false;
+    }
+
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(content);
+      } else {
+        const fallback = document.createElement("textarea");
+        fallback.value = content;
+        fallback.setAttribute("readonly", "readonly");
+        fallback.style.position = "fixed";
+        fallback.style.opacity = "0";
+        document.body.appendChild(fallback);
+        fallback.select();
+        fallback.setSelectionRange(0, fallback.value.length);
+        const ok = document.execCommand("copy");
+        fallback.remove();
+        if (!ok) throw new Error("Copy fallback failed");
+      }
+      showToast("Ration copiée !", "success", 2200);
+      vibrer([50]);
+      return true;
+    } catch (error) {
+      showToast("Impossible de copier le texte.", "error", 2600);
+      return false;
+    }
+  }
+
+  function setupPullToRefresh(onRefresh) {
+    if (!window.matchMedia || !window.matchMedia("(pointer: coarse)").matches) {
+      return null;
+    }
+
+    const indicator = document.createElement("div");
+    indicator.className = "pull-refresh-indicator";
+    indicator.innerHTML =
+      '<span class="pull-refresh-indicator__spinner"></span><span class="pull-refresh-indicator__text">Tirez vers le bas pour actualiser</span>';
+    document.body.appendChild(indicator);
+
+    let startY = 0;
+    let active = false;
+    let refreshing = false;
+    const threshold = 72;
+
+    const reset = () => {
+      active = false;
+      indicator.classList.remove("is-active", "is-refreshing");
+      indicator.style.setProperty("--pull-progress", "0%");
+      indicator.querySelector(".pull-refresh-indicator__text").textContent =
+        "Tirez vers le bas pour actualiser";
+    };
+
+    const beginRefresh = () => {
+      if (refreshing) return;
+      refreshing = true;
+      indicator.classList.add("is-refreshing");
+      indicator.querySelector(".pull-refresh-indicator__text").textContent =
+        "Actualisation...";
+      vibrer([100, 50, 100]);
+      Promise.resolve(onRefresh && onRefresh())
+        .catch(() => {})
+        .finally(() => {
+          window.setTimeout(() => {
+            refreshing = false;
+            reset();
+          }, 500);
+        });
+    };
+
+    const onTouchStart = (event) => {
+      if (window.scrollY > 0) return;
+      startY = event.touches[0].clientY;
+      active = true;
+    };
+
+    const onTouchMove = (event) => {
+      if (!active || refreshing || window.scrollY > 0) return;
+      const delta = event.touches[0].clientY - startY;
+      if (delta <= 0) return;
+      const progress = Math.min(100, Math.round((delta / threshold) * 100));
+      indicator.classList.add("is-active");
+      indicator.style.setProperty("--pull-progress", `${progress}%`);
+      indicator.querySelector(".pull-refresh-indicator__text").textContent =
+        progress >= 100
+          ? "Relâchez pour actualiser"
+          : "Tirez vers le bas pour actualiser";
+      if (progress >= 100) {
+        event.preventDefault();
+      }
+    };
+
+    const onTouchEnd = () => {
+      if (!active || refreshing) return;
+      const progressValue = parseInt(
+        indicator.style.getPropertyValue("--pull-progress") || "0",
+        10,
+      );
+      if (progressValue >= 100) {
+        beginRefresh();
+      } else {
+        reset();
+      }
+    };
+
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
+    window.addEventListener("touchend", onTouchEnd, { passive: true });
+
+    return () => {
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onTouchEnd);
+      indicator.remove();
+    };
   }
 
   /* ---------------------------------------------------------
@@ -3207,14 +3532,101 @@
     updateXpUI();
   }
 
+  function applyTheme(theme, persist = false) {
+    const nextTheme = theme === "dark" ? "dark" : "light";
+    document.body.classList.toggle("dark", nextTheme === "dark");
+    document.body.dataset.theme = nextTheme;
+
+    const buttons = $all("[data-theme-toggle]");
+    buttons.forEach((button) => {
+      button.textContent = nextTheme === "dark" ? "☀️" : "🌙";
+      button.setAttribute(
+        "aria-label",
+        nextTheme === "dark" ? "Passer au mode clair" : "Passer au mode sombre",
+      );
+      button.setAttribute("aria-pressed", String(nextTheme === "dark"));
+    });
+
+    if (persist) {
+      try {
+        localStorage.setItem(STORAGE_KEYS.theme, nextTheme);
+      } catch (error) {
+        // Aucun traitement supplémentaire
+      }
+    }
+  }
+
+  function initDarkMode() {
+    const stored = getJSON(STORAGE_KEYS.theme, null);
+    const prefersDark =
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const initialTheme =
+      stored === "dark" || stored === "light"
+        ? stored
+        : prefersDark
+          ? "dark"
+          : "light";
+
+    applyTheme(initialTheme, false);
+
+    const targets = $all(".header-actions, .app-header-inner");
+    targets.forEach((container) => {
+      if (!container.querySelector("[data-back-button]")) {
+        const backButton = document.createElement("button");
+        backButton.type = "button";
+        backButton.className = "app-header__back touchable";
+        backButton.dataset.backButton = "true";
+        backButton.setAttribute("aria-label", "Revenir à la page précédente");
+        backButton.textContent = "←";
+        backButton.addEventListener("click", () => {
+          window.history.length > 1
+            ? window.history.back()
+            : window.location.assign("index.html");
+        });
+        if (APP.currentPage !== "index") {
+          container.prepend(backButton);
+        }
+      }
+      if (container.querySelector("[data-theme-toggle]")) return;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "theme-toggle touchable";
+      button.dataset.themeToggle = "true";
+      button.setAttribute(
+        "aria-label",
+        initialTheme === "dark"
+          ? "Passer au mode clair"
+          : "Passer au mode sombre",
+      );
+      button.setAttribute("aria-pressed", String(initialTheme === "dark"));
+      button.textContent = initialTheme === "dark" ? "☀️" : "🌙";
+      button.addEventListener("click", toggleDarkMode);
+      container.prepend(button);
+    });
+  }
+
+  function toggleDarkMode() {
+    const isDark = document.body.classList.contains("dark");
+    const nextTheme = isDark ? "light" : "dark";
+    applyTheme(nextTheme, true);
+    toast(
+      nextTheme === "dark" ? "Mode sombre activé" : "Mode clair activé",
+      "info",
+      1600,
+    );
+  }
+
   /* ---------------------------------------------------------
-     Bootstrap
+     Bootstraps
      --------------------------------------------------------- */
 
   function bootstrap() {
     loadAppState();
     handleOnlineState();
     bindOfflineListeners();
+    initDarkMode();
+    setupPullToRefresh(() => window.location.reload());
     initBottomNavigation();
     initLanguageSelector();
     updateXpUI();
@@ -3299,6 +3711,15 @@
     awardPoints,
     setAyaMood,
     toast,
+    showToast,
+    vibrer,
+    confirmerAction,
+    afficherEtatVide,
+    filtrerListe,
+    setupInfiniteScroll,
+    copierTexte,
+    setupPullToRefresh,
+    toggleDarkMode,
   };
 
   // Exposition globale des fonctions demandées
@@ -3306,4 +3727,13 @@
   window.lireRationVocalement = lireRationVocalement;
   window.telechargerPDF = telechargerPDF;
   window.partagerWhatsApp = partagerWhatsApp;
+  window.showToast = showToast;
+  window.vibrer = vibrer;
+  window.confirmerAction = confirmerAction;
+  window.afficherEtatVide = afficherEtatVide;
+  window.filtrerListe = filtrerListe;
+  window.setupInfiniteScroll = setupInfiniteScroll;
+  window.copierTexte = copierTexte;
+  window.setupPullToRefresh = setupPullToRefresh;
+  window.toggleDarkMode = toggleDarkMode;
 })();

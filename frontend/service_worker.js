@@ -31,7 +31,7 @@ const CORE_ASSETS = [
   './pasturemap.html',
   './abonnement.html',
   './offline.html',
-  './style.min.css',
+  './style.css',
   './script.min.js',
   './api.js',
   './api_bindings.js',

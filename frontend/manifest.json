@@ -1,0 +1,27 @@
+{
+  "name": "FeedFormula AI",
+  "short_name": "FeedFormula",
+  "description": "L intelligence africaine au service de vos animaux",
+  "start_url": "/app/",
+  "display": "standalone",
+  "background_color": "#1B5E20",
+  "theme_color": "#1B5E20",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/assets/branding/logo_principal_hd.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/branding/logo_principal_hd.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["agriculture", "productivity"],
+  "lang": "fr",
+  "dir": "ltr"
+}
