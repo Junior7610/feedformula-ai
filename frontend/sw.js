@@ -8,7 +8,7 @@
  * - Accélérer le chargement des ressources statiques
  */
 
-const CACHE_VERSION = "feedformula-ai-v5";
+const CACHE_VERSION = "feedformula-ai-v6";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -21,16 +21,26 @@ const CORE_ASSETS = [
   "./classement.html",
   "./farmacademy.html",
   "./modules.html",
+  "./nutricore.html",
+  "./farmcommunity.html",
+  "./farmcast.html",
+  "./pasturemap.html",
+  "./abonnement.html",
+  "./offline.html",
   "./style.css",
   "./script.min.js",
   "./api.js",
+  "./api_bindings.js",
+  "./gamification_live.js",
+  "./service_worker.js",
+  "./sw.js",
   "../assets/logo_feedformula_minimal.png",
-  "../assets/aya_joie.png"
+  "../assets/aya_joie.png",
 ];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(STATIC_CACHE).then((cache) => cache.addAll(CORE_ASSETS))
+    caches.open(STATIC_CACHE).then((cache) => cache.addAll(CORE_ASSETS)),
   );
   self.skipWaiting();
 });
@@ -44,9 +54,9 @@ self.addEventListener("activate", (event) => {
             return caches.delete(key);
           }
           return Promise.resolve();
-        })
-      )
-    )
+        }),
+      ),
+    ),
   );
   self.clients.claim();
 });
@@ -120,9 +130,9 @@ self.addEventListener("message", (event) => {
 
   if (event.data.type === "CLEAR_CACHE") {
     event.waitUntil(
-      caches.keys().then((keys) =>
-        Promise.all(keys.map((key) => caches.delete(key)))
-      )
+      caches
+        .keys()
+        .then((keys) => Promise.all(keys.map((key) => caches.delete(key)))),
     );
   }
 });

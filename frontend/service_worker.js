@@ -9,57 +9,61 @@
  * - Accélérer le chargement des ressources statiques
  */
 
-const CACHE_VERSION = 'feedformula-ai-v5';
+const CACHE_VERSION = "feedformula-ai-v6";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const RATION_CACHE = `${CACHE_VERSION}-ration`;
-const OFFLINE_FALLBACK = './offline.html';
+const OFFLINE_FALLBACK = "./offline.html";
 const MAX_RATIONS = 5;
 
 const CORE_ASSETS = [
-  './',
-  './index.html',
-  './vetscan.html',
-  './reprotrack.html',
-  './profil.html',
-  './classement.html',
-  './farmacademy.html',
-  './modules.html',
-  './nutricore.html',
-  './farmcommunity.html',
-  './farmcast.html',
-  './pasturemap.html',
-  './abonnement.html',
-  './offline.html',
-  './style.css',
-  './script.min.js',
-  './api.js',
-  './api_bindings.js',
-  './gamification_live.js',
-  './service_worker.js',
-  '../assets/logo_feedformula_minimal.png',
-  '../assets/aya_joie.png'
+  "./",
+  "./index.html",
+  "./vetscan.html",
+  "./reprotrack.html",
+  "./profil.html",
+  "./classement.html",
+  "./farmacademy.html",
+  "./modules.html",
+  "./nutricore.html",
+  "./farmcommunity.html",
+  "./farmcast.html",
+  "./pasturemap.html",
+  "./abonnement.html",
+  "./offline.html",
+  "./style.css",
+  "./script.min.js",
+  "./api.js",
+  "./api_bindings.js",
+  "./gamification_live.js",
+  "./service_worker.js",
+  "../assets/logo_feedformula_minimal.png",
+  "../assets/aya_joie.png",
 ];
 
-self.addEventListener('install', (event) => {
+self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(STATIC_CACHE).then((cache) => cache.addAll(CORE_ASSETS))
+    caches.open(STATIC_CACHE).then((cache) => cache.addAll(CORE_ASSETS)),
   );
   self.skipWaiting();
 });
 
-self.addEventListener('activate', (event) => {
+self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
         keys.map((key) => {
-          if (key !== STATIC_CACHE && key !== RUNTIME_CACHE && key !== RATION_CACHE) {
+          if (
+            key !== STATIC_CACHE &&
+            key !== RUNTIME_CACHE &&
+            key !== RATION_CACHE
+          ) {
             return caches.delete(key);
           }
           return Promise.resolve();
-        })
-      )
-    )
+        }),
+      ),
+    ),
   );
   self.clients.claim();
 });
@@ -77,7 +81,7 @@ async function cacheFirst(request) {
     return response;
   } catch (error) {
     const offline = await caches.match(OFFLINE_FALLBACK);
-    return offline || caches.match('./index.html');
+    return offline || caches.match("./index.html");
   }
 }
 
@@ -109,39 +113,45 @@ async function cacheRationResponse(request, response) {
   return response;
 }
 
-self.addEventListener('fetch', (event) => {
+self.addEventListener("fetch", (event) => {
   const { request } = event;
 
-  if (request.method === 'POST' && new URL(request.url).pathname.endsWith('/generer-ration')) {
+  if (
+    request.method === "POST" &&
+    new URL(request.url).pathname.endsWith("/generer-ration")
+  ) {
     event.respondWith(
       fetch(request)
         .then((response) => cacheRationResponse(request, response))
         .catch(async () => {
           const cached = await caches.match(OFFLINE_FALLBACK);
-          return cached || new Response(JSON.stringify({ detail: 'hors_ligne' }), {
-            headers: { 'Content-Type': 'application/json' },
-            status: 503,
-          });
-        })
+          return (
+            cached ||
+            new Response(JSON.stringify({ detail: "hors_ligne" }), {
+              headers: { "Content-Type": "application/json" },
+              status: 503,
+            })
+          );
+        }),
     );
     return;
   }
 
-  if (request.method !== 'GET') return;
+  if (request.method !== "GET") return;
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  if (request.mode === 'navigate') {
+  if (request.mode === "navigate") {
     event.respondWith(networkFirst(request));
     return;
   }
 
   if (
-    request.destination === 'style' ||
-    request.destination === 'script' ||
-    request.destination === 'image' ||
-    request.destination === 'font'
+    request.destination === "style" ||
+    request.destination === "script" ||
+    request.destination === "image" ||
+    request.destination === "font"
   ) {
     event.respondWith(cacheFirst(request));
     return;
@@ -150,32 +160,32 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(networkFirst(request));
 });
 
-self.addEventListener('message', (event) => {
-  if (!event.data || typeof event.data !== 'object') return;
+self.addEventListener("message", (event) => {
+  if (!event.data || typeof event.data !== "object") return;
 
-  if (event.data.type === 'SKIP_WAITING') {
+  if (event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
   }
 
-  if (event.data.type === 'CACHE_RATION' && event.data.payload) {
+  if (event.data.type === "CACHE_RATION" && event.data.payload) {
     event.waitUntil(
       caches.open(RATION_CACHE).then((cache) => {
         const key = `ration:${Date.now()}`;
         return cache.put(
           key,
           new Response(JSON.stringify(event.data.payload), {
-            headers: { 'Content-Type': 'application/json' },
-          })
+            headers: { "Content-Type": "application/json" },
+          }),
         );
-      })
+      }),
     );
   }
 
-  if (event.data.type === 'CLEAR_CACHE') {
+  if (event.data.type === "CLEAR_CACHE") {
     event.waitUntil(
-      caches.keys().then((keys) =>
-        Promise.all(keys.map((key) => caches.delete(key)))
-      )
+      caches
+        .keys()
+        .then((keys) => Promise.all(keys.map((key) => caches.delete(key)))),
     );
   }
 });

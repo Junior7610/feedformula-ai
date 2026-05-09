@@ -317,7 +317,12 @@
                 </div>
 
                 <!-- Liste complète des langues -->
-                <details id="languagePanel" class="card" hidden data-lang-panel>
+                <details
+                    id="languagePanel"
+                    class="card"
+                    open
+                    data-lang-panel
+                >
                     <summary class="section-title">Langues disponibles</summary>
                     <div
                         class="language-list"
@@ -485,6 +490,47 @@
                         </button>
                     </div>
                 </details>
+            </section>
+
+            <!-- Abonnement / offres -->
+            <section
+                class="card subscription-card"
+                aria-labelledby="subscriptionTitle"
+            >
+                <div class="subscription-header">
+                    <div>
+                        <h2 id="subscriptionTitle" class="section-title">
+                            Abonnement et offres premium
+                        </h2>
+                        <p class="section-subtitle">
+                            Comparez les plans, activez Mobile Money et débloquez
+                            les langues, modules IA et fonctions premium.
+                        </p>
+                    </div>
+                    <div class="subscription-badge">💳 Offres FeedFormula</div>
+                </div>
+
+                <div class="subscription-benefits" style="margin-top: 12px">
+                    <div class="subscription-benefit card">
+                        <strong>50 langues africaines</strong>
+                        <div class="muted">Accès élargi selon votre offre.</div>
+                    </div>
+                    <div class="subscription-benefit card">
+                        <strong>8 modules IA</strong>
+                        <div class="muted">VetScan, ReproTrack, FarmAcademy…</div>
+                    </div>
+                    <div class="subscription-benefit card">
+                        <strong>Paiement Mobile Money</strong>
+                        <div class="muted">MTN Money et Moov Money disponibles.</div>
+                    </div>
+                </div>
+
+                <div class="subscription-actions">
+                    <a class="btn btn-primary" href="abonnement.html">
+                        Voir les abonnements
+                    </a>
+                    <span class="muted">Choisissez le plan adapté à votre élevage.</span>
+                </div>
             </section>
 
             <!-- Microphone central -->
@@ -1086,6 +1132,11 @@
                 <a class="nav-item" href="modules.html">
                     <span class="nav-icon" aria-hidden="true">📦</span>
                     <span class="nav-text">Modules</span>
+                </a>
+
+                <a class="nav-item" href="abonnement.html">
+                    <span class="nav-icon" aria-hidden="true">💳</span>
+                    <span class="nav-text">Abonnement</span>
                 </a>
 
                 <a class="nav-item" href="classement.html">
