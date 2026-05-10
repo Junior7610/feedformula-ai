@@ -7,24 +7,48 @@
             content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
         />
         <title>FeedFormula AI — Nutrition Animale IA | Bénin</title>
-        <meta name="keywords" content="élevage bénin, nutrition animale, IA agricole, fon, poulet, vache, ration animale" />
+        <meta
+            name="keywords"
+            content="élevage bénin, nutrition animale, IA agricole, fon, poulet, vache, ration animale"
+        />
         <meta name="author" content="Leonel TOGBE" />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href="https://feedformula-ai.vercel.app/app/" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://feedformula-ai.vercel.app" />
-        <meta property="og:title" content="FeedFormula AI — L IA au service de l élevage africain" />
-        <meta property="og:description" content="Formulez la ration parfaite de vos animaux en 30 secondes. En fon, yoruba, français et 47 autres langues africaines." />
-        <meta property="og:image" content="https://feedformula-ai.vercel.app/assets/branding/hero_image_accueil.png" />
+        <meta
+            property="og:title"
+            content="FeedFormula AI — L IA au service de l élevage africain"
+        />
+        <meta
+            property="og:description"
+            content="Formulez la ration parfaite de vos animaux en 30 secondes. En fon, yoruba, français et 47 autres langues africaines."
+        />
+        <meta
+            property="og:image"
+            content="https://feedformula-ai.vercel.app/assets/branding/hero_image_accueil.png"
+        />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:locale" content="fr_BJ" />
         <meta property="og:site_name" content="FeedFormula AI" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="FeedFormula AI — Nutrition Animale IA" />
-        <meta name="twitter:description" content="L intelligence africaine au service de vos animaux." />
-        <meta name="twitter:image" content="https://feedformula-ai.vercel.app/assets/branding/hero_image_accueil.png" />
-        <meta name="description" content="FeedFormula AI génère la ration parfaite pour vos animaux en 30 secondes. 50 langues africaines. 8 modules IA. Gratuit pour les éleveurs béninois." />
+        <meta
+            name="twitter:title"
+            content="FeedFormula AI — Nutrition Animale IA"
+        />
+        <meta
+            name="twitter:description"
+            content="L intelligence africaine au service de vos animaux."
+        />
+        <meta
+            name="twitter:image"
+            content="https://feedformula-ai.vercel.app/assets/branding/hero_image_accueil.png"
+        />
+        <meta
+            name="description"
+            content="FeedFormula AI génère la ration parfaite pour vos animaux en 30 secondes. 50 langues africaines. 8 modules IA. Gratuit pour les éleveurs béninois."
+        />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta
             name="apple-mobile-web-app-status-bar-style"
@@ -40,7 +64,11 @@
         />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link rel="preload" href="/assets/branding/logo_principal_hd.png" as="image" />
+        <link
+            rel="preload"
+            href="/assets/branding/logo_principal_hd.png"
+            as="image"
+        />
         <link rel="preload" href="/app/style.css" as="style" />
 
         <link rel="stylesheet" href="style.css" />
@@ -392,12 +420,25 @@
         </main>
 
         <script>
-            const API_BASE = window.API_BASE || "http://127.0.0.1:8000";
-            const api = API_BASE.replace(/\/$/, "");
+            const API_BASE = String(
+                window.FEEDFORMULA_API_BASE_URL ||
+                    window.__FEEDFORMULA_API_BASE_URL__ ||
+                    window.API_BASE ||
+                    "http://127.0.0.1:8000",
+            ).replace(/\/$/, "");
+            const api = API_BASE;
             let currentContent = null;
             async function jget(url) {
                 const r = await fetch(api + url);
-                return await r.json();
+                const data = await r.json();
+                if (!r.ok) {
+                    throw new Error(
+                        data?.detail ||
+                            data?.message ||
+                            "Requête FarmCast impossible",
+                    );
+                }
+                return data;
             }
             async function jpost(url, data) {
                 const r = await fetch(api + url, {
@@ -405,7 +446,15 @@
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(data),
                 });
-                return await r.json();
+                const payload = await r.json();
+                if (!r.ok) {
+                    throw new Error(
+                        payload?.detail ||
+                            payload?.message ||
+                            "Requête FarmCast impossible",
+                    );
+                }
+                return payload;
             }
             function setTheme(value) {
                 document.getElementById("theme").value = value;
@@ -434,29 +483,47 @@
                     "Aya génère votre contenu. Patientez quelques secondes.",
                     "info",
                 );
-                const data = await jpost("/farmcast/creer", payload);
-                currentContent = data;
-                btn.disabled = false;
-                document.getElementById("loadingBox").style.display = "none";
-                showState(
-                    "Contenu généré avec succès. Vous pouvez écouter, télécharger et partager.",
-                    "ok",
-                );
-                document.getElementById("preview").innerHTML = `
-                    <span class="pill">${data.langue}</span>
-                    <span class="pill">${data.format_type}</span>
-                    <h3>${data.theme}</h3>
-                    <p>${data.script.replace(/\n/g, "<br>")}</p>
-                    <audio controls src="${api + data.audio_url}"></audio>
-                    <p><a href="${api + data.fiche_url}" download>Télécharger la fiche PDF</a></p>
-                `;
-                document.getElementById("gallery").innerHTML = data.images_urls
-                    .map(
-                        (u, i) =>
-                            `<div class="stub"><span>Image ${i + 1}<br>${u}</span></div>`,
+                try {
+                    const data = await jpost("/farmcast/creer", payload);
+                    currentContent = data;
+                    showState(
+                        "Contenu généré avec succès. Vous pouvez écouter, télécharger et partager.",
+                        "ok",
+                    );
+                    const audioBlock = data.audio_url
+                        ? `<audio controls src="${api + data.audio_url}"></audio>`
+                        : `<div class="muted">Audio indisponible pour ce contenu.</div>`;
+                    document.getElementById("preview").innerHTML = `
+                        <span class="pill">${data.langue}</span>
+                        <span class="pill">${data.format_type}</span>
+                        <h3>${data.theme}</h3>
+                        <p>${String(data.script || "").replace(/\n/g, "<br>")}</p>
+                        ${audioBlock}
+                        <p><a href="${api + data.fiche_url}" download>Télécharger la fiche PDF</a></p>
+                    `;
+                    document.getElementById("gallery").innerHTML = (
+                        data.images_urls || []
                     )
-                    .join("");
-                window.scrollTo({ top: 0, behavior: "smooth" });
+                        .map(
+                            (u, i) =>
+                                `<div class="stub"><span>Image ${i + 1}<br>${u}</span></div>`,
+                        )
+                        .join("");
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                } catch (error) {
+                    currentContent = null;
+                    showState(
+                        error?.message || "La génération FarmCast a échoué.",
+                        "err",
+                    );
+                    document.getElementById("preview").innerHTML = `
+                        <div class="muted">${error?.message || "Impossible de générer le contenu pour le moment."}</div>
+                    `;
+                } finally {
+                    btn.disabled = false;
+                    document.getElementById("loadingBox").style.display =
+                        "none";
+                }
             }
 
             async function loadHistory() {

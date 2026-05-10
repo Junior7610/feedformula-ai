@@ -526,6 +526,8 @@
                     </div>
                 </div>
 
+                <div id="subscriptionOffersHome" class="subscription-offers-grid" aria-live="polite"></div>
+
                 <div class="subscription-actions">
                     <a class="btn btn-primary" href="abonnement.html">
                         Voir les abonnements
@@ -717,7 +719,7 @@
                         setText(voiceSubtitle, pack.voiceSubtitle);
                         setText(inputTitle, pack.inputTitle);
                         const inputLabel = document.querySelector("label[for='texteDemande']");
-                        if (inputLabel) inputLabel.childNodes[0].textContent = "Votre demande";
+                        if (inputLabel && inputLabel.firstChild) inputLabel.firstChild.textContent = "Votre demande";
                         setText(speciesTitle, pack.speciesTitle);
                         setText(speciesSubtitle, pack.speciesSubtitle);
                         setText(stageTitle, pack.stageTitle);
@@ -733,8 +735,16 @@
                         setText(resultHeroSubtitle, pack.resultHeroSubtitle);
                         setText(historiquePanel?.querySelector(".section-title"), pack.localHistoryTitle);
                         setText(historySubtitle, pack.localHistorySubtitle);
-                        const compareCaption = document.querySelector(".subscription-card .muted strong");
-                        if (compareCaption && pack.offersHeading) compareCaption.textContent = compareCaption.textContent;
+                        const offersHost = document.getElementById("subscriptionOffersHome");
+                        if (offersHost && Array.isArray(pack.offerCards)) {
+                            offersHost.innerHTML = pack.offerCards.map((offer) => `
+                                <article class="subscription-offer-card ${offer.featured ? "featured" : ""}">
+                                    <div class="subscription-offer-title">${offer.title}</div>
+                                    <div class="subscription-offer-price">${offer.price}</div>
+                                    <div class="subscription-offer-meta">${offer.subtitle}</div>
+                                </article>
+                            `).join("");
+                        }
                     }
                     function renderLanguageButtons(items) {
                         if (!languageListFull || !quickLanguageList) return;
