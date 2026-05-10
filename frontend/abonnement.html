@@ -140,6 +140,14 @@
                 grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
                 gap: 14px;
             }
+            .table-wrap {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                border-radius: 18px;
+            }
+            .table-wrap table {
+                min-width: 720px;
+            }
             .offers-grid {
                 display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -362,19 +370,21 @@
 
             <section class="card" style="margin-top: 16px">
                 <h2>Comparatif des 5 offres</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Fonctionnalité</th>
-                            <th>Free</th>
-                            <th>Standard</th>
-                            <th class="premium">Premium</th>
-                            <th>VIP</th>
-                            <th>Gold</th>
-                        </tr>
-                    </thead>
-                    <tbody id="compareRows"></tbody>
-                </table>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fonctionnalité</th>
+                                <th>Free</th>
+                                <th>Standard</th>
+                                <th class="premium">Premium</th>
+                                <th>VIP</th>
+                                <th>Gold</th>
+                            </tr>
+                        </thead>
+                        <tbody id="compareRows"></tbody>
+                    </table>
+                </div>
                 <p class="muted">
                     L’offre <strong>Premium</strong> est mise en avant pour les
                     éleveurs qui veulent un excellent rapport valeur/prix.
@@ -402,11 +412,9 @@
                         /></label>
                         <label
                             >Offre<select id="abonnement">
-                                <option value="free">Free</option>
+                                <option value="free" selected>Free</option>
                                 <option value="standard">Standard</option>
-                                <option value="premium" selected>
-                                    Premium
-                                </option>
+                                <option value="premium">Premium</option>
                                 <option value="vip">VIP</option>
                                 <option value="gold">Gold</option>
                             </select></label
@@ -472,6 +480,21 @@
                 </section>
             </section>
         </main>
+
+        <footer class="site-footer" aria-label="Pied de page">
+            <div class="site-footer__inner">
+                <strong>FeedFormula AI</strong>
+                <span
+                    >Comparez les offres, choisissez la meilleure valeur et
+                    gardez les prix visibles.</span
+                >
+                <div class="site-footer__links">
+                    <a href="index.html">Accueil</a>
+                    <a href="modules.html">Modules</a>
+                    <a href="profil.html">Profil</a>
+                </div>
+            </div>
+        </footer>
 
         <nav class="bottom-nav" aria-label="Navigation principale">
             <div class="bottom-nav-inner">

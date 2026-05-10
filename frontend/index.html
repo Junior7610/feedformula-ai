@@ -537,7 +537,8 @@
             </section>
 
             <script>
-                (function () {
+                document.addEventListener("DOMContentLoaded", () => {
+                    (function () {
                     const API_BASE =
                         window.FEEDFORMULA_API_BASE_URL ||
                         window.__FEEDFORMULA_API_BASE_URL__ ||
@@ -809,8 +810,22 @@
                         }
                     })());
                 })();
+                });
             </script>
             </section>
+
+            <!-- Pied de page -->
+            <footer class="site-footer" aria-label="Pied de page">
+                <div class="site-footer__inner">
+                    <strong>FeedFormula AI</strong>
+                    <span>8 modules IA · 50 langues africaines · IA agricole pour l’Afrique</span>
+                    <div class="site-footer__links">
+                        <a href="modules.html">Modules</a>
+                        <a href="abonnement.html">Offres</a>
+                        <a href="profil.html">Profil</a>
+                    </div>
+                </div>
+            </footer>
 
             <!-- Microphone central -->
             <section class="card" aria-labelledby="voiceTitle">
@@ -1431,4 +1446,3 @@
         </nav>
     </body>
 </html>
-</head></title></div></span></span></span></div></span></span></span></h2></div></strong></div></div></div></div>
