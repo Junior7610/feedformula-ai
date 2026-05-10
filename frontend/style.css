@@ -3332,11 +3332,26 @@ textarea {
     background: white;
     border-top: 1px solid var(--gray-100);
     display: flex;
-    justify-content: space-around;
+    justify-content: center;
     padding: var(--space-2) 0;
     padding-bottom: max(var(--space-2), env(safe-area-inset-bottom));
     z-index: 100;
     box-shadow: 0 -4px 20px rgb(0 0 0 / 0.08);
+}
+
+.bottom-nav-inner {
+    width: min(100%, 680px);
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+    padding: 0 8px;
+}
+
+.bottom-nav-inner .nav-item,
+.bottom-nav-inner .nav-link {
+    min-width: 0;
+    width: 100%;
+    justify-content: center;
 }
 
 .bottom-nav-item,
