@@ -478,14 +478,6 @@
                         <button
                             class="lang-item"
                             type="button"
-                            data-lang="am"
-                            data-lang-button
-                        >
-                            Amharic
-                        </button>
-                        <button
-                            class="lang-item"
-                            type="button"
                             data-lang="ru"
                             data-lang-button
                         >
@@ -585,6 +577,21 @@
                     const quickLanguageList = document.querySelector(".language-strip .language-list");
                     const quickLanguageMore = document.getElementById("languageMoreBtn");
                     const preferredLanguageSelect = document.getElementById("preferredLanguageSelect");
+                    const preferredLanguageLabel = document.querySelector(".language-preference .field-label");
+                    const micHelp = document.querySelector(".mic-help");
+                    const separatorText = document.querySelector(".separator span");
+                    const generateButton = document.getElementById("btnGenerer");
+                    const speakButton = document.getElementById("btnEcouterRation");
+                    const pdfButton = document.getElementById("btnTelechargerPDF");
+                    const whatsappButton = document.getElementById("btnPartagerWhatsApp");
+                    const saveHistoryButton = document.getElementById("btnSauvegarderHistorique");
+                    const micButton = document.getElementById("btnMic");
+                    const subscriptionActionButton = document.querySelector(".subscription-actions .btn.btn-primary");
+                    const subscriptionActionHint = document.querySelector(".subscription-actions .muted");
+                    const subscriptionBenefitCards = document.querySelectorAll(".subscription-benefits .subscription-benefit");
+                    const resultHeroTitle = document.querySelector("#resultatZone .result-hero strong");
+                    const performanceTitle = document.querySelector("#performancesContent .section-title");
+                    const demandLabel = document.querySelector("label[for='texteDemande']");
                     const languageNameMap = {
                         fr: "Français",
                         en: "English",
@@ -636,12 +643,23 @@
                             languageTitle: "Choisissez votre langue",
                             languageSubtitle: "Choisissez une langue rapide, puis ouvrez la liste complète pour accéder à plus d'options.",
                             languagesAvailable: "Langues disponibles",
+                            languageMoreButton: "Plus de langues ▼",
                             subscriptionTitle: "Abonnement et offres premium",
                             subscriptionSubtitle: "Comparez les plans, activez Mobile Money et débloquez les langues, modules IA et fonctions premium.",
+                            subscriptionBadge: "💳 Offres FeedFormula",
+                            subscriptionActionButton: "Voir les abonnements",
+                            subscriptionActionHint: "Choisissez le plan adapté à votre élevage.",
+                            subscriptionBenefits: [
+                                ["50 langues africaines", "Accès élargi selon votre offre."],
+                                ["8 modules IA", "VetScan, ReproTrack, FarmAcademy…"],
+                                ["Paiement Mobile Money", "MTN Money et Moov Money disponibles."],
+                            ],
                             voiceTitle: "Parlez à FeedFormula AI",
                             voiceSubtitle: "Dites ce que vous avez sous la main, l'espèce et l'objectif recherché.",
+                            micHelp: "Appuyez et parlez",
+                            separatorText: "ou tapez ci-dessous",
                             inputTitle: "Décrivez vos animaux et vos ingrédients",
-                            inputSubtitle: "",
+                            demandLabel: "Votre demande",
                             speciesTitle: "Choisissez une espèce",
                             speciesSubtitle: "Tapez sur une carte pour activer automatiquement le stade adapté.",
                             stageTitle: "Choisissez le stade",
@@ -652,12 +670,18 @@
                             animalsSubtitle: "Nombre d'animaux :",
                             goalTitle: "Choisissez votre objectif",
                             goalSubtitle: "",
+                            generateButton: "🌾 Générer ma ration",
+                            speakButton: "🔊 Écouter la ration",
+                            pdfButton: "📄 PDF",
+                            whatsappButton: "📱 WhatsApp",
+                            saveHistoryButton: "Sauvegarder dans l'historique",
                             resultTitle: "Votre ration générée",
                             resultSubtitle: "Les détails s'affichent ici après la génération.",
+                            resultHeroTitle: "━━━ Ration optimisée ━━━",
                             resultHeroSubtitle: "Les détails s'affichent ici après la génération.",
+                            performanceTitle: "Performances attendues",
                             localHistoryTitle: "Historique local",
                             localHistorySubtitle: "Vos dernières rations enregistrées sont conservées hors ligne.",
-                            subscriptionBadge: "💳 Offres FeedFormula",
                             offersHeading: "Abonnement et offres premium",
                             offersText: "Comparez les plans, activez Mobile Money et débloquez les langues, modules IA et fonctions premium.",
                             offerCards: [
@@ -676,11 +700,23 @@
                             languageTitle: "Choose your language",
                             languageSubtitle: "Pick a quick language, then open the full list for more options.",
                             languagesAvailable: "Available languages",
+                            languageMoreButton: "More languages ▼",
                             subscriptionTitle: "Subscription and premium offers",
                             subscriptionSubtitle: "Compare plans, activate Mobile Money and unlock languages, AI modules and premium features.",
+                            subscriptionBadge: "💳 FeedFormula offers",
+                            subscriptionActionButton: "View subscriptions",
+                            subscriptionActionHint: "Choose the plan that fits your farm.",
+                            subscriptionBenefits: [
+                                ["50 African languages", "Expanded access depending on your plan."],
+                                ["8 AI modules", "VetScan, ReproTrack, FarmAcademy…"],
+                                ["Mobile Money payments", "MTN Money and Moov Money available."],
+                            ],
                             voiceTitle: "Talk to FeedFormula AI",
                             voiceSubtitle: "Tell us what you have on hand, the species and the goal you want.",
+                            micHelp: "Press and speak",
+                            separatorText: "or type below",
                             inputTitle: "Describe your animals and ingredients",
+                            demandLabel: "Your request",
                             speciesTitle: "Choose a species",
                             speciesSubtitle: "Tap a card to automatically set the right stage.",
                             stageTitle: "Choose the stage",
@@ -690,12 +726,19 @@
                             animalsTitle: "Number of animals",
                             animalsSubtitle: "Number of animals:",
                             goalTitle: "Choose your goal",
+                            goalSubtitle: "",
+                            generateButton: "🌾 Generate my ration",
+                            speakButton: "🔊 Listen to ration",
+                            pdfButton: "📄 PDF",
+                            whatsappButton: "📱 WhatsApp",
+                            saveHistoryButton: "Save to history",
                             resultTitle: "Your generated ration",
                             resultSubtitle: "The details will appear here after generation.",
+                            resultHeroTitle: "━━━ Optimized ration ━━━",
                             resultHeroSubtitle: "The details will appear here after generation.",
+                            performanceTitle: "Expected performance",
                             localHistoryTitle: "Local history",
                             localHistorySubtitle: "Your last saved rations are kept offline.",
-                            subscriptionBadge: "💳 FeedFormula offers",
                             offersHeading: "Subscription and premium offers",
                             offersText: "Compare plans, activate Mobile Money and unlock languages, AI modules and premium features.",
                             offerCards: [
@@ -708,7 +751,7 @@
                         },
                     };
                     const codeAliases = { yo: "yor", ddn: "den" };
-                    const supportedLabels = new Map();
+                    const fallbackLanguagesUrl = "../data/langues_supportees.json";
                     const fallbackLanguages = [
                         { code_iso: "fr", nom_francais: "Français", nom_local: "Français", priorite: 1 },
                         { code_iso: "en", nom_francais: "English", nom_local: "English", priorite: 2 },
@@ -745,14 +788,36 @@
                         setText(languageSubtitle, pack.languageSubtitle);
                         const languageSummary = languagePanel?.querySelector("summary");
                         setText(languageSummary, pack.languagesAvailable);
+                        setText(quickLanguageMore, pack.languageMoreButton);
+                        setText(preferredLanguageLabel, pack.languageTitle);
                         setText(subscriptionTitle, pack.subscriptionTitle);
                         setText(subscribeSubtitle, pack.subscriptionSubtitle);
                         setText(document.querySelector(".subscription-badge"), pack.subscriptionBadge);
+                        setText(subscriptionActionButton, pack.subscriptionActionButton);
+                        setText(subscriptionActionHint, pack.subscriptionActionHint);
+                        const benefitTitles = subscriptionBenefitCards;
+                        if (Array.isArray(pack.subscriptionBenefits) && benefitTitles.length) {
+                            benefitTitles.forEach((card, index) => {
+                                const titleEl = card.querySelector("strong");
+                                const mutedEl = card.querySelector(".muted");
+                                const benefit = pack.subscriptionBenefits[index];
+                                if (titleEl && benefit?.[0]) titleEl.textContent = benefit[0];
+                                if (mutedEl && benefit?.[1]) mutedEl.textContent = benefit[1];
+                            });
+                        }
                         setText(voiceTitle, pack.voiceTitle);
                         setText(voiceSubtitle, pack.voiceSubtitle);
+                        setText(micHelp, pack.micHelp);
+                        setText(separatorText, pack.separatorText);
+                        if (micButton && typeof pack.voiceTitle === "string") {
+                            micButton.setAttribute("aria-label", pack.voiceTitle);
+                        }
                         setText(inputTitle, pack.inputTitle);
-                        const inputLabel = document.querySelector("label[for='texteDemande']");
-                        if (inputLabel && inputLabel.firstChild) inputLabel.firstChild.textContent = "Votre demande";
+                        setText(demandLabel, pack.demandLabel);
+                        const inputField = document.getElementById("texteDemande");
+                        if (inputField && typeof pack.demandPlaceholder === "string") inputField.placeholder = pack.demandPlaceholder;
+                        const ingredientField = document.getElementById("ingredientsInput");
+                        if (ingredientField && typeof pack.ingredientsPlaceholder === "string") ingredientField.placeholder = pack.ingredientsPlaceholder;
                         setText(speciesTitle, pack.speciesTitle);
                         setText(speciesSubtitle, pack.speciesSubtitle);
                         setText(stageTitle, pack.stageTitle);
@@ -763,9 +828,16 @@
                         setText(animalsSubtitle, pack.animalsSubtitle);
                         setText(goalTitle, pack.goalTitle);
                         setText(goalSubtitle, pack.goalSubtitle || "");
+                        setText(generateButton, pack.generateButton);
+                        setText(speakButton, pack.speakButton);
+                        setText(pdfButton, pack.pdfButton);
+                        setText(whatsappButton, pack.whatsappButton);
+                        setText(saveHistoryButton, pack.saveHistoryButton);
                         setText(resultTitle, pack.resultTitle);
                         setText(resultSubtitle, pack.resultSubtitle);
+                        setText(resultHeroTitle, pack.resultHeroTitle);
                         setText(resultHeroSubtitle, pack.resultHeroSubtitle);
+                        setText(performanceTitle, pack.performanceTitle);
                         setText(historiquePanel?.querySelector(".section-title"), pack.localHistoryTitle);
                         setText(historySubtitle, pack.localHistorySubtitle);
                         const offersHost = document.getElementById("subscriptionOffersHome");
@@ -875,14 +947,32 @@
                         }
                     }
                     async function loadLanguages() {
-                        renderLanguageButtons(fallbackLanguages);
+                        const renderFromFile = async () => {
+                            try {
+                                const resp = await fetch(fallbackLanguagesUrl);
+                                const data = await resp.json();
+                                const items = Array.isArray(data?.langues) ? data.langues : [];
+                                renderLanguageButtons(items.length ? items : fallbackLanguages);
+                                return items.length ? items : fallbackLanguages;
+                            } catch (error) {
+                                renderLanguageButtons(fallbackLanguages);
+                                return fallbackLanguages;
+                            }
+                        };
+
                         try {
                             const resp = await fetch(`${apiBase}/langues`);
                             const data = await resp.json();
                             const items = Array.isArray(data?.langues) ? data.langues : [];
+                            if (items.length >= 50) {
+                                renderLanguageButtons(items);
+                                return;
+                            }
+                            const fallbackItems = await renderFromFile();
+                            if (fallbackItems.length) return;
                             renderLanguageButtons(items.length ? items : fallbackLanguages);
                         } catch (e) {
-                            renderLanguageButtons(fallbackLanguages);
+                            await renderFromFile();
                             void e;
                         }
                     }

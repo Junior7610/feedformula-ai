@@ -639,6 +639,21 @@ class RationAudioRequest(BaseModel):
     langue: str = Field(default="fr", min_length=2, max_length=8)
 
 
+class TraductionTexteRequest(BaseModel):
+    """Corps de requête pour traduire des textes d’interface."""
+
+    textes: List[str] = Field(..., min_length=1)
+    langue_cible: str = Field(default="fr", min_length=2, max_length=8)
+    langue_source: str = Field(default="fr", min_length=2, max_length=8)
+
+
+class TraductionTexteResponse(BaseModel):
+    """Réponse standard pour les traductions d’interface."""
+
+    langue_cible: str
+    textes_traduits: List[str]
+
+
 def _normaliser_code_langue(langue: str) -> str:
     """Normalise un code langue pour les routes audio."""
     return (langue or "fr").strip().lower() or "fr"
@@ -673,6 +688,27 @@ def _resumer_ration_audio(ration_texte: str, langue: str) -> str:
 
     resume = re.sub(r"\s+", " ", resume).strip()
     return resume[:900]
+
+
+def _traduire_texte_interface(
+    texte: str, langue_cible: str, langue_source: str = "fr"
+) -> str:
+    """Traduit un texte d’interface via le moteur GPT disponible dans le service audio."""
+    contenu = (texte or "").strip()
+    if not contenu:
+        return contenu
+
+    traducteur = getattr(_audio_service_module, "_translate_text_with_gpt", None)
+    if not callable(traducteur):
+        return contenu
+
+    try:
+        resultat = traducteur(contenu, langue_cible, source_langue=langue_source)
+        if isinstance(resultat, str) and resultat.strip():
+            return resultat.strip()
+    except Exception:
+        pass
+    return contenu
 
 
 # -----------------------------------------------------------------------------
@@ -802,6 +838,24 @@ def langues() -> Dict[str, Any]:
         raise HTTPException(status_code=500, detail=str(exc))
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Erreur interne /langues: {exc}")
+
+
+@app.post("/traduire-texte")
+def traduire_texte(payload: TraductionTexteRequest) -> Dict[str, Any]:
+    """
+    Traduit une liste de chaînes depuis le français vers une langue cible.
+    """
+    langue_cible = _normaliser_code_langue(payload.langue_cible)
+    langue_source = _normaliser_code_langue(payload.langue_source)
+    textes = [str(texte or "") for texte in payload.textes]
+    textes_traduits = [
+        _traduire_texte_interface(texte, langue_cible, langue_source)
+        for texte in textes
+    ]
+    return {
+        "langue_cible": langue_cible,
+        "textes_traduits": textes_traduits,
+    }
 
 
 @app.post("/generer-ration")

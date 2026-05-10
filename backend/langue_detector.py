@@ -20,7 +20,6 @@ import unicodedata
 from pathlib import Path
 from typing import Dict, List
 
-
 # ---------------------------------------------------------------------------
 # Configuration générale des langues
 # ---------------------------------------------------------------------------
@@ -43,6 +42,7 @@ ALIASES_LANGUES = {
 # ---------------------------------------------------------------------------
 # Outils internes
 # ---------------------------------------------------------------------------
+
 
 def _normaliser_code_langue(code_langue: str) -> str:
     """
@@ -98,6 +98,7 @@ def _charger_prompt_principal() -> str:
 # 1) Détection de langue
 # ---------------------------------------------------------------------------
 
+
 def detecter_langue(texte: str) -> str:
     """
     Détecte la langue probable d'un texte.
@@ -135,36 +136,112 @@ def detecter_langue(texte: str) -> str:
     # --- Mots-clés (heuristiques terrain) ---
     keywords = {
         "fr": {
-            "j'ai", "mais", "tourteau", "farine", "poulets", "pondeuses",
-            "ration", "stade", "benin", "coût", "cout", "bonjour", "salut",
-            "vache", "mouton", "chevre", "tilapia",
+            "j'ai",
+            "mais",
+            "tourteau",
+            "farine",
+            "poulets",
+            "pondeuses",
+            "ration",
+            "stade",
+            "benin",
+            "coût",
+            "cout",
+            "bonjour",
+            "salut",
+            "vache",
+            "mouton",
+            "chevre",
+            "tilapia",
         },
         "en": {
-            "i", "have", "corn", "soybean", "fish", "meal", "broiler", "layers",
-            "ration", "feed", "what", "optimal", "cost", "hello", "please",
+            "i",
+            "have",
+            "corn",
+            "soybean",
+            "fish",
+            "meal",
+            "broiler",
+            "layers",
+            "ration",
+            "feed",
+            "what",
+            "optimal",
+            "cost",
+            "hello",
+            "please",
         },
         "fon": {
-            "un", "nɔ", "xwe", "xwé", "nyi", "nyí", "kpo", "ɖo", "ɖé",
-            "jɛji", "agbado", "soja", "jɔkpo", "jɔkpɔ", "e", "lɛ",
+            "un",
+            "nɔ",
+            "xwe",
+            "xwé",
+            "nyi",
+            "nyí",
+            "kpo",
+            "ɖo",
+            "ɖé",
+            "jɛji",
+            "agbado",
+            "soja",
+            "jɔkpo",
+            "jɔkpɔ",
+            "e",
+            "lɛ",
         },
         "yor": {
-            "mo", "ni", "ati", "adie", "ose", "ọsẹ", "ẹja", "iyẹfun", "agbado",
-            "soybean", "jowo", "jọwọ", "ejo", "ẹ jọ̀ọ́", "bawo",
+            "mo",
+            "ni",
+            "ati",
+            "adie",
+            "ose",
+            "ọsẹ",
+            "ẹja",
+            "iyẹfun",
+            "agbado",
+            "soybean",
+            "jowo",
+            "jọwọ",
+            "ejo",
+            "ẹ jọ̀ọ́",
+            "bawo",
         },
         "den": {
-            "dendi", "den", "koyra", "mate", "fofo", "bani", "ga",
+            "dendi",
+            "den",
+            "koyra",
+            "mate",
+            "fofo",
+            "bani",
+            "ga",
         },
         "adj": {
-            "adja", "adjagbe", "adjàgbè", "mè", "wɛ", "kpɔ",
+            "adja",
+            "adjagbe",
+            "adjàgbè",
+            "mè",
+            "wɛ",
+            "kpɔ",
         },
         "gej": {
-            "gen", "mina", "ewe", "agbe", "ŋutifafa", "wòe",
+            "gen",
+            "mina",
+            "ewe",
+            "agbe",
+            "ŋutifafa",
+            "wòe",
         },
         "yom": {
-            "yom", "pila", "nateni", "taneka",
+            "yom",
+            "pila",
+            "nateni",
+            "taneka",
         },
         "bba": {
-            "baatonum", "bariba", "sinaboko", "baani",
+            "baatonum",
+            "bariba",
+            "sinaboko",
+            "baani",
         },
     }
 
@@ -180,7 +257,9 @@ def detecter_langue(texte: str) -> str:
 
     # --- Signaux orthographiques spécifiques ---
     # Yoruba : présence fréquente de caractères diacrités spécifiques.
-    if any(ch in texte_brut for ch in ("ẹ", "ọ", "ṣ", "ń", "à", "ì", "ù", "á", "í", "ú")):
+    if any(
+        ch in texte_brut for ch in ("ẹ", "ọ", "ṣ", "ń", "à", "ì", "ù", "á", "í", "ú")
+    ):
         scores["yor"] += 3
 
     # Fon : caractères africains/phonétiques souvent rencontrés dans les exemples.
@@ -196,8 +275,12 @@ def detecter_langue(texte: str) -> str:
         scores["en"] += 2
 
     # Décision finale
-    code_gagnant = max(scores, key=scores.get)
-    meilleur_score = scores[code_gagnant]
+    code_gagnant = "fr"
+    meilleur_score = -1
+    for code, score in scores.items():
+        if score > meilleur_score:
+            code_gagnant = code
+            meilleur_score = score
 
     # Si incertain, fallback français.
     if meilleur_score <= 1:
@@ -209,6 +292,7 @@ def detecter_langue(texte: str) -> str:
 # ---------------------------------------------------------------------------
 # 2) Prompt adapté à la langue
 # ---------------------------------------------------------------------------
+
 
 def get_prompt_pour_langue(code_langue: str) -> str:
     """
@@ -249,6 +333,7 @@ ANNEXE LANGUE LOCALE ({code})
 # ---------------------------------------------------------------------------
 # 3) Labels d'interface multilingues
 # ---------------------------------------------------------------------------
+
 
 def traduire_labels_interface(code_langue: str) -> Dict[str, str]:
     """
