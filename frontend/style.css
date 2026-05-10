@@ -3825,6 +3825,65 @@ body.dark {
     color-scheme: dark;
 }
 
+.line-clamp-2,
+.line-clamp-3,
+.line-clamp-4 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.line-clamp-2 {
+    -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+    -webkit-line-clamp: 3;
+}
+
+.line-clamp-4 {
+    -webkit-line-clamp: 4;
+}
+
+.infinite-scroll-indicator {
+    width: 100%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+}
+
+.infinite-scroll-indicator.is-visible {
+    display: inline-flex;
+}
+
+.infinite-scroll-indicator__spinner {
+    width: 18px;
+    height: 18px;
+    border-radius: var(--radius-full);
+    border: 2px solid var(--gray-300);
+    border-top-color: var(--brand-primary);
+    animation: spin 0.8s linear infinite;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --surface-primary: #0f172a;
+        --surface-secondary: #1e293b;
+        --surface-tertiary: #334155;
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --text-tertiary: #64748b;
+        --gray-50: #0f172a;
+        --gray-100: #1e293b;
+        --gray-200: #334155;
+        --gray-300: #475569;
+    }
+}
+
 h1,
 h2,
 h3,

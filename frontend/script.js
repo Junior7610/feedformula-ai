@@ -1273,13 +1273,28 @@
     let loading = false;
     const threshold = 240;
 
+    const indicator = document.createElement("div");
+    indicator.className = "infinite-scroll-indicator";
+    indicator.setAttribute("aria-live", "polite");
+    indicator.setAttribute("aria-busy", "false");
+    indicator.innerHTML =
+      '<span class="infinite-scroll-indicator__spinner" aria-hidden="true"></span><span class="infinite-scroll-indicator__text">Chargement de plus de contenu…</span>';
+    element.appendChild(indicator);
+
+    const setIndicatorState = (active) => {
+      indicator.classList.toggle("is-visible", active);
+      indicator.setAttribute("aria-busy", String(active));
+    };
+
     const trigger = () => {
       if (loading) return;
       loading = true;
+      setIndicatorState(true);
       Promise.resolve(callback())
         .catch(() => {})
         .finally(() => {
           loading = false;
+          window.setTimeout(() => setIndicatorState(false), 250);
         });
     };
 
@@ -1301,7 +1316,10 @@
 
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      indicator.remove();
+    };
   }
 
   async function copierTexte(texte) {
@@ -3706,6 +3724,7 @@
     handleOnlineState();
     bindOfflineListeners();
     initDarkMode();
+    applyAccessibilityEnhancements();
     setupPullToRefresh(() => window.location.reload());
     initBottomNavigation();
     initLanguageSelector();
@@ -3745,6 +3764,46 @@
     if (ayaMessage && !ayaMessage.textContent.trim()) {
       ayaMessage.textContent = APP.ayaMessage;
     }
+  }
+
+  function applyAccessibilityEnhancements() {
+    const interactiveSelectors =
+      "button, a, input, textarea, select, [role='button'], [data-clickable='true']";
+
+    $all(interactiveSelectors).forEach((el) => {
+      if (
+        !el.getAttribute("tabindex") &&
+        !el.matches("input, textarea, select")
+      ) {
+        el.setAttribute("tabindex", "0");
+      }
+      if (
+        el.matches("button") &&
+        !safeString(el.textContent).trim() &&
+        !el.getAttribute("aria-label")
+      ) {
+        el.setAttribute("aria-label", "Bouton FeedFormula AI");
+      }
+      if (el.matches("img") && !el.getAttribute("alt")) {
+        el.setAttribute("alt", "Illustration FeedFormula AI");
+      }
+      if (
+        el.dataset.clickable === "true" ||
+        el.classList.contains("touchable")
+      ) {
+        el.setAttribute("role", "button");
+      }
+    });
+
+    $all("img").forEach((img) => {
+      if (!img.getAttribute("loading")) img.setAttribute("loading", "lazy");
+      if (!img.getAttribute("decoding")) img.setAttribute("decoding", "async");
+    });
+
+    $all("[data-result-zone], .result-zone, .card-result").forEach((zone) => {
+      zone.setAttribute("aria-live", "polite");
+      zone.setAttribute("aria-busy", "false");
+    });
   }
 
   function initMicFallbacks() {
