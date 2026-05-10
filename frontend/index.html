@@ -326,6 +326,7 @@
                     <summary class="section-title">Langues disponibles</summary>
                     <div
                         class="language-list"
+                        id="languageListFull"
                         style="margin-top: 12px; flex-wrap: wrap"
                     >
                         <button
@@ -531,6 +532,274 @@
                     </a>
                     <span class="muted">Choisissez le plan adapté à votre élevage.</span>
                 </div>
+            </section>
+
+            <script>
+                (function () {
+                    const API_BASE =
+                        window.FEEDFORMULA_API_BASE_URL ||
+                        window.__FEEDFORMULA_API_BASE_URL__ ||
+                        window.API_BASE ||
+                        "";
+                    const apiBase = String(API_BASE || "").replace(/\/$/, "");
+                    const languageListFull = document.getElementById("languageListFull");
+                    const languagePanel = document.getElementById("languagePanel");
+                    const languageSelectorTitle = document.getElementById("languageSelectorTitle");
+                    const subscriptionTitle = document.getElementById("subscriptionTitle");
+                    const voiceTitle = document.getElementById("voiceTitle");
+                    const inputTitle = document.getElementById("inputTitle");
+                    const speciesTitle = document.getElementById("speciesTitle");
+                    const stageTitle = document.getElementById("stageTitle");
+                    const ingredientsTitle = document.getElementById("ingredientsTitle");
+                    const animalsTitle = document.getElementById("animalsTitle");
+                    const goalTitle = document.getElementById("goalTitle");
+                    const resultTitle = document.getElementById("resultTitle");
+                    const dailyChallengeTitle = document.getElementById("dailyChallengeTitle");
+                    const offlineCachePanel = document.getElementById("offlineCachePanel");
+                    const historiquePanel = document.getElementById("historiquePanel");
+                    const resultSubtitle = document.querySelector("#resultatZone .section-subtitle");
+                    const resultHeroSubtitle = document.querySelector("#resultatZone .result-hero .section-subtitle");
+                    const subscribeSubtitle = document.querySelector(".subscription-card .section-subtitle");
+                    const voiceSubtitle = document.querySelector("[aria-labelledby='voiceTitle'] .section-subtitle");
+                    const inputSubtitle = document.querySelector("[aria-labelledby='inputTitle'] .section-subtitle");
+                    const speciesSubtitle = document.querySelector("[aria-labelledby='speciesTitle'] .section-subtitle");
+                    const stageSubtitle = document.querySelector("#stageSection .section-subtitle");
+                    const ingredientsSubtitle = document.querySelector("[aria-labelledby='ingredientsTitle'] .section-subtitle");
+                    const animalsSubtitle = document.querySelector("[aria-labelledby='animalsTitle'] .section-subtitle");
+                    const goalSubtitle = document.querySelector("[aria-labelledby='goalTitle'] .section-subtitle");
+                    const offlineSubtitle = document.querySelector("#offlineCachePanel .section-subtitle");
+                    const historySubtitle = document.querySelector("#historiquePanel .section-subtitle");
+                    const quickLanguageList = document.querySelector(".language-strip .language-list");
+                    const quickLanguageMore = document.getElementById("languageMoreBtn");
+                    const languageNameMap = {
+                        fr: "Français",
+                        en: "English",
+                        fon: "Fɔ̀ngbè",
+                        yo: "Yorùbá",
+                        yor: "Yorùbá",
+                        ddn: "Dendi",
+                        den: "Dendi",
+                        adj: "Adjàgbè",
+                        gej: "Gen (Mina)",
+                        yom: "Yom",
+                        bba: "Baatɔnum",
+                        sw: "Swahili",
+                        ha: "Hausa",
+                        wo: "Wolof",
+                        ff: "Fulfulde",
+                        bm: "Bambara",
+                        ig: "Igbo",
+                        am: "Amharique",
+                        om: "Oromo",
+                        so: "Somali",
+                        rw: "Kinyarwanda",
+                        rn: "Kirundi",
+                        lg: "Ganda",
+                        ln: "Lingala",
+                        kg: "Kongo",
+                        tn: "Tswana",
+                        nso: "Sepedi",
+                        zu: "Zoulou",
+                        xh: "Xhosa",
+                        ss: "Swati",
+                        ve: "Venda",
+                        ts: "Tsonga",
+                        st: "Sotho du Sud",
+                        ny: "Chewa",
+                        tum: "Tumbuka",
+                        ak: "Akan",
+                        ru: "Русский",
+                        zh: "中文",
+                        es: "Español",
+                        pt: "Português",
+                    };
+                    const translations = {
+                        fr: {
+                            offlineCacheTitle: "Rations récentes hors ligne",
+                            offlineCacheSubtitle: "Vous pouvez revoir vos dernières rations même sans connexion.",
+                            challengeTitle: "⚡ Défi du jour",
+                            challengeText: "Générer une ration équilibrée pour optimiser les performances alimentaires de votre troupeau et gagner des points bonus.",
+                            languageTitle: "Choisissez votre langue",
+                            languageSubtitle: "Choisissez une langue rapide, puis ouvrez la liste complète pour accéder à plus d'options.",
+                            languagesAvailable: "Langues disponibles",
+                            subscriptionTitle: "Abonnement et offres premium",
+                            subscriptionSubtitle: "Comparez les plans, activez Mobile Money et débloquez les langues, modules IA et fonctions premium.",
+                            voiceTitle: "Parlez à FeedFormula AI",
+                            voiceSubtitle: "Dites ce que vous avez sous la main, l'espèce et l'objectif recherché.",
+                            inputTitle: "Décrivez vos animaux et vos ingrédients",
+                            inputSubtitle: "",
+                            speciesTitle: "Choisissez une espèce",
+                            speciesSubtitle: "Tapez sur une carte pour activer automatiquement le stade adapté.",
+                            stageTitle: "Choisissez le stade",
+                            stageSubtitle: "Le stade se met à jour selon l'espèce sélectionnée.",
+                            ingredientsTitle: "Ingrédients",
+                            ingredientsSubtitle: "Tapez un ingrédient pour voir les suggestions et constituer vos tags.",
+                            animalsTitle: "Nombre d'animaux",
+                            animalsSubtitle: "Nombre d'animaux :",
+                            goalTitle: "Choisissez votre objectif",
+                            goalSubtitle: "",
+                            resultTitle: "Votre ration générée",
+                            resultSubtitle: "Les détails s'affichent ici après la génération.",
+                            resultHeroSubtitle: "Les détails s'affichent ici après la génération.",
+                            localHistoryTitle: "Historique local",
+                            localHistorySubtitle: "Vos dernières rations enregistrées sont conservées hors ligne.",
+                            subscriptionBadge: "💳 Offres FeedFormula",
+                            offersHeading: "Abonnement et offres premium",
+                            offersText: "Comparez les plans, activez Mobile Money et débloquez les langues, modules IA et fonctions premium.",
+                            offerCards: [
+                                { title: "Free", subtitle: "Découverte sans frais", price: "0 FCFA" },
+                                { title: "Standard", subtitle: "Pour démarrer sereinement", price: "2 000 FCFA" },
+                                { title: "Premium", subtitle: "Le meilleur équilibre", price: "8 000 FCFA", featured: true },
+                                { title: "VIP", subtitle: "Pour les élevages actifs", price: "25 000 FCFA" },
+                                { title: "Gold", subtitle: "Accès maximal", price: "75 000 FCFA" },
+                            ],
+                        },
+                        en: {
+                            offlineCacheTitle: "Recent offline rations",
+                            offlineCacheSubtitle: "You can review your latest rations even without a connection.",
+                            challengeTitle: "⚡ Daily challenge",
+                            challengeText: "Generate a balanced ration to improve herd performance and earn bonus points.",
+                            languageTitle: "Choose your language",
+                            languageSubtitle: "Pick a quick language, then open the full list for more options.",
+                            languagesAvailable: "Available languages",
+                            subscriptionTitle: "Subscription and premium offers",
+                            subscriptionSubtitle: "Compare plans, activate Mobile Money and unlock languages, AI modules and premium features.",
+                            voiceTitle: "Talk to FeedFormula AI",
+                            voiceSubtitle: "Tell us what you have on hand, the species and the goal you want.",
+                            inputTitle: "Describe your animals and ingredients",
+                            speciesTitle: "Choose a species",
+                            speciesSubtitle: "Tap a card to automatically set the right stage.",
+                            stageTitle: "Choose the stage",
+                            stageSubtitle: "The stage updates based on the selected species.",
+                            ingredientsTitle: "Ingredients",
+                            ingredientsSubtitle: "Type an ingredient to see suggestions and build your tags.",
+                            animalsTitle: "Number of animals",
+                            animalsSubtitle: "Number of animals:",
+                            goalTitle: "Choose your goal",
+                            resultTitle: "Your generated ration",
+                            resultSubtitle: "The details will appear here after generation.",
+                            resultHeroSubtitle: "The details will appear here after generation.",
+                            localHistoryTitle: "Local history",
+                            localHistorySubtitle: "Your last saved rations are kept offline.",
+                            subscriptionBadge: "💳 FeedFormula offers",
+                            offersHeading: "Subscription and premium offers",
+                            offersText: "Compare plans, activate Mobile Money and unlock languages, AI modules and premium features.",
+                            offerCards: [
+                                { title: "Free", subtitle: "No-cost discovery", price: "0 FCFA" },
+                                { title: "Standard", subtitle: "Start smoothly", price: "2,000 FCFA" },
+                                { title: "Premium", subtitle: "Best value balance", price: "8,000 FCFA", featured: true },
+                                { title: "VIP", subtitle: "For active farms", price: "25,000 FCFA" },
+                                { title: "Gold", subtitle: "Maximum access", price: "75,000 FCFA" },
+                            ],
+                        },
+                    };
+                    const codeAliases = { yo: "yor", ddn: "den" };
+                    const supportedLabels = new Map();
+                    function setText(node, value) {
+                        if (node && typeof value === "string") node.textContent = value;
+                    }
+                    function updateStaticTexts(lang) {
+                        const pack = translations[lang] || translations.fr;
+                        setText(offlineCachePanel?.querySelector(".section-title"), pack.offlineCacheTitle);
+                        setText(offlineSubtitle, pack.offlineCacheSubtitle);
+                        setText(dailyChallengeTitle, pack.challengeTitle);
+                        const challengeText = document.getElementById("dailyChallengeText");
+                        if (challengeText) challengeText.textContent = pack.challengeText;
+                        setText(languageSelectorTitle, pack.languageTitle);
+                        const languageSubtitle = document.querySelector(".language-strip .section-subtitle");
+                        setText(languageSubtitle, pack.languageSubtitle);
+                        const languageSummary = languagePanel?.querySelector("summary");
+                        setText(languageSummary, pack.languagesAvailable);
+                        setText(subscriptionTitle, pack.subscriptionTitle);
+                        setText(subscribeSubtitle, pack.subscriptionSubtitle);
+                        setText(document.querySelector(".subscription-badge"), pack.subscriptionBadge);
+                        setText(voiceTitle, pack.voiceTitle);
+                        setText(voiceSubtitle, pack.voiceSubtitle);
+                        setText(inputTitle, pack.inputTitle);
+                        const inputLabel = document.querySelector("label[for='texteDemande']");
+                        if (inputLabel) inputLabel.childNodes[0].textContent = "Votre demande";
+                        setText(speciesTitle, pack.speciesTitle);
+                        setText(speciesSubtitle, pack.speciesSubtitle);
+                        setText(stageTitle, pack.stageTitle);
+                        setText(stageSubtitle, pack.stageSubtitle);
+                        setText(ingredientsTitle, pack.ingredientsTitle);
+                        setText(ingredientsSubtitle, pack.ingredientsSubtitle);
+                        setText(animalsTitle, pack.animalsTitle);
+                        setText(animalsSubtitle, pack.animalsSubtitle);
+                        setText(goalTitle, pack.goalTitle);
+                        setText(goalSubtitle, pack.goalSubtitle || "");
+                        setText(resultTitle, pack.resultTitle);
+                        setText(resultSubtitle, pack.resultSubtitle);
+                        setText(resultHeroSubtitle, pack.resultHeroSubtitle);
+                        setText(historiquePanel?.querySelector(".section-title"), pack.localHistoryTitle);
+                        setText(historySubtitle, pack.localHistorySubtitle);
+                        const compareCaption = document.querySelector(".subscription-card .muted strong");
+                        if (compareCaption && pack.offersHeading) compareCaption.textContent = compareCaption.textContent;
+                    }
+                    function renderLanguageButtons(items) {
+                        if (!languageListFull || !quickLanguageList) return;
+                        const ordered = items.slice().sort((a, b) => Number(a.priorite || 9) - Number(b.priorite || 9) || String(a.nom_francais || a.code_iso).localeCompare(String(b.nom_francais || b.code_iso), "fr"));
+                        const quick = ordered.filter((item) => ["fr", "en", "fon", "yor", "yo", "ddn", "den", "ha", "sw", "ar"].includes(String(item.code_iso || "").toLowerCase())).slice(0, 10);
+                        const makeButton = (item, isQuick) => {
+                            const code = String(item.code_iso || "").toLowerCase();
+                            const label = item.nom_francais || item.nom_local || code.toUpperCase();
+                            const displayCode = codeAliases[code] || code;
+                            return `<button class="lang-item${isQuick ? "" : ""}" type="button" data-lang="${displayCode}" ${!isQuick ? "data-lang-button" : ""}>${isQuick ? label : label}</button>`;
+                        };
+                        quickLanguageList.innerHTML = quick.map((item) => makeButton(item, true)).join("") + (quickLanguageMore ? quickLanguageMore.outerHTML : "");
+                        const quickMore = quickLanguageList.querySelector("#languageMoreBtn");
+                        const preservedPanel = ordered.map((item) => makeButton(item, false)).join("");
+                        languageListFull.innerHTML = preservedPanel;
+                        if (quickMore && languagePanel) {
+                            quickMore.addEventListener("click", () => {
+                                languagePanel.hidden = !languagePanel.hidden;
+                                quickMore.setAttribute("aria-expanded", String(!languagePanel.hidden));
+                            });
+                        }
+                    }
+                    function applyLanguage(lang) {
+                        const normalized = String(lang || "fr").toLowerCase();
+                        updateStaticTexts(normalized);
+                        const selectedButtons = document.querySelectorAll("[data-lang], [data-lang-button]");
+                        selectedButtons.forEach((button) => {
+                            const value = String(button.getAttribute("data-lang") || "").toLowerCase();
+                            const active = value === normalized || codeAliases[value] === normalized;
+                            button.classList.toggle("active", active);
+                            button.classList.toggle("is-active", active);
+                            if (button.hasAttribute("aria-pressed")) button.setAttribute("aria-pressed", String(active));
+                        });
+                        try {
+                            localStorage.setItem("feedformula_language_v3", normalized);
+                        } catch (e) {
+                            void e;
+                        }
+                    }
+                    async function loadLanguages() {
+                        try {
+                            const resp = await fetch(`${apiBase}/langues`);
+                            const data = await resp.json();
+                            const items = Array.isArray(data?.langues) ? data.langues : [];
+                            if (items.length) renderLanguageButtons(items);
+                        } catch (e) {
+                            void e;
+                        }
+                    }
+                    document.addEventListener("click", (event) => {
+                        const button = event.target.closest("[data-lang], [data-lang-button]");
+                        if (!button) return;
+                        const code = String(button.getAttribute("data-lang") || "fr").toLowerCase();
+                        applyLanguage(codeAliases[code] || code);
+                    });
+                    loadLanguages();
+                    applyLanguage((function () {
+                        try {
+                            return localStorage.getItem("feedformula_language_v3") || "fr";
+                        } catch (e) {
+                            return "fr";
+                        }
+                    })());
+                })();
+            </script>
             </section>
 
             <!-- Microphone central -->

@@ -33,6 +33,13 @@ from reportlab.lib.units import cm
 from reportlab.pdfgen import canvas
 from sqlalchemy.orm import Session
 
+try:
+    from audio_service import AudioService as SharedAudioService  # type: ignore
+except Exception:
+    SharedAudioService = None  # type: ignore
+
+_shared_audio_service = SharedAudioService() if SharedAudioService is not None else None
+
 router = APIRouter(prefix="/farmcast", tags=["FarmCast"])
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
@@ -149,6 +156,20 @@ class FarmCastService:
     async def _generate_audio(self, script: str, langue: str) -> str:
         filename = f"audio_{uuid.uuid4().hex}.mp3"
         path = AUDIO_DIR / filename
+
+        if _shared_audio_service is not None:
+            try:
+                audio_bytes = await _shared_audio_service.text_to_speech(
+                    texte=script,
+                    langue=langue,
+                    voix="alloy",
+                )
+                if audio_bytes:
+                    path.write_bytes(audio_bytes)
+                    return f"/static/farmcast/audio/{filename}"
+            except Exception:
+                pass
+
         if AFRI_API_KEY:
             try:
                 response = requests.post(
@@ -170,8 +191,8 @@ class FarmCastService:
                     return f"/static/farmcast/audio/{filename}"
             except Exception:
                 pass
-        path.write_bytes(b"ID3" + script.encode("utf-8")[:3000])
-        return f"/static/farmcast/audio/{filename}"
+
+        raise RuntimeError("Impossible de générer un audio MP3 valide pour FarmCast.")
 
     async def _generate_images(self, theme: str, langue: str, script: str) -> List[str]:
         urls: List[str] = []

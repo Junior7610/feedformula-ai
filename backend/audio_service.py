@@ -64,35 +64,15 @@ except Exception:
     gTTS = None  # type: ignore
 
 try:
-    from openai import (
-        APIConnectionError,
-        APITimeoutError,
-        AuthenticationError,
-        BadRequestError,
-        OpenAI,
-        OpenAIError,
-    )
+    from openai import OpenAI
 except Exception:
     OpenAI = None  # type: ignore
 
-    class AuthenticationError(Exception):
-        pass
-
-    class APIConnectionError(Exception):
-        pass
-
-    class APITimeoutError(Exception):
-        pass
-
-    class BadRequestError(Exception):
-        pass
-
-    class OpenAIError(Exception):
-        pass
 
 try:
     from langue_detector import detecter_langue
 except Exception:
+
     def detecter_langue(texte: str) -> str:  # type: ignore
         return "fr"
 
@@ -100,6 +80,7 @@ except Exception:
 # -----------------------------------------------------------------------------
 # Schémas
 # -----------------------------------------------------------------------------
+
 
 class SyntheseRequest(BaseModel):
     texte: str = Field(..., min_length=1, description="Texte à lire")
@@ -120,6 +101,7 @@ class RationVocaleRequest(BaseModel):
 # -----------------------------------------------------------------------------
 # Utilitaires
 # -----------------------------------------------------------------------------
+
 
 def _nettoyer_texte(texte: str) -> str:
     if not isinstance(texte, str):
@@ -169,7 +151,9 @@ def _http_request(
         return response.read(), content_type, status
 
 
-def _http_post_json(url: str, payload: Dict[str, Any], timeout: float) -> Tuple[bytes, str, int]:
+def _http_post_json(
+    url: str, payload: Dict[str, Any], timeout: float
+) -> Tuple[bytes, str, int]:
     headers = {
         "Content-Type": "application/json",
         "Accept": "*/*",
@@ -270,7 +254,9 @@ def _response_to_audio_bytes(raw: bytes, content_type: str) -> bytes:
         for key in ("audio_url", "url"):
             value = payload.get(key)
             if isinstance(value, str) and value.strip():
-                with urllib.request.urlopen(value, timeout=AFRI_TIMEOUT_SECONDS) as resp:
+                with urllib.request.urlopen(
+                    value, timeout=AFRI_TIMEOUT_SECONDS
+                ) as resp:
                     return resp.read()
 
         for key in ("audio_path", "path"):
@@ -310,7 +296,9 @@ def _extract_text_from_stt_response(response: Dict[str, Any]) -> str:
     return ""
 
 
-def _extract_language_from_stt_response(response: Dict[str, Any], fallback: str = "fr") -> str:
+def _extract_language_from_stt_response(
+    response: Dict[str, Any], fallback: str = "fr"
+) -> str:
     if not isinstance(response, dict):
         return fallback
 
@@ -555,6 +543,7 @@ def _build_demo_text_fr() -> str:
 # Service principal
 # -----------------------------------------------------------------------------
 
+
 @dataclass
 class AudioService:
     afr_base_url: str = AFRI_BASE_URL
@@ -601,7 +590,9 @@ class AudioService:
             raise RuntimeError("Réponse audio vide depuis l'API Afri.")
         except Exception:
             try:
-                return await asyncio.to_thread(_fallback_tts_gtts, texte_nettoye, langue_norm)
+                return await asyncio.to_thread(
+                    _fallback_tts_gtts, texte_nettoye, langue_norm
+                )
             except Exception as exc:
                 raise RuntimeError(f"Synthèse vocale impossible: {exc}") from exc
 
@@ -631,16 +622,17 @@ class AudioService:
                 if langue_norm and langue_norm != "auto":
                     fields["language"] = langue_norm
 
-                raw, content_type, _ = _http_post_multipart(
+                request_content_type = content_type or "application/octet-stream"
+                raw, response_content_type, _ = _http_post_multipart(
                     url,
                     fields=fields,
                     file_bytes=audio_bytes,
                     filename=filename or "audio.webm",
-                    content_type=content_type or "application/octet-stream",
+                    content_type=request_content_type,
                     timeout=self.timeout_seconds,
                 )
 
-                if "application/json" not in content_type:
+                if "application/json" not in response_content_type:
                     try:
                         payload = json.loads(raw.decode("utf-8"))
                     except Exception:
@@ -659,7 +651,9 @@ class AudioService:
                 return {
                     "payload": payload,
                     "texte": texte.strip(),
-                    "langue": _extract_language_from_stt_response(payload, fallback=langue_norm),
+                    "langue": _extract_language_from_stt_response(
+                        payload, fallback=langue_norm
+                    ),
                 }
 
             return await asyncio.to_thread(_call)
@@ -728,7 +722,7 @@ class AudioService:
                 qte = item.get("quantite") or ""
                 unite = item.get("unite") or ""
                 bloc = f"{nom} : {qte} {unite}".strip()
-                lignes.append(bloc.rstrip("." ) + ".")
+                lignes.append(bloc.rstrip(".") + ".")
 
         if infos.get("cout"):
             lignes.append(f"Coût total pour 7 jours : {infos['cout']} francs CFA.")
@@ -746,7 +740,9 @@ class AudioService:
         resume_fr = _trim_words(resume_fr, max_words=200)
 
         if langue_norm != "fr":
-            traduit = _translate_text_with_gpt(resume_fr, langue_norm, source_langue="fr")
+            traduit = _translate_text_with_gpt(
+                resume_fr, langue_norm, source_langue="fr"
+            )
             traduit = re.sub(r"\s+", " ", traduit).strip()
             return _trim_words(traduit or resume_fr, max_words=200)
 
@@ -768,11 +764,17 @@ class AudioService:
         fichier = ASSETS_DIR / f"demo_{langue_norm}.mp3"
 
         texte_fr = _build_demo_text_fr()
-        texte_cible = texte_fr if langue_norm == "fr" else await asyncio.to_thread(
-            _translate_text_with_gpt, texte_fr, langue_norm, source_langue="fr"
+        texte_cible = (
+            texte_fr
+            if langue_norm == "fr"
+            else await asyncio.to_thread(
+                _translate_text_with_gpt, texte_fr, langue_norm, source_langue="fr"
+            )
         )
 
-        audio_bytes = await self.text_to_speech(texte_cible, langue=langue_norm, voix="alloy")
+        audio_bytes = await self.text_to_speech(
+            texte_cible, langue=langue_norm, voix="alloy"
+        )
         fichier.write_bytes(audio_bytes)
         return fichier
 
@@ -831,7 +833,9 @@ async def transcription_audio(
     except RuntimeError as exc:
         raise HTTPException(status_code=502, detail=str(exc))
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Erreur transcription audio: {exc}")
+        raise HTTPException(
+            status_code=500, detail=f"Erreur transcription audio: {exc}"
+        )
 
 
 @router.post("/ration-vocale")
@@ -850,7 +854,9 @@ async def ration_vocale(payload: RationVocaleRequest) -> StreamingResponse:
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     except Exception as exc:
-        raise HTTPException(status_code=502, detail=f"Erreur génération ration vocale: {exc}")
+        raise HTTPException(
+            status_code=502, detail=f"Erreur génération ration vocale: {exc}"
+        )
 
     return StreamingResponse(
         io.BytesIO(audio_bytes),
@@ -885,7 +891,9 @@ async def demo_audio(langue: str) -> StreamingResponse:
             },
         )
     except Exception as exc:
-        raise HTTPException(status_code=502, detail=f"Impossible de générer le demo audio: {exc}")
+        raise HTTPException(
+            status_code=502, detail=f"Impossible de générer le demo audio: {exc}"
+        )
 
 
 __all__ = [

@@ -140,6 +140,60 @@
                 grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
                 gap: 14px;
             }
+            .offers-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 14px;
+                margin-top: 12px;
+            }
+            .offer-card {
+                border: 1px solid #e6edf4;
+                border-radius: 18px;
+                padding: 16px;
+                background: linear-gradient(180deg, #ffffff, #f8fbff);
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+            }
+            .offer-card.featured {
+                border: 2px solid var(--gold);
+                box-shadow: 0 14px 34px rgba(212, 175, 55, 0.2);
+                transform: translateY(-2px);
+            }
+            .offer-name {
+                font-size: 18px;
+                font-weight: 800;
+            }
+            .offer-price {
+                font-size: 30px;
+                line-height: 1;
+                font-weight: 900;
+                color: var(--green);
+            }
+            .offer-subtitle {
+                color: var(--muted);
+                min-height: 40px;
+            }
+            .offer-list {
+                margin: 0;
+                padding-left: 18px;
+                color: #304050;
+            }
+            .offer-list li {
+                margin: 4px 0;
+            }
+            .offer-tag {
+                align-self: flex-start;
+                font-size: 12px;
+                font-weight: 800;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+                background: #eef8f1;
+                color: #16663d;
+                padding: 6px 10px;
+                border-radius: 999px;
+            }
             table {
                 width: 100%;
                 border-collapse: collapse;
@@ -295,9 +349,13 @@
         <main>
             <section class="card">
                 <h2>Offres disponibles</h2>
+                <p class="muted">
+                    Les prix sont affichés clairement sur chaque offre pour vous
+                    aider à comparer rapidement.
+                </p>
                 <div
+                    class="offers-grid"
                     id="subscriptionOffers"
-                    class="grid"
                     aria-live="polite"
                 ></div>
             </section>
@@ -448,11 +506,49 @@
             const API_BASE = window.API_BASE || "http://127.0.0.1:8000";
             const api = API_BASE.replace(/\/$/, "");
             const plans = {
-                free: { label: "Free", price: 0 },
-                standard: { label: "Standard", price: 2000 },
-                premium: { label: "Premium", price: 8000 },
-                vip: { label: "VIP", price: 25000 },
-                gold: { label: "Gold", price: 75000 },
+                free: {
+                    label: "Free",
+                    price: 0,
+                    subtitle: "Découverte sans frais",
+                    benefits: ["3 langues", "3 diagnostics", "Accès de base"],
+                },
+                standard: {
+                    label: "Standard",
+                    price: 2000,
+                    subtitle: "Pour démarrer sereinement",
+                    benefits: ["50 langues", "10 diagnostics", "VetScan"],
+                },
+                premium: {
+                    label: "Premium",
+                    price: 8000,
+                    subtitle: "Le meilleur équilibre",
+                    benefits: [
+                        "50 langues",
+                        "Diagnostics illimités",
+                        "FarmAcademy",
+                    ],
+                    featured: true,
+                },
+                vip: {
+                    label: "VIP",
+                    price: 25000,
+                    subtitle: "Pour les éleveurs actifs",
+                    benefits: [
+                        "Multi-users",
+                        "Suivi avancé",
+                        "Support prioritaire",
+                    ],
+                },
+                gold: {
+                    label: "Gold",
+                    price: 75000,
+                    subtitle: "Accès maximal",
+                    benefits: [
+                        "Tout inclus",
+                        "FarmCast illimité",
+                        "Priorité totale",
+                    ],
+                },
             };
             const features = [
                 [
@@ -481,6 +577,27 @@
                     body: JSON.stringify(data),
                 });
                 return await r.json();
+            }
+
+            function renderOffers() {
+                document.getElementById("subscriptionOffers").innerHTML =
+                    Object.entries(plans)
+                        .map(
+                            ([key, plan]) => `
+                    <article class="offer-card ${plan.featured ? "featured" : ""}">
+                        ${plan.featured ? '<span class="offer-tag">Recommandé</span>' : '<span class="offer-tag">Plan</span>'}
+                        <div class="offer-name">${plan.label}</div>
+                        <div class="offer-price">${plan.price.toLocaleString("fr-FR")} FCFA</div>
+                        <div class="offer-subtitle">${plan.subtitle}</div>
+                        <ul class="offer-list">
+                            ${plan.benefits.map((item) => `<li>${item}</li>`).join("")}
+                        </ul>
+                        <button type="button" class="secondary" onclick="document.getElementById('abonnement').value='${key}'; calcAmount();">
+                            Choisir ${plan.label}
+                        </button>
+                    </article>`,
+                        )
+                        .join("");
             }
 
             function renderCompare() {
@@ -589,6 +706,7 @@
             document
                 .getElementById("duree")
                 .addEventListener("change", calcAmount);
+            renderOffers();
             renderCompare();
             calcAmount();
         </script>
