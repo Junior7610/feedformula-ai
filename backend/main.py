@@ -274,6 +274,77 @@ def _build_afri_client() -> OpenAI:
     )
 
 
+def _peut_utiliser_api_afri() -> bool:
+    """Indique si l'API Afri est disponible côté configuration locale."""
+    return bool(AFRI_API_KEY)
+
+
+def _fallback_local_ration_text(
+    langue: str,
+    espece: str,
+    stade: str,
+    ingredients: List[str],
+    ration_calculee: Dict[str, Any],
+    recommandations: List[str],
+    nombre_animaux: int,
+) -> str:
+    """Produit une narration locale si l'API Afri est indisponible."""
+    langue_norm = (langue or "fr").strip().lower()
+    titres = {
+        "fr": "🌾 RATION FEEDFORMULA AI",
+        "en": "🌾 FEEDFORMULA AI RATION",
+        "fon": "🌾 RATION FEEDFORMULA AI",
+        "yor": "🌾 RATION FEEDFORMULA AI",
+        "den": "🌾 RATION FEEDFORMULA AI",
+        "adj": "🌾 RATION FEEDFORMULA AI",
+        "gej": "🌾 RATION FEEDFORMULA AI",
+        "gen": "🌾 RATION FEEDFORMULA AI",
+    }
+    intro = {
+        "fr": "Solution locale prête pour vos animaux.",
+        "en": "Local ration ready for your animals.",
+        "fon": "Ayɔ̀ wɔ́ jé wá nùn xɔ̀ tɔn.",
+        "yor": "Ojutu agbegbe ti ṣetan fun ẹranko rẹ.",
+        "den": "Ration locale bɛ nʼfô dɔnxo tɩ.",
+        "adj": "Ration locale hɔ̃ wá ɖe asu tɔn.",
+        "gej": "Ration locale ɛ́ nɔ ɖe agble tɔn.",
+        "gen": "Ration locale ɛ́ nɔ ɖe agble tɔn.",
+    }
+    comp = ration_calculee.get("composition", {})
+    cout_kg = float(ration_calculee.get("cout_fcfa_kg", 0.0))
+    cout_7 = float(ration_calculee.get("cout_total_7_jours", 0.0))
+    cout_7 = cout_7 if cout_7 else float(ration_calculee.get("cout_7_jours", 0.0))
+    lines = [
+        titres.get(langue_norm, titres["fr"]),
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+        intro.get(langue_norm, intro["fr"]),
+        f"Espèce: {espece}",
+        f"Stade: {stade}",
+        f"Animaux: {nombre_animaux}",
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+        "Composition:",
+    ]
+    for item, value in list(comp.items())[:5]:
+        lines.append(f"- {item}: {value}")
+    lines.extend(
+        [
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            f"Coût/kg: {round(cout_kg, 2)} FCFA",
+            f"Coût 7 jours: {round(cout_7, 2)} FCFA",
+            "Conseils:",
+        ]
+    )
+    for conseil in recommandations[:3] or [
+        "Utilisez de l'eau propre.",
+        "Stockez les ingrédients au sec.",
+    ]:
+        lines.append(f"- {conseil}")
+    if ingredients:
+        lines.extend(["━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "Ingrédients disponibles:"])
+        lines.extend(f"- {ingredient}" for ingredient in ingredients[:5])
+    return "\n".join(lines)
+
+
 def _extract_chat_text(response: Any) -> str:
     """Extrait le texte d'une réponse chat.completions de manière robuste."""
     try:
@@ -353,6 +424,9 @@ def _normaliser_ingredient_utilisateur(raw: str) -> str:
         "son de blé": "Son de blé",
         "son riz": "Son de riz",
         "son de riz": "Son de riz",
+        "foin": "Son de blé",
+        "fourrage": "Son de blé",
+        "paille": "Son de riz",
         "manioc": "Cossettes de manioc séchées",
     }
     key = _normalize(txt)
@@ -401,6 +475,7 @@ def _resoudre_espece_stade(espece_code: str, stade_code: str) -> Tuple[str, str]
         },
         "vache_laitiere": {
             "lactation": ["Début lactation", "Milieu lactation", "Fin lactation"],
+            "mi_lactation": ["Milieu lactation"],
             "reproduction": ["Pré-vêlage"],
             "entretien": ["Fin lactation"],
         },
@@ -914,10 +989,47 @@ def generer_ration(payload: GenererRationRequest) -> Any:
             stade=stade_label,
         )
 
-        # Appel API Afri pour la narration finale.
-        try:
-            client = _build_afri_client()
-            messages: Any = _construire_prompt_narratif(
+        # Appel API Afri pour la narration finale, avec fallback local si besoin.
+        texte_ration = ""
+        if _peut_utiliser_api_afri():
+            try:
+                client = _build_afri_client()
+                messages: Any = _construire_prompt_narratif(
+                    langue=langue_detectee,
+                    espece=espece_label,
+                    stade=stade_label,
+                    ingredients=ingredients_clean,
+                    ration_calculee=ration_calculee,
+                    recommandations=recommandations,
+                    nombre_animaux=int(payload.nombre_animaux),
+                )
+
+                # Streaming SSE désactivé temporairement pour compatibilité frontend:
+                # on force une réponse JSON classique.
+
+                # Mode non-stream: réponse JSON classique optimisée.
+                chat = client.chat.completions.create(
+                    model=AFRI_CHAT_MODEL,
+                    messages=messages,  # type: ignore[arg-type]
+                    temperature=0.1,
+                    max_tokens=700,
+                )
+                texte_ration = _extract_chat_text(chat)
+            except (
+                AuthenticationError,
+                APITimeoutError,
+                APIConnectionError,
+                BadRequestError,
+                OpenAIError,
+            ):
+                texte_ration = ""
+            except HTTPException:
+                raise
+            except Exception:
+                texte_ration = ""
+
+        if not texte_ration:
+            texte_ration = _fallback_local_ration_text(
                 langue=langue_detectee,
                 espece=espece_label,
                 stade=stade_label,
@@ -926,48 +1038,11 @@ def generer_ration(payload: GenererRationRequest) -> Any:
                 recommandations=recommandations,
                 nombre_animaux=int(payload.nombre_animaux),
             )
-
-            # Streaming SSE désactivé temporairement pour compatibilité frontend:
-            # on force une réponse JSON classique.
-
-            # Mode non-stream: réponse JSON classique optimisée.
-            chat = client.chat.completions.create(
-                model=AFRI_CHAT_MODEL,
-                messages=messages,  # type: ignore[arg-type]
-                temperature=0.1,
-                max_tokens=700,
-            )
-            texte_ration = _extract_chat_text(chat)
-
-            if not texte_ration:
+            if not texte_ration.strip():
                 raise HTTPException(
                     status_code=502,
-                    detail="Réponse vide renvoyée par l'API Afri (narration).",
+                    detail="Impossible de générer la narration de la ration.",
                 )
-
-        except AuthenticationError:
-            raise HTTPException(
-                status_code=502, detail="Clé API Afri invalide ou non autorisée."
-            )
-        except APITimeoutError:
-            raise HTTPException(
-                status_code=504,
-                detail="Timeout API Afri pendant la génération narrative.",
-            )
-        except APIConnectionError:
-            raise HTTPException(
-                status_code=503, detail="Impossible de joindre l'API Afri (connexion)."
-            )
-        except BadRequestError as exc:
-            raise HTTPException(status_code=502, detail=f"Requête Afri invalide: {exc}")
-        except HTTPException:
-            raise
-        except OpenAIError as exc:
-            raise HTTPException(status_code=502, detail=f"Erreur API Afri: {exc}")
-        except Exception as exc:
-            raise HTTPException(
-                status_code=500, detail=f"Erreur interne narration IA: {exc}"
-            )
 
         # Temps de traitement total.
         duree = round(time.perf_counter() - debut, 3)

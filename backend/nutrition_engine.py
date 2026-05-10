@@ -17,7 +17,7 @@ import json
 import random
 import unicodedata
 from pathlib import Path
-from typing import Dict, List, Any, Tuple
+from typing import Any, Dict, List, Tuple
 
 
 class NutritionEngine:
@@ -29,7 +29,9 @@ class NutritionEngine:
     - nombre_animaux_par_defaut: utilisé pour calculer le coût 7 jours dans optimiser_ration.
     """
 
-    def __init__(self, data_dir: str | Path | None = None, nombre_animaux_par_defaut: int = 1) -> None:
+    def __init__(
+        self, data_dir: str | Path | None = None, nombre_animaux_par_defaut: int = 1
+    ) -> None:
         # Définition du dossier data.
         if data_dir is None:
             # backend/nutrition_engine.py -> racine projet -> data/
@@ -57,7 +59,11 @@ class NutritionEngine:
         """
         if not isinstance(texte, str):
             return ""
-        t = unicodedata.normalize("NFKD", texte).encode("ascii", "ignore").decode("ascii")
+        t = (
+            unicodedata.normalize("NFKD", texte)
+            .encode("ascii", "ignore")
+            .decode("ascii")
+        )
         return " ".join(t.lower().strip().split())
 
     @staticmethod
@@ -87,7 +93,9 @@ class NutritionEngine:
         except OSError as exc:
             raise OSError(f"Impossible de lire {path}: {exc}") from exc
 
-    def _resoudre_ingredient(self, nom: str, ingredients_indexes: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
+    def _resoudre_ingredient(
+        self, nom: str, ingredients_indexes: Dict[str, Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """
         Résout un nom d'ingrédient entré par l'utilisateur vers la fiche ingrédient.
 
@@ -257,7 +265,9 @@ class NutritionEngine:
             }
         )
 
-        if espece not in especes and espece_n not in {self._normaliser_texte(e) for e in especes}:
+        if espece not in especes and espece_n not in {
+            self._normaliser_texte(e) for e in especes
+        }:
             raise ValueError(
                 f"Espèce non supportée: '{espece}'. Espèces disponibles: {', '.join(especes)}"
             )
@@ -325,9 +335,27 @@ class NutritionEngine:
                 inconnus.append(ing)
 
         if inconnus:
-            raise ValueError(
-                f"Ingrédients inconnus/non résolus: {', '.join(inconnus)}"
-            )
+            raise ValueError(f"Ingrédients inconnus/non résolus: {', '.join(inconnus)}")
+
+        if len(fiches) == 1:
+            nom_unique = next(iter(fiches.keys()))
+            fiche_unique = fiches[nom_unique]
+            composition_kg = {nom_unique: 100.0}
+            nutriments, cout = self._calculer_nutriments_et_cout(composition_kg, fiches)
+            return {
+                "composition": {nom_unique: 100.0},
+                "valeur_nutritive": nutriments,
+                "cout_fcfa_kg": round(cout, 2),
+                "cout_total_7_jours": round(
+                    cout * self.nombre_animaux_par_defaut * 7 / 100.0, 2
+                ),
+                "respect_besoins": {
+                    "energie": nutriments["energie_kcal_kg"] >= 0,
+                    "proteines": nutriments["proteines_pct"] >= 0,
+                    "calcium": nutriments["calcium_pct"] >= 0,
+                    "phosphore": nutriments["phosphore_pct"] >= 0,
+                },
+            }
 
         if len(fiches) < 2:
             raise ValueError(
@@ -352,14 +380,44 @@ class NutritionEngine:
             nutr, cout = self._calculer_nutriments_et_cout(comp, fiches)
 
             # Pénalités de déficit (prioritaires).
-            p_energie = max(0.0, (cible["energie_kcal_kg"] - nutr["energie_kcal_kg"]) / max(cible["energie_kcal_kg"], 1))
-            p_prot = max(0.0, (cible["proteines_pct"] - nutr["proteines_pct"]) / max(cible["proteines_pct"], 1))
-            p_ca = max(0.0, (cible["calcium_pct"] - nutr["calcium_pct"]) / max(cible["calcium_pct"], 1e-6))
-            p_p = max(0.0, (cible["phosphore_pct"] - nutr["phosphore_pct"]) / max(cible["phosphore_pct"], 1e-6))
+            p_energie = max(
+                0.0,
+                (cible["energie_kcal_kg"] - nutr["energie_kcal_kg"])
+                / max(cible["energie_kcal_kg"], 1),
+            )
+            p_prot = max(
+                0.0,
+                (cible["proteines_pct"] - nutr["proteines_pct"])
+                / max(cible["proteines_pct"], 1),
+            )
+            p_ca = max(
+                0.0,
+                (cible["calcium_pct"] - nutr["calcium_pct"])
+                / max(cible["calcium_pct"], 1e-6),
+            )
+            p_p = max(
+                0.0,
+                (cible["phosphore_pct"] - nutr["phosphore_pct"])
+                / max(cible["phosphore_pct"], 1e-6),
+            )
 
             # Pénalité légère d'excès pour l'équilibre (évite des formules extrêmes).
-            e_energie = max(0.0, (nutr["energie_kcal_kg"] - cible["energie_kcal_kg"]) / max(cible["energie_kcal_kg"], 1)) * 0.15
-            e_prot = max(0.0, (nutr["proteines_pct"] - cible["proteines_pct"]) / max(cible["proteines_pct"], 1)) * 0.15
+            e_energie = (
+                max(
+                    0.0,
+                    (nutr["energie_kcal_kg"] - cible["energie_kcal_kg"])
+                    / max(cible["energie_kcal_kg"], 1),
+                )
+                * 0.15
+            )
+            e_prot = (
+                max(
+                    0.0,
+                    (nutr["proteines_pct"] - cible["proteines_pct"])
+                    / max(cible["proteines_pct"], 1),
+                )
+                * 0.15
+            )
 
             deficit = (p_energie * 1.4) + (p_prot * 1.8) + (p_ca * 1.2) + (p_p * 1.2)
 
@@ -371,7 +429,9 @@ class NutritionEngine:
                 total = (deficit * 4000.0) + (cout * 0.7) - (bonus_proteines * 120.0)
             else:
                 # "equilibre"
-                total = (deficit * 4500.0) + (cout * 0.9) + ((e_energie + e_prot) * 200.0)
+                total = (
+                    (deficit * 4500.0) + (cout * 0.9) + ((e_energie + e_prot) * 200.0)
+                )
 
             return total, nutr, cout
 
@@ -389,7 +449,10 @@ class NutritionEngine:
 
         for _ in range(iterations):
             # Génère des poids aléatoires > 0, puis normalise en %.
-            poids = [rnd.random() ** (1.6 if objectif == "cout_min" else 1.0) for _ in range(n)]
+            poids = [
+                rnd.random() ** (1.6 if objectif == "cout_min" else 1.0)
+                for _ in range(n)
+            ]
             s = sum(poids) or 1.0
             comp = {noms[i]: (poids[i] / s) * 100.0 for i in range(n)}
 
@@ -408,21 +471,26 @@ class NutritionEngine:
                 best_cout = cout
 
         if not best_comp or not best_nutr:
-            raise RuntimeError("Échec de l'optimisation: aucune composition viable trouvée.")
+            raise RuntimeError(
+                "Échec de l'optimisation: aucune composition viable trouvée."
+            )
 
         # Quantités en kg sur une base de 100 kg.
         composition_kg = {k: round(v, 2) for k, v in best_comp.items()}
 
         # Respect des besoins (tolérance légère de 2%).
         respect_besoins = {
-            "energie": best_nutr["energie_kcal_kg"] >= (cible["energie_kcal_kg"] * 0.98),
+            "energie": best_nutr["energie_kcal_kg"]
+            >= (cible["energie_kcal_kg"] * 0.98),
             "proteines": best_nutr["proteines_pct"] >= (cible["proteines_pct"] * 0.98),
             "calcium": best_nutr["calcium_pct"] >= (cible["calcium_pct"] * 0.98),
             "phosphore": best_nutr["phosphore_pct"] >= (cible["phosphore_pct"] * 0.98),
         }
 
         # Coût 7 jours basé sur la consommation du stade (g/j/animal) et nb animaux par défaut.
-        consommation_g_jour = self._safe_float(besoins.get("consommation_aliment_g_jour"), 0.0)
+        consommation_g_jour = self._safe_float(
+            besoins.get("consommation_aliment_g_jour"), 0.0
+        )
         cout_total_7_jours = self.calculer_cout(
             ration=composition_kg,
             nombre_animaux=self.nombre_animaux_par_defaut,
@@ -491,7 +559,9 @@ class NutritionEngine:
 
         return round(cout_fcfa_kg * kg_7j, 2)
 
-    def generer_recommandations(self, ration: Dict[str, float], espece: str, stade: str) -> List[str]:
+    def generer_recommandations(
+        self, ration: Dict[str, float], espece: str, stade: str
+    ) -> List[str]:
         """
         Génère 3 conseils pratiques adaptés à l'espèce et au stade.
 
@@ -519,17 +589,38 @@ class NutritionEngine:
 
         # Ajustements spécifiques par espèce.
         if "poulet" in espece_n or "pondeuse" in espece_n or "pintade" in espece_n:
-            conseils[0] = "Assure un accès permanent à une eau propre; une baisse d'eau réduit vite la performance des volailles."
+            conseils[0] = (
+                "Assure un accès permanent à une eau propre; une baisse d'eau réduit vite la performance des volailles."
+            )
             if "ponte" in stade_n:
-                conseils[1] = "Surveille la qualité de coquille et sécurise l'apport en calcium/phosphore pour maintenir la ponte."
-        elif "vache" in espece_n or "zebu" in espece_n or "mouton" in espece_n or "chevre" in espece_n:
-            conseils[0] = "Fractionne l'apport concentré et maintiens du fourrage fibreux pour protéger la rumination."
-            conseils[1] = "Observe les bouses et l'état corporel chaque semaine pour corriger l'équilibre énergie/protéines."
+                conseils[1] = (
+                    "Surveille la qualité de coquille et sécurise l'apport en calcium/phosphore pour maintenir la ponte."
+                )
+        elif (
+            "vache" in espece_n
+            or "zebu" in espece_n
+            or "mouton" in espece_n
+            or "chevre" in espece_n
+        ):
+            conseils[0] = (
+                "Fractionne l'apport concentré et maintiens du fourrage fibreux pour protéger la rumination."
+            )
+            conseils[1] = (
+                "Observe les bouses et l'état corporel chaque semaine pour corriger l'équilibre énergie/protéines."
+            )
         elif "tilapia" in espece_n or "poisson" in espece_n:
-            conseils[0] = "Distribue en 2 à 3 repas/jour et retire les restes pour préserver la qualité de l'eau."
-            conseils[1] = "Ajuste le taux de nourrissage selon la biomasse réelle et la température de l'eau."
+            conseils[0] = (
+                "Distribue en 2 à 3 repas/jour et retire les restes pour préserver la qualité de l'eau."
+            )
+            conseils[1] = (
+                "Ajuste le taux de nourrissage selon la biomasse réelle et la température de l'eau."
+            )
         elif "porc" in espece_n or "lapin" in espece_n:
-            conseils[0] = "Uniformise bien le mélange pour éviter le tri des particules par les animaux."
-            conseils[1] = "Surveille les refus d'aliment et corrige rapidement la densité énergétique si la croissance ralentit."
+            conseils[0] = (
+                "Uniformise bien le mélange pour éviter le tri des particules par les animaux."
+            )
+            conseils[1] = (
+                "Surveille les refus d'aliment et corrige rapidement la densité énergétique si la croissance ralentit."
+            )
 
         return conseils
