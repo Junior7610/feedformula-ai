@@ -560,8 +560,18 @@
                     const goalTitle = document.getElementById("goalTitle");
                     const resultTitle = document.getElementById("resultTitle");
                     const dailyChallengeTitle = document.getElementById("dailyChallengeTitle");
+                    const offlineBanner = document.getElementById("offlineBanner");
+                    const splashTitle = document.querySelector(".splash-title");
+                    const headerSubtitle = document.querySelector(".brand-subtitle");
+                    const levelMetaPrimary = document.querySelector(".level-meta span:first-child");
+                    const levelMetaSecondary = document.querySelector(".level-meta span:last-child");
                     const offlineCachePanel = document.getElementById("offlineCachePanel");
                     const historiquePanel = document.getElementById("historiquePanel");
+                    const footerTitle = document.querySelector(".site-footer strong");
+                    const footerText = document.querySelector(".site-footer > div > span");
+                    const footerLinksModules = document.querySelector(".site-footer__links a[href='modules.html']");
+                    const footerLinksOffers = document.querySelector(".site-footer__links a[href='abonnement.html']");
+                    const footerLinksProfile = document.querySelector(".site-footer__links a[href='profil.html']");
                     const resultSubtitle = document.querySelector("#resultatZone .section-subtitle");
                     const resultHeroSubtitle = document.querySelector("#resultatZone .result-hero .section-subtitle");
                     const subscribeSubtitle = document.querySelector(".subscription-card .section-subtitle");
@@ -636,6 +646,11 @@
                     };
                     const translations = {
                         fr: {
+                            offlineBanner: "Vous êtes hors ligne. Les dernières rations restent accessibles grâce au cache local.",
+                            splashTitle: "FeedFormula AI",
+                            headerSubtitle: "Votre assistant d'élevage intelligent",
+                            levelMetaPrimary: "Continuez à générer des rations pour progresser",
+                            levelMetaSecondary: "+10 🌟 par ration",
                             offlineCacheTitle: "Rations récentes hors ligne",
                             offlineCacheSubtitle: "Vous pouvez revoir vos dernières rations même sans connexion.",
                             challengeTitle: "⚡ Défi du jour",
@@ -682,6 +697,13 @@
                             performanceTitle: "Performances attendues",
                             localHistoryTitle: "Historique local",
                             localHistorySubtitle: "Vos dernières rations enregistrées sont conservées hors ligne.",
+                            footerTitle: "FeedFormula AI",
+                            footerNote: "8 modules IA · 50 langues africaines · IA agricole pour l’Afrique",
+                            footerLinksModules: "Modules",
+                            footerLinksOffers: "Offres",
+                            footerLinksProfile: "Profil",
+                            demandPlaceholder: "Décrivez vos animaux et vos ingrédients...",
+                            ingredientsPlaceholder: "Ex. maïs, soja, son de blé...",
                             offersHeading: "Abonnement et offres premium",
                             offersText: "Comparez les plans, activez Mobile Money et débloquez les langues, modules IA et fonctions premium.",
                             offerCards: [
@@ -739,6 +761,13 @@
                             performanceTitle: "Expected performance",
                             localHistoryTitle: "Local history",
                             localHistorySubtitle: "Your last saved rations are kept offline.",
+                            footerTitle: "FeedFormula AI",
+                            footerNote: "8 AI modules · 50 African languages · agricultural AI for Africa",
+                            footerLinksModules: "Modules",
+                            footerLinksOffers: "Offers",
+                            footerLinksProfile: "Profile",
+                            demandPlaceholder: "Describe your animals and ingredients...",
+                            ingredientsPlaceholder: "e.g. corn, soy meal, wheat bran...",
                             offersHeading: "Subscription and premium offers",
                             offersText: "Compare plans, activate Mobile Money and unlock languages, AI modules and premium features.",
                             offerCards: [
@@ -751,7 +780,11 @@
                         },
                     };
                     const codeAliases = { yo: "yor", ddn: "den" };
-                    const fallbackLanguagesUrl = "../data/langues_supportees.json";
+                    const fallbackLanguagesUrls = [
+                        "../data/langues_supportees.json",
+                        "/data/langues_supportees.json",
+                        "data/langues_supportees.json",
+                    ];
                     const fallbackLanguages = [
                         { code_iso: "fr", nom_francais: "Français", nom_local: "Français", priorite: 1 },
                         { code_iso: "en", nom_francais: "English", nom_local: "English", priorite: 2 },
@@ -776,8 +809,15 @@
                     function setText(node, value) {
                         if (node && typeof value === "string") node.textContent = value;
                     }
-                    function updateStaticTexts(lang) {
+                    function updateStaticTexts(lang, languagesCount = 50) {
                         const pack = translations[lang] || translations.fr;
+                        const footerNote = `${pack.footerNote} ${languagesCount}/50`;
+                        document.documentElement.lang = lang;
+                        setText(offlineBanner, pack.offlineBanner);
+                        setText(splashTitle, pack.splashTitle);
+                        setText(headerSubtitle, pack.headerSubtitle);
+                        setText(levelMetaPrimary, pack.levelMetaPrimary);
+                        setText(levelMetaSecondary, pack.levelMetaSecondary);
                         setText(offlineCachePanel?.querySelector(".section-title"), pack.offlineCacheTitle);
                         setText(offlineSubtitle, pack.offlineCacheSubtitle);
                         setText(dailyChallengeTitle, pack.challengeTitle);
@@ -785,9 +825,9 @@
                         if (challengeText) challengeText.textContent = pack.challengeText;
                         setText(languageSelectorTitle, pack.languageTitle);
                         const languageSubtitle = document.querySelector(".language-strip .section-subtitle");
-                        setText(languageSubtitle, pack.languageSubtitle);
+                        if (languageSubtitle) languageSubtitle.textContent = pack.languageSubtitle.replace("{count}", String(languagesCount));
                         const languageSummary = languagePanel?.querySelector("summary");
-                        setText(languageSummary, pack.languagesAvailable);
+                        setText(languageSummary, `${pack.languagesAvailable} (${languagesCount})`);
                         setText(quickLanguageMore, pack.languageMoreButton);
                         setText(preferredLanguageLabel, pack.languageTitle);
                         setText(subscriptionTitle, pack.subscriptionTitle);
@@ -840,6 +880,11 @@
                         setText(performanceTitle, pack.performanceTitle);
                         setText(historiquePanel?.querySelector(".section-title"), pack.localHistoryTitle);
                         setText(historySubtitle, pack.localHistorySubtitle);
+                        setText(footerTitle, pack.footerTitle);
+                        setText(footerText, footerNote);
+                        setText(footerLinksModules, pack.footerLinksModules);
+                        setText(footerLinksOffers, pack.footerLinksOffers);
+                        setText(footerLinksProfile, pack.footerLinksProfile);
                         const offersHost = document.getElementById("subscriptionOffersHome");
                         if (offersHost && Array.isArray(pack.offerCards)) {
                             offersHost.innerHTML = pack.offerCards.map((offer) => `
@@ -919,16 +964,17 @@
                         languageListFull.innerHTML = preservedPanel;
                         if (quickMore && languagePanel) {
                             quickMore.addEventListener("click", () => {
-                                languagePanel.hidden = !languagePanel.hidden;
-                                quickMore.setAttribute("aria-expanded", String(!languagePanel.hidden));
+                                const willOpen = !languagePanel.open;
+                                languagePanel.open = willOpen;
+                                quickMore.setAttribute("aria-expanded", String(willOpen));
                             });
                         }
                         const activeValue = preferredLanguageSelect?.value || localStorage.getItem("feedformula_language_v3") || "fr";
+                        updateStaticTexts(activeValue, ordered.length || 50);
                         applyLanguage(activeValue);
                     }
                     function applyLanguage(lang) {
                         const normalized = String(lang || "fr").toLowerCase();
-                        updateStaticTexts(normalized);
                         const selectedButtons = document.querySelectorAll("[data-lang], [data-lang-button]");
                         selectedButtons.forEach((button) => {
                             const value = String(button.getAttribute("data-lang") || "").toLowerCase();
@@ -940,6 +986,7 @@
                         if (preferredLanguageSelect && preferredLanguageSelect.value !== normalized) {
                             preferredLanguageSelect.value = normalized;
                         }
+                        updateStaticTexts(normalized, languageListFull?.children?.length || 50);
                         try {
                             localStorage.setItem("feedformula_language_v3", normalized);
                         } catch (e) {
@@ -947,17 +994,16 @@
                         }
                     }
                     async function loadLanguages() {
-                        const renderFromFile = async () => {
+                        const renderFromFile = async (url) => {
                             try {
-                                const resp = await fetch(fallbackLanguagesUrl);
+                                const resp = await fetch(url);
                                 const data = await resp.json();
                                 const items = Array.isArray(data?.langues) ? data.langues : [];
-                                renderLanguageButtons(items.length ? items : fallbackLanguages);
-                                return items.length ? items : fallbackLanguages;
+                                if (items.length) return items;
                             } catch (error) {
-                                renderLanguageButtons(fallbackLanguages);
-                                return fallbackLanguages;
+                                void error;
                             }
+                            return [];
                         };
 
                         try {
@@ -968,11 +1014,23 @@
                                 renderLanguageButtons(items);
                                 return;
                             }
-                            const fallbackItems = await renderFromFile();
-                            if (fallbackItems.length) return;
+                            for (const url of fallbackLanguagesUrls) {
+                                const fallbackItems = await renderFromFile(url);
+                                if (fallbackItems.length >= 50) {
+                                    renderLanguageButtons(fallbackItems);
+                                    return;
+                                }
+                            }
                             renderLanguageButtons(items.length ? items : fallbackLanguages);
                         } catch (e) {
-                            await renderFromFile();
+                            for (const url of fallbackLanguagesUrls) {
+                                const fallbackItems = await renderFromFile(url);
+                                if (fallbackItems.length) {
+                                    renderLanguageButtons(fallbackItems);
+                                    return;
+                                }
+                            }
+                            renderLanguageButtons(fallbackLanguages);
                             void e;
                         }
                     }

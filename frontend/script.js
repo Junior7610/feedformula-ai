@@ -321,6 +321,303 @@
     ki: "Hweka wanyama na viungo vyako...",
   };
 
+  const FOOTER_TRANSLATIONS = {
+    fr: {
+      index: {
+        text: "8 modules IA · 50 langues africaines · IA agricole pour l’Afrique",
+        links: {
+          modules: "Modules",
+          offers: "Offres",
+          profile: "Profil",
+        },
+      },
+      abonnement: {
+        text: "Comparez les offres, choisissez la meilleure valeur et gardez les prix visibles.",
+        links: {
+          home: "Accueil",
+          modules: "Modules",
+          profile: "Profil",
+        },
+      },
+      classement: {
+        text: "Classements en temps réel et progression",
+        links: {
+          home: "Accueil",
+          modules: "Modules",
+          profile: "Profil",
+        },
+      },
+      farmcast: {
+        text: "FarmCast · Contenu vocal, vidéo et fiche PDF pour l’Afrique",
+        links: {
+          home: "Accueil",
+          offers: "Offres",
+          modules: "Modules",
+        },
+      },
+      farmcommunity: {
+        text: "Communauté, marketplace et entraide",
+        links: {
+          home: "Accueil",
+          modules: "Modules",
+          profile: "Profil",
+        },
+      },
+      farmmanager: {
+        text: "Carnet vocal et suivi financier",
+        links: {
+          home: "Accueil",
+          modules: "Modules",
+          profile: "Profil",
+        },
+      },
+      investisseurs: {
+        text: "Dossier investisseur et vision produit",
+        links: {
+          home: "Accueil",
+          modules: "Modules",
+          profile: "Profil",
+        },
+      },
+      modules: {
+        text: "8 modules IA · Santé, Finance et Formation réunies",
+        links: {
+          home: "Accueil",
+          offers: "Offres",
+          profile: "Profil",
+        },
+      },
+      nutricore: {
+        text: "NutriCore · Rations, suivi et historique local",
+        links: {
+          home: "Accueil",
+          offers: "Offres",
+          modules: "Modules",
+        },
+      },
+      pasturemap: {
+        text: "Pâturages, charge animale et rotation",
+        links: {
+          home: "Accueil",
+          modules: "Modules",
+          profile: "Profil",
+        },
+      },
+      profil: {
+        text: "Profil, progression et récompenses",
+        links: {
+          home: "Accueil",
+          modules: "Modules",
+          profile: "Profil",
+        },
+      },
+      reprotrack: {
+        text: "Reproduction, alertes et suivi du troupeau",
+        links: {
+          home: "Accueil",
+          modules: "Modules",
+          profile: "Profil",
+        },
+      },
+      farmacademy: {
+        text: "Apprentissage, quiz et parcours guidé",
+        links: {
+          home: "Accueil",
+          modules: "Modules",
+          profile: "Profil",
+        },
+      },
+      erreur: {
+        text: "Page indisponible · retour rapide vers FeedFormula AI",
+        links: {
+          home: "Accueil",
+          modules: "Modules",
+          profile: "Profil",
+        },
+      },
+      default: {
+        text: "FeedFormula AI · Nutrition animale intelligente",
+        links: {
+          home: "Accueil",
+          modules: "Modules",
+          profile: "Profil",
+        },
+      },
+    },
+    en: {
+      index: {
+        text: "8 AI modules · 50 African languages · agricultural AI for Africa",
+        links: {
+          modules: "Modules",
+          offers: "Offers",
+          profile: "Profile",
+        },
+      },
+      abonnement: {
+        text: "Compare offers, choose the best value and keep prices visible.",
+        links: {
+          home: "Home",
+          modules: "Modules",
+          profile: "Profile",
+        },
+      },
+      classement: {
+        text: "Real-time rankings and progress",
+        links: {
+          home: "Home",
+          modules: "Modules",
+          profile: "Profile",
+        },
+      },
+      farmcast: {
+        text: "FarmCast · Voice, video and PDF content for Africa",
+        links: {
+          home: "Home",
+          offers: "Offers",
+          modules: "Modules",
+        },
+      },
+      farmcommunity: {
+        text: "Community, marketplace and peer support",
+        links: {
+          home: "Home",
+          modules: "Modules",
+          profile: "Profile",
+        },
+      },
+      farmmanager: {
+        text: "Voice ledger and financial tracking",
+        links: {
+          home: "Home",
+          modules: "Modules",
+          profile: "Profile",
+        },
+      },
+      investisseurs: {
+        text: "Investor deck and product vision",
+        links: {
+          home: "Home",
+          modules: "Modules",
+          profile: "Profile",
+        },
+      },
+      modules: {
+        text: "8 AI modules · Health, Finance and Training together",
+        links: {
+          home: "Home",
+          offers: "Offers",
+          profile: "Profile",
+        },
+      },
+      nutricore: {
+        text: "NutriCore · Rations, tracking and local history",
+        links: {
+          home: "Home",
+          offers: "Offers",
+          modules: "Modules",
+        },
+      },
+      pasturemap: {
+        text: "Pastures, stocking rate and rotation",
+        links: {
+          home: "Home",
+          modules: "Modules",
+          profile: "Profile",
+        },
+      },
+      profil: {
+        text: "Profile, progress and rewards",
+        links: {
+          home: "Home",
+          modules: "Modules",
+          profile: "Profile",
+        },
+      },
+      reprotrack: {
+        text: "Reproduction, alerts and herd tracking",
+        links: {
+          home: "Home",
+          modules: "Modules",
+          profile: "Profile",
+        },
+      },
+      farmacademy: {
+        text: "Learning, quizzes and guided training",
+        links: {
+          home: "Home",
+          modules: "Modules",
+          profile: "Profile",
+        },
+      },
+      erreur: {
+        text: "Page unavailable · quick return to FeedFormula AI",
+        links: {
+          home: "Home",
+          modules: "Modules",
+          profile: "Profile",
+        },
+      },
+      default: {
+        text: "FeedFormula AI · Smart livestock nutrition",
+        links: {
+          home: "Home",
+          modules: "Modules",
+          profile: "Profile",
+        },
+      },
+    },
+  };
+
+  function getFooterPageKey() {
+    const path = window.location.pathname.toLowerCase();
+    if (path.includes("abonnement")) return "abonnement";
+    if (path.includes("classement")) return "classement";
+    if (path.includes("farmcast")) return "farmcast";
+    if (path.includes("farmcommunity")) return "farmcommunity";
+    if (path.includes("farmmanager")) return "farmmanager";
+    if (path.includes("investisseurs")) return "investisseurs";
+    if (path.includes("modules")) return "modules";
+    if (path.includes("nutricore")) return "nutricore";
+    if (path.includes("pasturemap")) return "pasturemap";
+    if (path.includes("profil")) return "profil";
+    if (path.includes("reprotrack")) return "reprotrack";
+    if (path.includes("farmacademy")) return "farmacademy";
+    if (path.includes("erreur")) return "erreur";
+    return "index";
+  }
+
+  function updateFooterUI(lang) {
+    const normalized = String(lang || "fr").toLowerCase();
+    const pack = FOOTER_TRANSLATIONS[normalized] || FOOTER_TRANSLATIONS.fr;
+    const pagePack =
+      pack[getFooterPageKey()] ||
+      pack.default ||
+      FOOTER_TRANSLATIONS.fr.default;
+
+    $all(".site-footer").forEach((footer) => {
+      const inner = footer.querySelector(".site-footer__inner");
+      if (!inner) return;
+
+      const title = inner.querySelector("strong");
+      const text = inner.querySelector("span");
+      const homeLink = inner.querySelector("a[href='index.html']");
+      const modulesLink = inner.querySelector("a[href='modules.html']");
+      const offersLink = inner.querySelector("a[href='abonnement.html']");
+      const profileLink = inner.querySelector("a[href='profil.html']");
+
+      if (title) title.textContent = "FeedFormula AI";
+      if (text) text.textContent = pagePack.text;
+      if (homeLink && pagePack.links?.home)
+        homeLink.textContent = pagePack.links.home;
+      if (modulesLink && pagePack.links?.modules)
+        modulesLink.textContent = pagePack.links.modules;
+      if (offersLink && pagePack.links?.offers)
+        offersLink.textContent = pagePack.links.offers;
+      if (profileLink && pagePack.links?.profile)
+        profileLink.textContent = pagePack.links.profile;
+    });
+  }
+
   const INGREDIENT_SUGGESTIONS = [
     "maïs",
     "tourteau soja",
@@ -1640,6 +1937,8 @@
     if (badge) {
       badge.textContent = `${LANGUAGE_LABELS[lang] || lang.toUpperCase()}`;
     }
+
+    updateFooterUI(lang);
   }
 
   function initLanguageSelector() {
@@ -1649,8 +1948,13 @@
 
     if (panel && moreButton) {
       moreButton.addEventListener("click", () => {
-        panel.hidden = !panel.hidden;
-        moreButton.setAttribute("aria-expanded", String(!panel.hidden));
+        if (panel.tagName === "DETAILS") {
+          panel.open = !panel.open;
+          moreButton.setAttribute("aria-expanded", String(panel.open));
+        } else {
+          panel.hidden = !panel.hidden;
+          moreButton.setAttribute("aria-expanded", String(!panel.hidden));
+        }
       });
     }
 

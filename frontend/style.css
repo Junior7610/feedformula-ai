@@ -2918,8 +2918,7 @@ textarea.text-input {
 }
 
 .site-footer {
-    margin: var(--space-12) auto
-        calc(var(--bottom-nav-height) + var(--space-10));
+    margin: var(--space-8) auto calc(var(--bottom-nav-height) + var(--space-6));
     padding: 0 var(--space-4);
     max-width: var(--container-max);
 }
@@ -2928,18 +2927,27 @@ textarea.text-input {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--space-4);
+    gap: var(--space-3);
     flex-wrap: wrap;
-    padding: var(--space-4) var(--space-5);
+    padding: var(--space-3) var(--space-4);
     border-radius: var(--radius-xl);
     background: rgba(255, 255, 255, 0.92);
     border: 1px solid var(--color-border);
     box-shadow: var(--shadow-card);
 }
 
+.site-footer__inner strong {
+    font-size: 0.98rem;
+}
+
+.site-footer__inner span {
+    font-size: 0.95rem;
+    line-height: 1.45;
+}
+
 .site-footer__links {
     display: flex;
-    gap: var(--space-3);
+    gap: var(--space-2);
     flex-wrap: wrap;
 }
 
