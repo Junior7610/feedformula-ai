@@ -234,6 +234,28 @@
                     Choisissez une langue rapide, puis ouvrez la liste complète
                     pour accéder à plus d'options.
                 </p>
+
+                <div class="language-preference">
+                    <label class="field-label" for="preferredLanguageSelect">
+                        Langue préférée
+                    </label>
+                    <select
+                        id="preferredLanguageSelect"
+                        class="language-select"
+                        data-language-select
+                        aria-label="Langue préférée"
+                    >
+                        <option value="fr">Français</option>
+                        <option value="en">English</option>
+                        <option value="fon">Fɔ̀ngbè</option>
+                        <option value="yor">Yorùbá</option>
+                        <option value="den">Dendi</option>
+                        <option value="ha">Hausa</option>
+                        <option value="sw">Swahili</option>
+                        <option value="ar">العربية</option>
+                    </select>
+                </div>
+
                 <div
                     class="language-list"
                     role="list"
@@ -574,6 +596,7 @@
                     const historySubtitle = document.querySelector("#historiquePanel .section-subtitle");
                     const quickLanguageList = document.querySelector(".language-strip .language-list");
                     const quickLanguageMore = document.getElementById("languageMoreBtn");
+                    const preferredLanguageSelect = document.getElementById("preferredLanguageSelect");
                     const languageNameMap = {
                         fr: "Français",
                         en: "English",
@@ -698,6 +721,27 @@
                     };
                     const codeAliases = { yo: "yor", ddn: "den" };
                     const supportedLabels = new Map();
+                    const fallbackLanguages = [
+                        { code_iso: "fr", nom_francais: "Français", nom_local: "Français", priorite: 1 },
+                        { code_iso: "en", nom_francais: "English", nom_local: "English", priorite: 2 },
+                        { code_iso: "fon", nom_francais: "Fɔ̀ngbè", nom_local: "Fɔ̀ngbè", priorite: 3 },
+                        { code_iso: "yor", nom_francais: "Yorùbá", nom_local: "Yorùbá", priorite: 4 },
+                        { code_iso: "den", nom_francais: "Dendi", nom_local: "Dendi", priorite: 5 },
+                        { code_iso: "ha", nom_francais: "Hausa", nom_local: "Hausa", priorite: 6 },
+                        { code_iso: "sw", nom_francais: "Swahili", nom_local: "Swahili", priorite: 7 },
+                        { code_iso: "ar", nom_francais: "العربية", nom_local: "العربية", priorite: 8 },
+                        { code_iso: "es", nom_francais: "Español", nom_local: "Español", priorite: 9 },
+                        { code_iso: "pt", nom_francais: "Português", nom_local: "Português", priorite: 10 },
+                        { code_iso: "ig", nom_francais: "Igbo", nom_local: "Igbo", priorite: 11 },
+                        { code_iso: "bm", nom_francais: "Bambara", nom_local: "Bambara", priorite: 12 },
+                        { code_iso: "wo", nom_francais: "Wolof", nom_local: "Wolof", priorite: 13 },
+                        { code_iso: "am", nom_francais: "Amharique", nom_local: "Amharic", priorite: 14 },
+                        { code_iso: "ak", nom_francais: "Akan", nom_local: "Akan", priorite: 15 },
+                        { code_iso: "zu", nom_francais: "Zulu", nom_local: "Zulu", priorite: 16 },
+                        { code_iso: "xh", nom_francais: "Xhosa", nom_local: "Xhosa", priorite: 17 },
+                        { code_iso: "ru", nom_francais: "Русский", nom_local: "Русский", priorite: 18 },
+                        { code_iso: "zh", nom_francais: "中文", nom_local: "中文", priorite: 19 },
+                    ];
                     function setText(node, value) {
                         if (node && typeof value === "string") node.textContent = value;
                     }
@@ -747,17 +791,69 @@
                             `).join("");
                         }
                     }
+                    function normalizeLanguageItems(items) {
+                        const source = Array.isArray(items) && items.length ? items : fallbackLanguages;
+                        const seen = new Set();
+                        return source
+                            .map((item) => {
+                                const code = String(item.code_iso || item.code || "").toLowerCase().trim();
+                                if (!code || seen.has(code)) return null;
+                                seen.add(code);
+                                const label =
+                                    item.nom_francais ||
+                                    item.nom_local ||
+                                    languageNameMap[code] ||
+                                    code.toUpperCase();
+                                return {
+                                    ...item,
+                                    code_iso: code,
+                                    nom_francais: label,
+                                    nom_local: item.nom_local || label,
+                                    priorite: Number(item.priorite || item.priorite_affichage || 999),
+                                };
+                            })
+                            .filter(Boolean)
+                            .sort(
+                                (a, b) =>
+                                    Number(a.priorite || 999) - Number(b.priorite || 999) ||
+                                    String(a.nom_francais || a.code_iso).localeCompare(
+                                        String(b.nom_francais || b.code_iso),
+                                        "fr",
+                                    ),
+                            );
+                    }
+                    function renderPreferredLanguageSelect(items) {
+                        if (!preferredLanguageSelect) return;
+                        const currentValue = preferredLanguageSelect.value || localStorage.getItem("feedformula_language_v3") || "fr";
+                        preferredLanguageSelect.innerHTML = normalizeLanguageItems(items)
+                            .map(
+                                (item) =>
+                                    `<option value="${item.code_iso}">${item.nom_francais}</option>`,
+                            )
+                            .join("");
+                        preferredLanguageSelect.value = currentValue;
+                    }
                     function renderLanguageButtons(items) {
                         if (!languageListFull || !quickLanguageList) return;
-                        const ordered = items.slice().sort((a, b) => Number(a.priorite || 9) - Number(b.priorite || 9) || String(a.nom_francais || a.code_iso).localeCompare(String(b.nom_francais || b.code_iso), "fr"));
-                        const quick = ordered.filter((item) => ["fr", "en", "fon", "yor", "yo", "ddn", "den", "ha", "sw", "ar"].includes(String(item.code_iso || "").toLowerCase())).slice(0, 10);
+                        const ordered = normalizeLanguageItems(items);
+                        renderPreferredLanguageSelect(ordered);
+                        const quick = ordered
+                            .filter((item) =>
+                                ["fr", "en", "fon", "yor", "yo", "ddn", "den", "ha", "sw", "ar"].includes(
+                                    String(item.code_iso || "").toLowerCase(),
+                                ),
+                            )
+                            .slice(0, 10);
                         const makeButton = (item, isQuick) => {
                             const code = String(item.code_iso || "").toLowerCase();
                             const label = item.nom_francais || item.nom_local || code.toUpperCase();
                             const displayCode = codeAliases[code] || code;
-                            return `<button class="lang-item${isQuick ? "" : ""}" type="button" data-lang="${displayCode}" ${!isQuick ? "data-lang-button" : ""}>${isQuick ? label : label}</button>`;
+                            return `<button class="lang-item" type="button" data-lang="${displayCode}" ${!isQuick ? "data-lang-button" : "aria-pressed=\"false\""}>${label}</button>`;
                         };
-                        quickLanguageList.innerHTML = quick.map((item) => makeButton(item, true)).join("") + (quickLanguageMore ? quickLanguageMore.outerHTML : "");
+                        quickLanguageList.innerHTML = quick
+                            .map((item) => makeButton(item, true))
+                            .join("") +
+                            (quickLanguageMore ? quickLanguageMore.outerHTML : "");
                         const quickMore = quickLanguageList.querySelector("#languageMoreBtn");
                         const preservedPanel = ordered.map((item) => makeButton(item, false)).join("");
                         languageListFull.innerHTML = preservedPanel;
@@ -767,6 +863,8 @@
                                 quickMore.setAttribute("aria-expanded", String(!languagePanel.hidden));
                             });
                         }
+                        const activeValue = preferredLanguageSelect?.value || localStorage.getItem("feedformula_language_v3") || "fr";
+                        applyLanguage(activeValue);
                     }
                     function applyLanguage(lang) {
                         const normalized = String(lang || "fr").toLowerCase();
@@ -779,6 +877,9 @@
                             button.classList.toggle("is-active", active);
                             if (button.hasAttribute("aria-pressed")) button.setAttribute("aria-pressed", String(active));
                         });
+                        if (preferredLanguageSelect && preferredLanguageSelect.value !== normalized) {
+                            preferredLanguageSelect.value = normalized;
+                        }
                         try {
                             localStorage.setItem("feedformula_language_v3", normalized);
                         } catch (e) {
@@ -786,14 +887,21 @@
                         }
                     }
                     async function loadLanguages() {
+                        renderLanguageButtons(fallbackLanguages);
                         try {
                             const resp = await fetch(`${apiBase}/langues`);
                             const data = await resp.json();
                             const items = Array.isArray(data?.langues) ? data.langues : [];
-                            if (items.length) renderLanguageButtons(items);
+                            renderLanguageButtons(items.length ? items : fallbackLanguages);
                         } catch (e) {
+                            renderLanguageButtons(fallbackLanguages);
                             void e;
                         }
+                    }
+                    if (preferredLanguageSelect) {
+                        preferredLanguageSelect.addEventListener("change", (event) => {
+                            applyLanguage(event.target.value || "fr");
+                        });
                     }
                     document.addEventListener("click", (event) => {
                         const button = event.target.closest("[data-lang], [data-lang-button]");
@@ -813,19 +921,6 @@
                 });
             </script>
             </section>
-
-            <!-- Pied de page -->
-            <footer class="site-footer" aria-label="Pied de page">
-                <div class="site-footer__inner">
-                    <strong>FeedFormula AI</strong>
-                    <span>8 modules IA · 50 langues africaines · IA agricole pour l’Afrique</span>
-                    <div class="site-footer__links">
-                        <a href="modules.html">Modules</a>
-                        <a href="abonnement.html">Offres</a>
-                        <a href="profil.html">Profil</a>
-                    </div>
-                </div>
-            </footer>
 
             <!-- Microphone central -->
             <section class="card" aria-labelledby="voiceTitle">
@@ -1389,6 +1484,18 @@
                     ligne.
                 </p>
             </section>
+
+            <footer class="site-footer" aria-label="Pied de page">
+                <div class="site-footer__inner">
+                    <strong>FeedFormula AI</strong>
+                    <span>8 modules IA · 50 langues africaines · IA agricole pour l’Afrique</span>
+                    <div class="site-footer__links">
+                        <a href="modules.html">Modules</a>
+                        <a href="abonnement.html">Offres</a>
+                        <a href="profil.html">Profil</a>
+                    </div>
+                </div>
+            </footer>
         </main>
 
         <!-- Mascotte Aya -->

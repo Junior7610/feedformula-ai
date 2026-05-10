@@ -326,11 +326,34 @@
   }
 
   function bindRationPage() {
-    const generateButton = qs("#generateButton");
-    const speakButton = qs("#speakButton");
-    const saveHistoryButton = qs("#saveHistoryButton");
-    const whatsappButton = qs("#whatsappButton");
-    const pdfButton = qs("#pdfButton");
+    const generateButton = pick(
+      "#generateButton",
+      "#btnGenerer",
+      "[data-generate-ration]",
+    );
+    const speakButton = pick(
+      "#speakButton",
+      "#btnEcouterRation",
+      "[data-speak-ration]",
+      "[data-speak]",
+    );
+    const saveHistoryButton = pick(
+      "#saveHistoryButton",
+      "#btnSauvegarderHistorique",
+      "[data-save-history]",
+    );
+    const whatsappButton = pick(
+      "#whatsappButton",
+      "#btnPartagerWhatsApp",
+      "[data-whatsapp-ration]",
+      "[data-whatsapp]",
+    );
+    const pdfButton = pick(
+      "#pdfButton",
+      "#btnTelechargerPDF",
+      "[data-pdf-ration]",
+      "[data-pdf]",
+    );
 
     if (generateButton) {
       const button = cloneAndReplace(generateButton);
@@ -430,7 +453,26 @@
 
         if (typeof global.lireRationVocalement === "function") {
           global.lireRationVocalement(text);
+          return;
         }
+
+        if (
+          typeof global.speechSynthesis !== "undefined" &&
+          typeof global.SpeechSynthesisUtterance === "function"
+        ) {
+          const utterance = new global.SpeechSynthesisUtterance(text);
+          utterance.lang = getLanguage();
+          try {
+            global.speechSynthesis.cancel();
+            global.speechSynthesis.speak(utterance);
+            speakAya("Lecture vocale lancée.");
+            return;
+          } catch (error) {
+            console.warn("[FeedFormula Speech]", error);
+          }
+        }
+
+        notify("Lecture vocale non disponible.", "warning");
       });
     }
 
@@ -1228,9 +1270,24 @@
           };
 
           const result = await apiOrNull((api) => api.paiement.creer(payload));
-          if (result?.lien_paiement) {
-            global.location.href = result.lien_paiement;
+          const paymentUrl =
+            result?.lien_paiement ||
+            result?.url_paiement ||
+            result?.payment_url ||
+            result?.url ||
+            "";
+          if (paymentUrl) {
+            global.location.href = paymentUrl;
+            return;
           }
+          if (result?.statut === "paid") {
+            notify("Abonnement activé.", "success");
+            return;
+          }
+          notify(
+            "Paiement créé, mais aucun lien n’a été retourné par le backend.",
+            "warning",
+          );
         });
       });
     });

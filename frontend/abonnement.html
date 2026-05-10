@@ -685,17 +685,29 @@
                 if (!payload.user_id || !payload.telephone)
                     return alert("ID utilisateur et téléphone requis");
                 const data = await jpost("/paiement/creer", payload);
+                const paymentUrl =
+                    data.lien_paiement ||
+                    data.url_paiement ||
+                    data.payment_url ||
+                    data.url ||
+                    "";
                 document.getElementById("payStatus").className =
                     "status " + (data.statut === "paid" ? "ok" : "err");
                 document.getElementById("payStatus").style.display = "block";
                 document.getElementById("payStatus").textContent =
                     data.statut === "paid"
                         ? "Paiement validé. Abonnement activé."
-                        : "Transaction créée. Ouvrez le lien de paiement pour finaliser.";
+                        : paymentUrl
+                          ? "Transaction créée. Redirection vers le paiement..."
+                          : "Transaction créée. Ouvrez le lien de paiement pour finaliser.";
                 document
                     .getElementById("successScreen")
                     .classList.remove("show");
                 document.getElementById("errorScreen").classList.remove("show");
+                if (paymentUrl) {
+                    window.location.href = paymentUrl;
+                    return data;
+                }
                 if (data.statut === "paid") {
                     burst();
                     document.getElementById("successTitle").textContent =

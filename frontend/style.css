@@ -801,6 +801,23 @@ select:focus-visible {
     transform: scale(0.98);
 }
 
+.language-preference {
+    display: grid;
+    gap: 8px;
+    margin: 12px 0 14px;
+}
+
+.language-select {
+    width: 100%;
+    min-height: 48px;
+    padding: 0 14px;
+    border-radius: var(--radius-xl);
+    border: 1px solid rgba(27, 94, 32, 0.16);
+    background: #fff;
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
 /* =========================================================
    Voix / microphone
    ========================================================= */
@@ -2838,6 +2855,46 @@ textarea.text-input {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 8px;
+}
+
+.subscription-offers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-top: 12px;
+}
+
+.subscription-offer-card {
+    display: grid;
+    gap: 8px;
+    padding: 16px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #fff, #f8fbff);
+    border: 1px solid #e6edf4;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+}
+
+.subscription-offer-card.featured {
+    border-color: rgba(249, 168, 37, 0.7);
+    box-shadow: 0 14px 34px rgba(212, 175, 55, 0.18);
+    transform: translateY(-2px);
+}
+
+.subscription-offer-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.subscription-offer-price {
+    font-size: 1.35rem;
+    font-weight: 900;
+    color: var(--color-green);
+}
+
+.subscription-offer-meta {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
 }
 
 .subscription-card {
