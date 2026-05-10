@@ -2323,6 +2323,197 @@
     if (state === "success") btn.classList.add("is-success");
   }
 
+  const SPEECH_RECOGNITION_LANGUAGES = {
+    fr: "fr-FR",
+    en: "en-US",
+    fon: "fr-FR",
+    adj: "fr-FR",
+    gej: "fr-FR",
+    yo: "yo-NG",
+    yor: "yo-NG",
+    yom: "fr-FR",
+    bba: "fr-FR",
+    den: "fr-FR",
+    ddn: "fr-FR",
+    ha: "ha-NG",
+    sw: "sw-KE",
+    ar: "ar-SA",
+    es: "es-ES",
+    pt: "pt-BR",
+    ig: "ig-NG",
+    bm: "fr-FR",
+    wo: "wo-SN",
+    ff: "ff-NE",
+    am: "am-ET",
+    om: "om-ET",
+    so: "so-SO",
+    rw: "rw-RW",
+    rn: "rn-BI",
+    lg: "lg-UG",
+    ln: "ln-CD",
+    kg: "kg-CG",
+    tn: "tn-BW",
+    nso: "nso-ZA",
+    zu: "zu-ZA",
+    xh: "xh-ZA",
+    ss: "ss-ZA",
+    ve: "ve-ZA",
+    ts: "ts-ZA",
+    st: "st-ZA",
+    ny: "ny-MW",
+    tum: "tum-MW",
+    sn: "sn-ZW",
+    nd: "nd-ZW",
+    mg: "mg-MG",
+    ti: "ti-ET",
+    zgh: "zgh-MA",
+    ary: "ary-MA",
+    dyu: "dyu-CI",
+    mos: "mos-BF",
+    ee: "ee-GH",
+    twi: "ak-GH",
+    gaa: "gaa-GH",
+    kr: "kr-TD",
+    luo: "luo-KE",
+    ach: "ach-UG",
+    kam: "kam-KE",
+    ki: "ki-KE",
+  };
+
+  function getSpeechRecognitionLanguage(code) {
+    const normalized = String(code || "fr").toLowerCase();
+    return SPEECH_RECOGNITION_LANGUAGES[normalized] || "fr-FR";
+  }
+
+  function getRationInputField() {
+    return (
+      $("[data-text-input]") ||
+      $("[data-texte-demande]") ||
+      $("[data-ration-input]") ||
+      $("textarea")
+    );
+  }
+
+  function bindMicButton() {
+    const button = $("[data-mic-button]") || $(".btn-mic");
+    if (!button) return;
+
+    const SpeechRecognitionCtor =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null;
+    let recognitionRunning = false;
+
+    const stopRecognition = () => {
+      recognitionRunning = false;
+      startMicState("");
+    };
+
+    const ensureRecognition = () => {
+      if (!SpeechRecognitionCtor) return null;
+      if (recognition) return recognition;
+
+      recognition = new SpeechRecognitionCtor();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
+      recognition.lang = getSpeechRecognitionLanguage(APP.selectedLanguage);
+
+      recognition.onstart = () => {
+        recognitionRunning = true;
+        startMicState("listening");
+        toast("Écoute vocale activée", "info", 1600);
+        setAyaMood("joy", "Parle-moi de tes animaux.");
+      };
+
+      recognition.onerror = () => {
+        recognitionRunning = false;
+        toast(
+          "La reconnaissance vocale n’a pas pu démarrer sur cet appareil.",
+          "warning",
+          2200,
+        );
+        startMicState("");
+      };
+
+      recognition.onresult = (event) => {
+        const input = getRationInputField();
+        if (!input) return;
+
+        const transcript = Array.from(event.results)
+          .map((result) => result[0]?.transcript || "")
+          .join(" ")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        if (!transcript) return;
+
+        input.value = transcript;
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        startMicState("processing");
+      };
+
+      recognition.onend = () => {
+        recognitionRunning = false;
+        const input = getRationInputField();
+        if (input && input.value.trim()) {
+          startMicState("success");
+          window.setTimeout(() => startMicState(""), 900);
+        } else {
+          startMicState("");
+        }
+      };
+
+      return recognition;
+    };
+
+    const fallbackMic = () => {
+      startMicState("listening");
+      toast("Écoute vocale activée", "info", 1600);
+      setAyaMood("joy", "Parle-moi de tes animaux.");
+      window.setTimeout(() => {
+        startMicState("processing");
+      }, 1200);
+      window.setTimeout(() => {
+        startMicState("success");
+        toast("Voix traitée avec succès", "success", 1600);
+      }, 2400);
+    };
+
+    button.addEventListener("click", () => {
+      const input = getRationInputField();
+      if (!SpeechRecognitionCtor) {
+        fallbackMic();
+        return;
+      }
+
+      const activeRecognition = ensureRecognition();
+      if (!activeRecognition) {
+        fallbackMic();
+        return;
+      }
+
+      try {
+        if (recognitionRunning) {
+          activeRecognition.stop();
+          return;
+        }
+        activeRecognition.lang = getSpeechRecognitionLanguage(
+          APP.selectedLanguage,
+        );
+        activeRecognition.start();
+        if (input && !input.value.trim()) {
+          input.placeholder =
+            input.placeholder ||
+            LOCALIZED_HINTS[APP.selectedLanguage] ||
+            LOCALIZED_HINTS.fr;
+        }
+      } catch (error) {
+        void error;
+        fallbackMic();
+      }
+    });
+  }
+
   function initWaveCanvas() {
     const canvas = $("[data-wave-canvas]") || $(".wave-canvas");
     if (!canvas) return;
@@ -2761,23 +2952,6 @@
         startMicState("success");
         window.setTimeout(() => startMicState(""), 900);
       }, 650);
-    });
-  }
-
-  function bindMicButton() {
-    const button = $("[data-mic-button]") || $(".btn-mic");
-    if (!button) return;
-    button.addEventListener("click", () => {
-      startMicState("listening");
-      toast("Écoute vocale activée", "info", 1600);
-      setAyaMood("joy", "Parle-moi de tes animaux.");
-      window.setTimeout(() => {
-        startMicState("processing");
-      }, 1200);
-      window.setTimeout(() => {
-        startMicState("success");
-        toast("Voix traitée avec succès", "success", 1600);
-      }, 2400);
     });
   }
 

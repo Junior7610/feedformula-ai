@@ -664,6 +664,7 @@
                             subscriptionBadge: "💳 Offres FeedFormula",
                             subscriptionActionButton: "Voir les abonnements",
                             subscriptionActionHint: "Choisissez le plan adapté à votre élevage.",
+                            offerCardButton: "Choisir et payer",
                             subscriptionBenefits: [
                                 ["50 langues africaines", "Accès élargi selon votre offre."],
                                 ["8 modules IA", "VetScan, ReproTrack, FarmAcademy…"],
@@ -728,6 +729,7 @@
                             subscriptionBadge: "💳 FeedFormula offers",
                             subscriptionActionButton: "View subscriptions",
                             subscriptionActionHint: "Choose the plan that fits your farm.",
+                            offerCardButton: "Choose and pay",
                             subscriptionBenefits: [
                                 ["50 African languages", "Expanded access depending on your plan."],
                                 ["8 AI modules", "VetScan, ReproTrack, FarmAcademy…"],
@@ -785,27 +787,74 @@
                         "/data/langues_supportees.json",
                         "data/langues_supportees.json",
                     ];
-                    const fallbackLanguages = [
-                        { code_iso: "fr", nom_francais: "Français", nom_local: "Français", priorite: 1 },
-                        { code_iso: "en", nom_francais: "English", nom_local: "English", priorite: 2 },
-                        { code_iso: "fon", nom_francais: "Fɔ̀ngbè", nom_local: "Fɔ̀ngbè", priorite: 3 },
-                        { code_iso: "yor", nom_francais: "Yorùbá", nom_local: "Yorùbá", priorite: 4 },
-                        { code_iso: "den", nom_francais: "Dendi", nom_local: "Dendi", priorite: 5 },
-                        { code_iso: "ha", nom_francais: "Hausa", nom_local: "Hausa", priorite: 6 },
-                        { code_iso: "sw", nom_francais: "Swahili", nom_local: "Swahili", priorite: 7 },
-                        { code_iso: "ar", nom_francais: "العربية", nom_local: "العربية", priorite: 8 },
-                        { code_iso: "es", nom_francais: "Español", nom_local: "Español", priorite: 9 },
-                        { code_iso: "pt", nom_francais: "Português", nom_local: "Português", priorite: 10 },
-                        { code_iso: "ig", nom_francais: "Igbo", nom_local: "Igbo", priorite: 11 },
-                        { code_iso: "bm", nom_francais: "Bambara", nom_local: "Bambara", priorite: 12 },
-                        { code_iso: "wo", nom_francais: "Wolof", nom_local: "Wolof", priorite: 13 },
-                        { code_iso: "am", nom_francais: "Amharique", nom_local: "Amharic", priorite: 14 },
-                        { code_iso: "ak", nom_francais: "Akan", nom_local: "Akan", priorite: 15 },
-                        { code_iso: "zu", nom_francais: "Zulu", nom_local: "Zulu", priorite: 16 },
-                        { code_iso: "xh", nom_francais: "Xhosa", nom_local: "Xhosa", priorite: 17 },
-                        { code_iso: "ru", nom_francais: "Русский", nom_local: "Русский", priorite: 18 },
-                        { code_iso: "zh", nom_francais: "中文", nom_local: "中文", priorite: 19 },
+                    const fallbackLanguageCodes = [
+                        "fr",
+                        "en",
+                        "fon",
+                        "adj",
+                        "gej",
+                        "yo",
+                        "yor",
+                        "yom",
+                        "bba",
+                        "den",
+                        "ddn",
+                        "ha",
+                        "sw",
+                        "ar",
+                        "es",
+                        "pt",
+                        "ig",
+                        "bm",
+                        "wo",
+                        "ff",
+                        "am",
+                        "om",
+                        "so",
+                        "rw",
+                        "rn",
+                        "lg",
+                        "ln",
+                        "kg",
+                        "tn",
+                        "nso",
+                        "zu",
+                        "xh",
+                        "ss",
+                        "ve",
+                        "ts",
+                        "st",
+                        "ny",
+                        "tum",
+                        "sn",
+                        "nd",
+                        "mg",
+                        "ti",
+                        "zgh",
+                        "ary",
+                        "dyu",
+                        "mos",
+                        "ee",
+                        "twi",
+                        "gaa",
+                        "kr",
+                        "luo",
+                        "ach",
+                        "kam",
+                        "ki",
                     ];
+                    const fallbackLanguages = fallbackLanguageCodes.map((code, index) => ({
+                        code_iso: code,
+                        nom_francais:
+                            languageNameMap[code] ||
+                            languageNameMap[codeAliases[code]] ||
+                            code.toUpperCase(),
+                        nom_local:
+                            languageNameMap[code] ||
+                            languageNameMap[codeAliases[code]] ||
+                            code.toUpperCase(),
+                        priorite: index + 1,
+                    }));
                     function setText(node, value) {
                         if (node && typeof value === "string") node.textContent = value;
                     }
@@ -887,11 +936,15 @@
                         setText(footerLinksProfile, pack.footerLinksProfile);
                         const offersHost = document.getElementById("subscriptionOffersHome");
                         if (offersHost && Array.isArray(pack.offerCards)) {
-                            offersHost.innerHTML = pack.offerCards.map((offer) => `
+                            const offerKeys = ["free", "standard", "premium", "vip", "gold"];
+                            offersHost.innerHTML = pack.offerCards.map((offer, index) => `
                                 <article class="subscription-offer-card ${offer.featured ? "featured" : ""}">
                                     <div class="subscription-offer-title">${offer.title}</div>
                                     <div class="subscription-offer-price">${offer.price}</div>
                                     <div class="subscription-offer-meta">${offer.subtitle}</div>
+                                    <div class="subscription-offer-actions" style="margin-top: 12px">
+                                        <a class="btn btn-outline btn-full" href="abonnement.html?plan=${offerKeys[index] || "premium"}">${pack.offerCardButton || "Choisir"}</a>
+                                    </div>
                                 </article>
                             `).join("");
                         }
@@ -1006,14 +1059,31 @@
                             return [];
                         };
 
+                        const endpoints = [
+                            `${apiBase}/langues`,
+                            "/api/langues",
+                            "/langues",
+                        ];
+
                         try {
-                            const resp = await fetch(`${apiBase}/langues`);
-                            const data = await resp.json();
-                            const items = Array.isArray(data?.langues) ? data.langues : [];
-                            if (items.length >= 50) {
-                                renderLanguageButtons(items);
-                                return;
+                            for (const endpoint of endpoints) {
+                                try {
+                                    const resp = await fetch(endpoint);
+                                    const data = await resp.json();
+                                    const items = Array.isArray(data?.langues) ? data.langues : [];
+                                    if (items.length >= 50) {
+                                        renderLanguageButtons(items);
+                                        return;
+                                    }
+                                    if (items.length) {
+                                        renderLanguageButtons(items);
+                                        return;
+                                    }
+                                } catch (error) {
+                                    void error;
+                                }
                             }
+
                             for (const url of fallbackLanguagesUrls) {
                                 const fallbackItems = await renderFromFile(url);
                                 if (fallbackItems.length >= 50) {
@@ -1021,7 +1091,7 @@
                                     return;
                                 }
                             }
-                            renderLanguageButtons(items.length ? items : fallbackLanguages);
+                            renderLanguageButtons(fallbackLanguages);
                         } catch (e) {
                             for (const url of fallbackLanguagesUrls) {
                                 const fallbackItems = await renderFromFile(url);
