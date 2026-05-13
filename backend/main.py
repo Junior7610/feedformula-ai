@@ -27,7 +27,7 @@ import unicodedata
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import RedirectResponse, Response
@@ -79,7 +79,11 @@ auth_module = importlib.import_module("auth")
 install_auth_middleware = auth_module.install_auth_middleware
 auth_router = auth_module.router
 community_router = importlib.import_module("community_service").router
-init_db = importlib.import_module("database").init_db
+database_module = importlib.import_module("database")
+init_db = database_module.init_db
+get_db = database_module.get_db
+create_contact_message = database_module.create_contact_message
+analytics_router = importlib.import_module("analytics_service").router
 farmcast_router = importlib.import_module("farmcast_service").router
 farmmanager_router = importlib.import_module("farmmanager_service").router
 gamification_router = importlib.import_module("gamification_api").router
@@ -729,6 +733,20 @@ class TraductionTexteResponse(BaseModel):
     textes_traduits: List[str]
 
 
+class ContactRequest(BaseModel):
+    """Corps de requête pour le formulaire de contact investisseurs."""
+
+    nom: str = Field(..., min_length=2, max_length=120)
+    email: str = Field(..., min_length=5, max_length=180)
+    organisation: str = Field(default="", max_length=180)
+    message: str = Field(..., min_length=10, max_length=4000)
+
+    @field_validator("nom", "email", "organisation", "message")
+    @classmethod
+    def nettoyer_texte(cls, v: str) -> str:
+        return " ".join((v or "").strip().split())
+
+
 def _normaliser_code_langue(langue: str) -> str:
     """Normalise un code langue pour les routes audio."""
     return (langue or "fr").strip().lower() or "fr"
@@ -851,6 +869,7 @@ app.include_router(academy_router)
 app.include_router(paiement_router)
 app.include_router(notification_router)
 app.include_router(gamification_live_router)
+app.include_router(analytics_router)
 app.include_router(marche_router)
 
 
@@ -931,6 +950,56 @@ def traduire_texte(payload: TraductionTexteRequest) -> Dict[str, Any]:
         "langue_cible": langue_cible,
         "textes_traduits": textes_traduits,
     }
+
+
+@app.post("/contact")
+def contact_investisseurs(
+    payload: ContactRequest, db=Depends(get_db)
+) -> Dict[str, Any]:
+    """Sauvegarde un message de contact dans la base de données."""
+    contact = create_contact_message(
+        db=db,
+        nom=payload.nom,
+        email=payload.email,
+        organisation=payload.organisation,
+        message=payload.message,
+        source="investisseurs",
+    )
+    return {
+        "status": "ok",
+        "message": "Message enregistré avec succès.",
+        "contact": {
+            "id": contact.id,
+            "nom": contact.nom,
+            "email": contact.email,
+            "organisation": contact.organisation,
+            "date_creation": contact.date_creation.isoformat()
+            if contact.date_creation
+            else None,
+        },
+    }
+
+
+@app.get("/data/rations_demo.json")
+def demo_rations() -> Response:
+    """Expose les rations de démonstration pour le mode hors ligne."""
+    path = DATA_DIR / "rations_demo.json"
+    return Response(
+        content=_safe_read_text(path),
+        media_type="application/json; charset=utf-8",
+        headers={"Cache-Control": "no-store"},
+    )
+
+
+@app.get("/data/diagnostics_demo.json")
+def demo_diagnostics() -> Response:
+    """Expose les diagnostics de démonstration pour le mode hors ligne."""
+    path = DATA_DIR / "diagnostics_demo.json"
+    return Response(
+        content=_safe_read_text(path),
+        media_type="application/json; charset=utf-8",
+        headers={"Cache-Control": "no-store"},
+    )
 
 
 @app.post("/generer-ration")

@@ -2932,6 +2932,233 @@
     return results;
   }
 
+  function normalizeRationPayload(data, fallbackContext = {}) {
+    const speciesKey =
+      fallbackContext.speciesKey || APP.selectedSpecies || "poulet";
+    const stage = fallbackContext.stage || APP.selectedStage || "Croissance";
+    const objective =
+      fallbackContext.objective || APP.selectedObjective || "equilibre";
+    const baseComposition = Array.isArray(data?.composition)
+      ? data.composition
+      : Object.entries(data?.composition || {}).map(([label, value]) => ({
+          label,
+          value: `${value}`,
+        }));
+
+    return {
+      title:
+        data?.title ||
+        `🌾 Ration ${safeString(data?.speciesLabel || speciesKey)}`,
+      speciesLabel:
+        data?.speciesLabel ||
+        (SPECIES_CONFIG[speciesKey] || SPECIES_CONFIG.poulet).label,
+      stage,
+      objective,
+      composition: baseComposition.length
+        ? baseComposition
+        : buildRationComposition(
+            speciesKey,
+            stage,
+            objective,
+            [],
+            fallbackContext.animalsCount || 50,
+          ).composition,
+      ingredientsUsed:
+        Array.isArray(data?.ingredientsUsed) && data.ingredientsUsed.length
+          ? data.ingredientsUsed
+          : (
+              fallbackContext.ingredients ||
+              APP.selectedIngredients ||
+              []
+            ).slice(0, 5),
+      costKg: Number(data?.costKg ?? data?.cout_fcfa_kg ?? 0) || 0,
+      cost7Days: Number(data?.cost7Days ?? data?.cout_7_jours ?? 0) || 0,
+      dailyKg: Number(data?.dailyKg ?? 0.1) || 0.1,
+      estimatedSaving: Number(data?.estimatedSaving ?? 0) || 0,
+      rationale:
+        Array.isArray(data?.rationale) && data.rationale.length
+          ? data.rationale
+          : ["Donnée démo"],
+      score: Number(data?.score ?? 80) || 80,
+      nutritionScore: Number(data?.nutritionScore ?? 82) || 82,
+      source: data?.source || fallbackContext.source || "demo",
+    };
+  }
+
+  async function fetchJsonWithTimeout(url, options = {}, timeoutMs = 15000) {
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      return await response.json();
+    } finally {
+      window.clearTimeout(timer);
+    }
+  }
+
+  async function loadDemoRationFromFile(speciesKey, language) {
+    try {
+      const payload = await fetchJsonWithTimeout(
+        "/data/rations_demo.json",
+        {},
+        8000,
+      );
+      const list = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.items)
+          ? payload.items
+          : [];
+      const languageKey = safeString(language).toLowerCase();
+      const exact = list.find(
+        (item) =>
+          safeString(item.speciesKey).toLowerCase() ===
+            safeString(speciesKey).toLowerCase() &&
+          safeString(item.language).toLowerCase() === languageKey,
+      );
+      const fallbackSpecies = list.find(
+        (item) =>
+          safeString(item.speciesKey).toLowerCase() ===
+          safeString(speciesKey).toLowerCase(),
+      );
+      return exact || fallbackSpecies || list[0] || null;
+    } catch (error) {
+      console.warn("[FeedFormula] Fallback ration unavailable", error);
+      return null;
+    }
+  }
+
+  async function genererRationAvecFallback() {
+    const input =
+      $("[data-text-input]") ||
+      $("[data-texte-demande]") ||
+      $("[data-ration-input]") ||
+      $("textarea");
+    const especeValue =
+      APP.selectedSpecies ||
+      resolveSpeciesFromValue(
+        ($("[data-species-active]") || {}).dataset?.species ||
+          input?.value ||
+          "",
+      );
+    const speciesKey = especeValue || "poulet";
+    const stage =
+      APP.selectedStage ||
+      getStageOptionsForSpecies(speciesKey)[0] ||
+      "Croissance";
+    const objective = APP.selectedObjective || "equilibre";
+    const animalsCount = APP.animalsCount || 50;
+    const language = APP.selectedLanguage || "fr";
+
+    if (!speciesKey) {
+      toast("Choisis d’abord une espèce animale.", "warning", 2500);
+      setAyaMood("sad", "Je t’aide dès que tu sélectionnes une espèce.");
+      return null;
+    }
+
+    if (APP.selectedIngredients.length === 0) {
+      const source = (input?.value || "").trim();
+      if (source) {
+        const detected = extractIngredientsFromText(source);
+        APP.selectedIngredients = detected.length
+          ? detected
+          : APP.selectedIngredients;
+      }
+    }
+
+    const payload = {
+      espece: speciesKey,
+      stade: stage,
+      ingredients_disponibles: APP.selectedIngredients,
+      nombre_animaux: animalsCount,
+      langue: language,
+      objectif,
+    };
+
+    let result = null;
+    try {
+      result = await fetchJsonWithTimeout(
+        "/generer-ration",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+        15000,
+      );
+      result = normalizeRationPayload(
+        {
+          ...buildRationComposition(
+            speciesKey,
+            stage,
+            objective,
+            APP.selectedIngredients,
+            animalsCount,
+          ),
+          ...result,
+        },
+        {
+          speciesKey,
+          stage,
+          objective,
+          ingredients: APP.selectedIngredients,
+          animalsCount,
+          source: "api",
+        },
+      );
+    } catch (error) {
+      const fallback = await loadDemoRationFromFile(speciesKey, language);
+      if (fallback) {
+        result = normalizeRationPayload(fallback, {
+          speciesKey,
+          stage,
+          objective,
+          ingredients: APP.selectedIngredients,
+          animalsCount,
+          source: "data/rations_demo.json",
+        });
+      } else {
+        result = normalizeRationPayload(
+          buildRationComposition(
+            speciesKey,
+            stage,
+            objective,
+            APP.selectedIngredients,
+            animalsCount,
+          ),
+          {
+            speciesKey,
+            stage,
+            objective,
+            ingredients: APP.selectedIngredients,
+            animalsCount,
+            source: "local",
+          },
+        );
+      }
+    }
+
+    const loadingZone = $("[data-loading-zone]") || $(".loading-overlay");
+    if (loadingZone && loadingZone.classList.contains("is-visible")) {
+      loadingZone.classList.remove("is-visible");
+      loadingZone.classList.add("is-hidden");
+    }
+
+    afficherResultat(result);
+    setAyaMood("joy", "Ta ration est prête !");
+    saveCurrentRationToHistory(result);
+    if (typeof startMicState === "function") {
+      startMicState("success");
+      window.setTimeout(() => startMicState(""), 900);
+    }
+    return result;
+  }
+
   function bindGenerateButton() {
     const button =
       $("[data-generate-ration]") || $(".btn-generate") || $("#btnGenerer");
@@ -2946,11 +3173,11 @@
         const found = resolveSpeciesFromValue(input.value);
         if (found) APP.selectedSpecies = found;
       }
-      startMicState("processing");
+      if (typeof startMicState === "function") {
+        startMicState("processing");
+      }
       window.setTimeout(() => {
-        genererRation();
-        startMicState("success");
-        window.setTimeout(() => startMicState(""), 900);
+        void genererRationAvecFallback();
       }, 650);
     });
   }

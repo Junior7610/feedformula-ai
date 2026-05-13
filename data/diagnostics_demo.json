@@ -1,0 +1,72 @@
+[
+  {
+    "species": "poulet",
+    "disease": "Maladie de Newcastle",
+    "symptoms": ["abatement", "détresse respiratoire", "baisse de ponte"],
+    "confidence": 0.94,
+    "urgent": true,
+    "diagnostics": ["Suspicion forte de Newcastle", "Transmission rapide possible"],
+    "protocol": [
+      "Isoler immédiatement les oiseaux malades.",
+      "Désinfecter le poulailler et le matériel.",
+      "Contacter un vétérinaire sans délai."
+    ],
+    "decision": "URGENCE VÉTÉRINAIRE"
+  },
+  {
+    "species": "bovin",
+    "disease": "Dermatophilose",
+    "symptoms": ["croûtes cutanées", "plaies", "démangeaisons"],
+    "confidence": 0.87,
+    "urgent": false,
+    "diagnostics": ["Dermatophilose probable", "Atteinte cutanée bactérienne"],
+    "protocol": [
+      "Nettoyer les lésions avec douceur.",
+      "Améliorer l'hygiène et l'exposition à la pluie.",
+      "Surveiller l'évolution sous 48 heures."
+    ],
+    "decision": "SUIVI RENFORCÉ"
+  },
+  {
+    "species": "mouton",
+    "disease": "Helminthose",
+    "symptoms": ["amaigrissement", "poil terne", "diarrhée"],
+    "confidence": 0.91,
+    "urgent": false,
+    "diagnostics": ["Infestation parasitaire interne", "Anémie possible"],
+    "protocol": [
+      "Faire un traitement antiparasitaire adapté.",
+      "Nettoyer les pâturages et l'eau.",
+      "Réadministrer des minéraux et de l'alimentation riche."
+    ],
+    "decision": "TRAITEMENT RECOMMANDÉ"
+  },
+  {
+    "species": "lapin",
+    "disease": "Coccidiose",
+    "symptoms": ["diarrhée", "déshydratation", "abattement"],
+    "confidence": 0.92,
+    "urgent": true,
+    "diagnostics": ["Coccidiose très probable", "Déshydratation à surveiller"],
+    "protocol": [
+      "Isoler les lapins atteints.",
+      "Assurer de l'eau propre en continu.",
+      "Consulter rapidement pour un protocole anticoccidien."
+    ],
+    "decision": "URGENCE VÉTÉRINAIRE"
+  },
+  {
+    "species": "poisson",
+    "disease": "Tilapia lake virus",
+    "symptoms": ["nage ralentie", "perte d'appétit", "mortalité accrue"],
+    "confidence": 0.89,
+    "urgent": true,
+    "diagnostics": ["Suspicion de virus du lac du tilapia", "Risque de propagation élevé"],
+    "protocol": [
+      "Limiter les transferts d'eau et d'alevins.",
+      "Renforcer la biosécurité du bassin.",
+      "Consulter un spécialiste aquacole rapidement."
+    ],
+    "decision": "URGENCE VÉTÉRINAIRE"
+  }
+]

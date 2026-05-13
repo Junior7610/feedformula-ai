@@ -349,6 +349,25 @@ class UserActionLog(Base):
     created_at = Column(DateTime, nullable=False, default=_utcnow_naive, index=True)
 
 
+class ContactMessage(Base):
+    """
+    Table contact_messages.
+
+    Sauvegarde les messages envoyés depuis la page investisseurs.
+    """
+
+    __tablename__ = "contact_messages"
+
+    id = Column(String(36), primary_key=True, default=_uuid_str)
+    nom = Column(String(120), nullable=False)
+    email = Column(String(180), nullable=False, index=True)
+    organisation = Column(String(180), nullable=False, default="")
+    message = Column(Text, nullable=False)
+    source = Column(String(80), nullable=False, default="investisseurs")
+    statut = Column(String(30), nullable=False, default="new")
+    date_creation = Column(DateTime, nullable=False, default=_utcnow_naive, index=True)
+
+
 # ---------------------------------------------------------------------------
 # Modèles métier complémentaires demandés
 # ---------------------------------------------------------------------------
@@ -985,6 +1004,30 @@ def get_user_action_counts(
             continue
         counts[key] = counts.get(key, 0) + 1
     return counts
+
+
+def create_contact_message(
+    db: Session,
+    nom: str,
+    email: str,
+    organisation: str,
+    message: str,
+    source: str = "investisseurs",
+    statut: str = "new",
+) -> ContactMessage:
+    """Enregistre un message de contact pour l'équipe FeedFormula AI."""
+    contact = ContactMessage(
+        nom=(nom or "").strip(),
+        email=(email or "").strip().lower(),
+        organisation=(organisation or "").strip(),
+        message=(message or "").strip(),
+        source=(source or "investisseurs").strip() or "investisseurs",
+        statut=(statut or "new").strip().lower() or "new",
+    )
+    db.add(contact)
+    db.commit()
+    db.refresh(contact)
+    return contact
 
 
 # ---------------------------------------------------------------------------
@@ -1656,6 +1699,22 @@ def serialize_user(user: User) -> Dict[str, Any]:
     }
 
 
+def serialize_contact_message(contact: ContactMessage) -> Dict[str, Any]:
+    """Transforme un message de contact en dictionnaire JSON-compatible."""
+    return {
+        "id": contact.id,
+        "nom": contact.nom,
+        "email": contact.email,
+        "organisation": contact.organisation,
+        "message": contact.message,
+        "source": contact.source,
+        "statut": contact.statut,
+        "date_creation": contact.date_creation.isoformat()
+        if contact.date_creation
+        else None,
+    }
+
+
 def serialize_diagnostic_vetscan(d: DiagnosticVetScan) -> Dict[str, Any]:
     """Transforme un diagnostic VetScan en dictionnaire JSON-compatible."""
     return {
@@ -1838,6 +1897,7 @@ __all__ = [
     "PrixMarche",
     "OtpCode",
     "UserActionLog",
+    "ContactMessage",
     "init_db",
     "get_db",
     "create_user",
@@ -1855,6 +1915,7 @@ __all__ = [
     "get_last_action_at",
     "count_user_actions_last_24h",
     "get_user_action_counts",
+    "create_contact_message",
     "create_ration",
     "list_user_rations",
     "create_trophee_for_user",
@@ -1866,6 +1927,7 @@ __all__ = [
     "add_prix_marche",
     "get_latest_prix_for_ingredient",
     "serialize_user",
+    "serialize_contact_message",
     "serialize_ration",
     "serialize_trophee",
     "serialize_defi_quotidien",

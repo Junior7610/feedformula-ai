@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+        <meta name="theme-color" content="#0f3d19" />
+        <meta name="description" content="Tableau de bord analytics FeedFormula AI réservé à l'administration." />
+        <title>FeedFormula AI — Analytics Admin</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+        <style>
+            :root {
+                --bg: #08150d;
+                --panel: rgba(10, 28, 16, 0.88);
+                --panel-strong: #0f2415;
+                --border: rgba(255, 255, 255, 0.08);
+                --text: #eef6ef;
+                --muted: rgba(238, 246, 239, 0.72);
+                --green: #39d98a;
+                --green-2: #1b5e20;
+                --gold: #f9a825;
+                --red: #ff6b6b;
+            }
+            * { box-sizing: border-box; }
+            body {
+                margin: 0;
+                background:
+                    radial-gradient(circle at top left, rgba(57, 217, 138, 0.15), transparent 30%),
+                    radial-gradient(circle at top right, rgba(249, 168, 37, 0.12), transparent 25%),
+                    linear-gradient(180deg, #07120a 0%, #0d1d12 100%);
+                color: var(--text);
+                font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+            }
+            .shell {
+                width: min(1400px, calc(100% - 32px));
+                margin: 0 auto;
+                padding: 26px 0 60px;
+            }
+            .topbar,
+            .card,
+            .stat,
+            .auth-box,
+            .table-card {
+                background: var(--panel);
+                border: 1px solid var(--border);
+                border-radius: 24px;
+                box-shadow: 0 18px 50px rgba(0, 0, 0, 0.24);
+            }
+            .topbar {
+                display: flex;
+                justify-content: space-between;
+                gap: 16px;
+                align-items: center;
+                padding: 22px 24px;
+                margin-bottom: 18px;
+            }
+            h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; margin: 0; }
+            h1 { font-size: clamp(2rem, 4vw, 3.4rem); }
+            .muted { color: var(--muted); }
+            .badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 8px 12px;
+                border-radius: 999px;
+                background: rgba(57, 217, 138, 0.12);
+                color: var(--green);
+                font-weight: 800;
+                font-size: 0.8rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+            .auth-box {
+                max-width: 560px;
+                margin: 80px auto 0;
+                padding: 28px;
+                text-align: center;
+            }
+            .auth-box input {
+                width: 100%;
+                margin-top: 14px;
+                padding: 14px 16px;
+                border: 1px solid var(--border);
+                border-radius: 16px;
+                background: rgba(255, 255, 255, 0.04);
+                color: var(--text);
+                font: inherit;
+            }
+            .btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 46px;
+                padding: 0 18px;
+                border-radius: 999px;
+                border: 1px solid transparent;
+                font-weight: 800;
+                background: var(--green-2);
+                color: #fff;
+                cursor: pointer;
+                text-decoration: none;
+            }
+            .btn-secondary {
+                background: rgba(255, 255, 255, 0.06);
+                border-color: var(--border);
+            }
+            .grid {
+                display: grid;
+                gap: 16px;
+            }
+            .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+            .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .stat { padding: 18px; }
+            .stat strong { display: block; font-size: clamp(1.8rem, 4vw, 2.7rem); color: #fff; }
+            .stat span { color: var(--muted); }
+            .card { padding: 20px; }
+            .charts { display: grid; gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            canvas { width: 100% !important; height: 320px !important; }
+            .table-card { padding: 0; overflow: hidden; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+            th { background: rgba(255, 255, 255, 0.04); }
+            .heatmap {
+                display: grid;
+                grid-template-columns: repeat(24, minmax(0, 1fr));
+                gap: 4px;
+                align-items: end;
+                min-height: 220px;
+            }
+            .heatmap div {
+                border-radius: 8px 8px 2px 2px;
+                background: linear-gradient(180deg, rgba(57,217,138,0.2), rgba(57,217,138,1));
+                min-height: 20px;
+            }
+            .section-title { margin-bottom: 12px; }
+            .small { font-size: 0.92rem; }
+            @media (max-width: 1080px) {
+                .grid-4, .grid-3, .grid-2, .charts { grid-template-columns: 1fr; }
+                .topbar { flex-direction: column; align-items: flex-start; }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="shell">
+            <section class="auth-box" id="authBox">
+                <span class="badge">Accès admin</span>
+                <h1 style="margin-top:12px">Dashboard Analytics</h1>
+                <p class="muted">Saisissez le mot de passe administrateur pour afficher les indicateurs.</p>
+                <input id="adminPassword" type="password" placeholder="Mot de passe admin" autocomplete="current-password" />
+                <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:16px">
+                    <button class="btn" id="unlockBtn" type="button">Déverrouiller</button>
+                    <a class="btn btn-secondary" href="index.html">Retour</a>
+                </div>
+                <p class="small muted" id="authMessage" style="margin-top:16px"></p>
+            </section>
+
+            <div id="dashboard" hidden>
+                <header class="topbar">
+                    <div>
+                        <span class="badge">Analytics • FeedFormula AI</span>
+                        <h1>Tableau de bord de pilotage</h1>
+                        <p class="muted">Métriques de croissance, rétention, revenus et activité terrain pour la démonstration.</p>
+                    </div>
+                    <div style="display:flex;gap:12px;flex-wrap:wrap">
+                        <a class="btn btn-secondary" href="index.html">Accueil</a>
+                        <button class="btn" id="refreshBtn" type="button">Rafraîchir</button>
+                    </div>
+                </header>
+
+                <section class="grid grid-4" id="kpis"></section>
+
+                <section class="grid grid-2" style="margin-top:16px">
+                    <article class="card">
+                        <div class="section-title">
+                            <h2>Langues les plus utilisées</h2>
+                            <p class="muted">Répartition des sessions et requêtes sur les langues africaines.</p>
+                        </div>
+                        <canvas id="languagesChart"></canvas>
+                    </article>
+                    <article class="card">
+                        <div class="section-title">
+                            <h2>Modules les plus utilisés</h2>
+                            <p class="muted">Volume d'utilisation pour les 8 modules FeedFormula AI.</p>
+                        </div>
+                        <canvas id="modulesChart"></canvas>
+                    </article>
+                </section>
+
+                <section class="grid grid-2" style="margin-top:16px">
+                    <article class="card">
+                        <div class="section-title">
+                            <h2>Revenus mensuels par offre</h2>
+                            <p class="muted">Projection de chiffre d'affaires pour la démonstration.</p>
+                        </div>
+                        <canvas id="revenueChart"></canvas>
+                    </article>
+                    <article class="card">
+                        <div class="section-title">
+                            <h2>Rétention et connexion</h2>
+                            <p class="muted">Taux de rétention + carte de chaleur des connexions par heure.</p>
+                        </div>
+                        <div class="grid grid-2">
+                            <div>
+                                <canvas id="retentionChart"></canvas>
+                            </div>
+                            <div class="heatmap" id="heatmap"></div>
+                        </div>
+                    </article>
+                </section>
+
+                <section class="grid grid-2" style="margin-top:16px">
+                    <article class="card table-card">
+                        <div style="padding:20px 20px 0">
+                            <h2>Top 10 des éleveurs les plus actifs</h2>
+                            <p class="muted">Classement basé sur l’activité et les points d’usage.</p>
+                        </div>
+                        <div style="overflow:auto">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Éleveur</th>
+                                        <th>Région</th>
+                                        <th>Points</th>
+                                        <th>Niveau</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="topUsersTable"></tbody>
+                            </table>
+                        </div>
+                    </article>
+                    <article class="card table-card">
+                        <div style="padding:20px 20px 0">
+                            <h2>Rations récentes</h2>
+                            <p class="muted">Dernières rations générées dans l’écosystème.</p>
+                        </div>
+                        <div style="overflow:auto">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Espèce</th>
+                                        <th>Langue</th>
+                                        <th>Coût 7 jours</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentRationsTable"></tbody>
+                            </table>
+                        </div>
+                    </article>
+                </section>
+            </div>
+        </div>
+
+        <script>
+            const PASSWORD_KEY = 'ff_admin_password';
+            const charts = {};
+
+            function money(value) {
+                return `${Number(value || 0).toLocaleString('fr-FR')} FCFA`;
+            }
+
+            function pct(value) {
+                return `${Math.round(Number(value || 0) * 100)}%`;
+            }
+
+            function authHeaders() {
+                const password = localStorage.getItem(PASSWORD_KEY) || '';
+                return { 'X-Admin-Password': password };
+            }
+
+            async function loadDashboard() {
+                const [statsRes, rationsRes, usersRes] = await Promise.all([
+                    fetch('/analytics/stats', { headers: authHeaders() }),
+                    fetch('/analytics/rations', { headers: authHeaders() }),
+                    fetch('/analytics/utilisateurs', { headers: authHeaders() }),
+                ]);
+
+                if (statsRes.status === 401 || rationsRes.status === 401 || usersRes.status === 401) {
+                    throw new Error('Mot de passe invalide');
+                }
+
+                const stats = await statsRes.json();
+                const rations = await rationsRes.json();
+                const users = await usersRes.json();
+
+                renderKpis(stats);
+                renderCharts(stats, rations, users);
+                renderTables(rations, users);
+                document.getElementById('authBox').hidden = true;
+                document.getElementById('dashboard').hidden = false;
+            }
+
+            function renderKpis(stats) {
+                const kpis = [
+                    ['Utilisateurs inscrits', Number(stats.total_users || 0).toLocaleString('fr-FR')],
+                    ['Rations aujourd’hui', Number(stats.rations_today || 0).toLocaleString('fr-FR')],
+                    ['Rations cette semaine', Number(stats.rations_week || 0).toLocaleString('fr-FR')],
+                    ['Rations total', Number(stats.total_rations || 0).toLocaleString('fr-FR')],
+                ];
+                const wrap = document.getElementById('kpis');
+                wrap.innerHTML = kpis.map(([label, value]) => `
+                    <article class="stat">
+                        <span class="muted">${label}</span>
+                        <strong>${value}</strong>
+                    </article>
+                `).join('');
+            }
+
+            function buildChartOptions() {
+                return {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#eef6ef' } },
+                    },
+                    scales: {
+                        x: { ticks: { color: 'rgba(238,246,239,0.8)' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+                        y: { ticks: { color: 'rgba(238,246,239,0.8)' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+                    },
+                };
+            }
+
+            function destroyChart(key) {
+                if (charts[key]) {
+                    charts[key].destroy();
+                    charts[key] = null;
+                }
+            }
+
+            function renderCharts(stats, rations, users) {
+                const languages = rations.languages || [];
+                const modules = rations.modules || [];
+                const revenue = stats.monthly_revenue || {};
+                const retention = [Number(stats.retention_7_days || 0), Number(stats.retention_30_days || 0)];
+
+                destroyChart('languages');
+                destroyChart('modules');
+                destroyChart('revenue');
+                destroyChart('retention');
+
+                charts.languages = new Chart(document.getElementById('languagesChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: languages.map((item) => item.label),
+                        datasets: [{ data: languages.map((item) => item.value), backgroundColor: ['#39d98a', '#f9a825', '#4fc3f7', '#8e24aa', '#ff7043', '#aed581'] }],
+                    },
+                    options: { ...buildChartOptions(), plugins: { legend: { position: 'bottom', labels: { color: '#eef6ef' } } } },
+                });
+
+                charts.modules = new Chart(document.getElementById('modulesChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: modules.map((item) => item.label),
+                        datasets: [{ data: modules.map((item) => item.value), backgroundColor: '#39d98a', borderRadius: 12 }],
+                    },
+                    options: { ...buildChartOptions(), indexAxis: 'y' },
+                });
+
+                charts.revenue = new Chart(document.getElementById('revenueChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(revenue),
+                        datasets: [{
+                            label: 'FCFA',
+                            data: Object.values(revenue),
+                            backgroundColor: ['#39d98a', '#f9a825', '#4fc3f7', '#ff7043', '#8e24aa'],
+                            borderRadius: 12,
+                        }],
+                    },
+                    options: buildChartOptions(),
+                });
+
+                charts.retention = new Chart(document.getElementById('retentionChart'), {
+                    type: 'pie',
+                    data: {
+                        labels: ['7 jours', '30 jours'],
+                        datasets: [{ data: retention, backgroundColor: ['#39d98a', '#f9a825'] }],
+                    },
+                    options: { ...buildChartOptions(), plugins: { legend: { position: 'bottom', labels: { color: '#eef6ef' } } } },
+                });
+
+                renderHeatmap(rations.heatmap || []);
+            }
+
+            function renderHeatmap(values) {
+                const wrap = document.getElementById('heatmap');
+                wrap.innerHTML = values.map((item) => {
+                    const opacity = Math.max(0.18, Math.min(1, item.count / 24));
+                    return `<div title="${String(item.hour).padStart(2, '0')}h — ${item.count} connexions" style="height:${18 + item.count * 7}px;background:rgba(57,217,138,${opacity})"></div>`;
+                }).join('');
+            }
+
+            function renderTables(rations, users) {
+                const topUsers = users.top_users || [];
+                document.getElementById('topUsersTable').innerHTML = topUsers.map((user) => `
+                    <tr>
+                        <td>${user.rank || ''}</td>
+                        <td>${user.prenom || 'Éleveur'} ${user.nom || ''}</td>
+                        <td>${user.region || 'Bénin'}</td>
+                        <td>${Number(user.points_total || user.activity_score || 0).toLocaleString('fr-FR')}</td>
+                        <td>${Number(user.niveau_actuel || 1)}</td>
+                    </tr>
+                `).join('');
+
+                document.getElementById('recentRationsTable').innerHTML = (rations.recent || []).map((ration) => `
+                    <tr>
+                        <td>${(ration.date || '').slice(0, 10)}</td>
+                        <td>${ration.espece || ''}</td>
+                        <td>${ration.langue || 'fr'}</td>
+                        <td>${money(ration.cout_7_jours)}</td>
+                    </tr>
+                `).join('');
+            }
+
+            async function unlock() {
+                const password = document.getElementById('adminPassword').value.trim();
+                const message = document.getElementById('authMessage');
+                localStorage.setItem(PASSWORD_KEY, password);
+                try {
+                    await loadDashboard();
+                    message.textContent = '';
+                } catch (error) {
+                    message.textContent = 'Mot de passe incorrect ou service indisponible.';
+                    localStorage.removeItem(PASSWORD_KEY);
+                }
+            }
+
+            document.getElementById('unlockBtn').addEventListener('click', unlock);
+            document.getElementById('refreshBtn').addEventListener('click', loadDashboard);
+            document.getElementById('adminPassword').addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') unlock();
+            });
+
+            if (localStorage.getItem(PASSWORD_KEY)) {
+                loadDashboard().catch(() => {});
+            }
+        </script>
+    </body>
+</html>
