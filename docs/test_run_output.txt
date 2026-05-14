@@ -1,0 +1,263 @@
+[35m[SECTION] 
+============================================================[0m
+[35m[SECTION]   1. SANTÉ ET CONFIGURATION DU SERVEUR[0m
+[35m[SECTION] ============================================================[0m
+[32m[SUCCESS] ✅ Santé serveur principal (0.01s)[0m
+[32m[SUCCESS] ✅ Documentation API accessible (0.01s)[0m
+[32m[SUCCESS] ✅ Liste des langues supportées (0.01s)[0m
+[32m[SUCCESS] ✅ Prix du marché béninois (0.15s)[0m
+[32m[SUCCESS] ✅ Prix d un ingrédient spécifique (0.01s)[0m
+[35m[SECTION] 
+============================================================[0m
+[35m[SECTION]   2. NUTRICORE — GÉNÉRATION DE RATIONS[0m
+[35m[SECTION] ============================================================[0m
+[32m[SUCCESS] ✅ NutriCore — Poulet de chair — Démarrage (16.44s)[0m
+[32m[SUCCESS] ✅ NutriCore — Poulet de chair — Croissance (9.45s)[0m
+[32m[SUCCESS] ✅ NutriCore — Poulet de chair — Finition (10.03s)[0m
+[32m[SUCCESS] ✅ NutriCore — Poule pondeuse — Pré-ponte (9.6s)[0m
+[32m[SUCCESS] ✅ NutriCore — Poule pondeuse — Ponte active (12.46s)[0m
+[32m[SUCCESS] ✅ NutriCore — Pintade — Démarrage (10.06s)[0m
+[32m[SUCCESS] ✅ NutriCore — Vache laitière — Mi-lactation (14.92s)[0m
+[32m[SUCCESS] ✅ NutriCore — Zébu — Croissance (17.99s)[0m
+[32m[SUCCESS] ✅ NutriCore — Mouton — Finition (9.24s)[0m
+[32m[SUCCESS] ✅ NutriCore — Chèvre — Lactation (8.88s)[0m
+[32m[SUCCESS] ✅ NutriCore — Porc — Croissance (10.84s)[0m
+[32m[SUCCESS] ✅ NutriCore — Tilapia — Grossissement (8.78s)[0m
+[32m[SUCCESS] ✅ NutriCore — Lapin — Croissance (11.31s)[0m
+[32m[SUCCESS] ✅ NutriCore — Multilingue Français (11.72s)[0m
+[32m[SUCCESS] ✅ NutriCore — Multilingue Fon (11.94s)[0m
+[32m[SUCCESS] ✅ NutriCore — Multilingue Yoruba (10.7s)[0m
+[32m[SUCCESS] ✅ NutriCore — Multilingue Dendi (12.92s)[0m
+[32m[SUCCESS] ✅ NutriCore — Multilingue Adja (12.52s)[0m
+[32m[SUCCESS] ✅ NutriCore — Multilingue Gen (Mina) (22.47s)[0m
+[32m[SUCCESS] ✅ NutriCore — Multilingue Yom (8.41s)[0m
+[32m[SUCCESS] ✅ NutriCore — Multilingue Baatonum (8.62s)[0m
+[32m[SUCCESS] ✅ NutriCore — Multilingue Anglais (9.31s)[0m
+[32m[SUCCESS] ✅ NutriCore — Objectif equilibre (15.34s)[0m
+[32m[SUCCESS] ✅ NutriCore — Objectif economique (9.1s)[0m
+[32m[SUCCESS] ✅ NutriCore — Objectif riche_proteines (9.32s)[0m
+[35m[SECTION] 
+============================================================[0m
+[35m[SECTION]   3. VETSCAN — DIAGNOSTIC SANTÉ ANIMALE[0m
+[35m[SECTION] ============================================================[0m
+[32m[SUCCESS] ✅ VetScan — Poulet — Maladie de Newcastle (13.82s)[0m
+[32m[SUCCESS] ✅ VetScan — Poulet — Coccidiose (3.88s)[0m
+[32m[SUCCESS] ✅ VetScan — Vache — Mammite (5.4s)[0m
+[32m[SUCCESS] ✅ VetScan — Mouton — Pneumonie (3.67s)[0m
+[32m[SUCCESS] ✅ VetScan — Tilapia — Maladie bactérienne (3.44s)[0m
+[32m[SUCCESS] ✅ VetScan — Porc — PPA suspicion (3.5s)[0m
+[32m[SUCCESS] ✅ VetScan — VetScan — Test en fon (3.49s)[0m
+[32m[SUCCESS] ✅ VetScan — Liste vétérinaires Cotonou (0.04s)[0m
+[32m[SUCCESS] ✅ VetScan — Historique diagnostics (0.05s)[0m
+[35m[SECTION] 
+============================================================[0m
+[35m[SECTION]   4. REPROTRACK — GESTION REPRODUCTION[0m
+[35m[SECTION] ============================================================[0m
+[32m[SUCCESS] ✅ ReproTrack — Enregistrement chaleur vache (0.35s)[0m
+[32m[SUCCESS] ✅ ReproTrack — Enregistrement saillie bœuf (0.38s)[0m
+[32m[SUCCESS] ✅ ReproTrack — Enregistrement mise bas chèvre (0.3s)[0m
+[32m[SUCCESS] ✅ ReproTrack — Enregistrement insémination (0.36s)[0m
+[32m[SUCCESS] ✅ ReproTrack — Calendrier 30 jours (0.05s)[0m
+[32m[SUCCESS] ✅ ReproTrack — Alertes actives (0.07s)[0m
+[32m[SUCCESS] ✅ ReproTrack — Statistiques troupeau (0.05s)[0m
+[35m[SECTION] 
+============================================================[0m
+[35m[SECTION]   5. PASTUREMAP — GESTION PÂTURAGES[0m
+[35m[SECTION] ============================================================[0m
+[32m[SUCCESS] ✅ PastureMap — Pâturage bovins — Charge normale (2.62s)[0m
+[32m[SUCCESS] ✅ PastureMap — Pâturage ovins — Surpâturage (2.7s)[0m
+[35m[SECTION] 
+============================================================[0m
+[35m[SECTION]   6. FARMMANAGER — REGISTRE ÉLEVAGE VOCAL[0m
+[35m[SECTION] ============================================================[0m
+[32m[SUCCESS] ✅ FarmManager — Traitement médical poulet (4.15s)[0m
+[32m[SUCCESS] ✅ FarmManager — Vaccination volailles (3.8s)[0m
+[32m[SUCCESS] ✅ FarmManager — Vente animaux (3.25s)[0m
+[32m[SUCCESS] ✅ FarmManager — Achat intrants (3.32s)[0m
+[32m[SUCCESS] ✅ FarmManager — Naissance veaux (2.96s)[0m
+[32m[SUCCESS] ✅ FarmManager — Mortalité poulets (3.24s)[0m
+[32m[SUCCESS] ✅ FarmManager — Pesée animaux (2.99s)[0m
+[32m[SUCCESS] ✅ FarmManager — Liste événements (0.04s)[0m
+[32m[SUCCESS] ✅ FarmManager — Rapport financier (0.07s)[0m
+[35m[SECTION] 
+============================================================[0m
+[35m[SECTION]   7. FARMACADEMY — FORMATION CONTINUE[0m
+[35m[SECTION] ============================================================[0m
+[32m[SUCCESS] ✅ FarmAcademy — Liste formations (0.02s)[0m
+[32m[SUCCESS] ✅ FarmAcademy — Formation alimentation_volailles (0.03s)[0m
+[32m[SUCCESS] ✅ FarmAcademy — Formation sante_prevention (0.01s)[0m
+[32m[SUCCESS] ✅ FarmAcademy — Formation reproduction_bovine (0.03s)[0m
+[32m[SUCCESS] ✅ FarmAcademy — Formation finance_agricole (0.01s)[0m
+[32m[SUCCESS] ✅ FarmAcademy — Formation paturages_durables (0.03s)[0m
+[32m[SUCCESS] ✅ FarmAcademy — alimentation_volailles Leçon 1 (3.13s)[0m
+[32m[SUCCESS] ✅ FarmAcademy — alimentation_volailles Leçon 2 (2.19s)[0m
+[32m[SUCCESS] ✅ FarmAcademy — alimentation_volailles Leçon 3 (10.83s)[0m
+[32m[SUCCESS] ✅ FarmAcademy — sante_prevention Leçon 1 (2.6s)[0m
+[32m[SUCCESS] ✅ FarmAcademy — sante_prevention Leçon 2 (5.02s)[0m
+[32m[SUCCESS] ✅ FarmAcademy — sante_prevention Leçon 3 (2.61s)[0m
+[32m[SUCCESS] ✅ FarmAcademy — reproduction_bovine Leçon 1 (2.34s)[0m
+[32m[SUCCESS] ✅ FarmAcademy — reproduction_bovine Leçon 2 (2.46s)[0m
+[32m[SUCCESS] ✅ FarmAcademy — reproduction_bovine Leçon 3 (2.22s)[0m
+[32m[SUCCESS] ✅ FarmAcademy — finance_agricole Leçon 1 (2.19s)[0m
+[32m[SUCCESS] ✅ FarmAcademy — finance_agricole Leçon 2 (2.4s)[0m
+[32m[SUCCESS] ✅ FarmAcademy — finance_agricole Leçon 3 (2.5s)[0m
+[32m[SUCCESS] ✅ FarmAcademy — paturages_durables Leçon 1 (2.62s)[0m
+[32m[SUCCESS] ✅ FarmAcademy — paturages_durables Leçon 2 (2.41s)[0m
+[32m[SUCCESS] ✅ FarmAcademy — paturages_durables Leçon 3 (2.33s)[0m
+[32m[SUCCESS] ✅ FarmAcademy — Soumettre quiz (2.4s)[0m
+[32m[SUCCESS] ✅ FarmAcademy — Progression utilisateur (0.03s)[0m
+[35m[SECTION] 
+============================================================[0m
+[35m[SECTION]   8. FARMCAST — GÉNÉRATION CONTENU[0m
+[35m[SECTION] ============================================================[0m
+[32m[SUCCESS] ✅ FarmCast — Contenu vaccination volailles FR (4.01s)[0m
+[32m[SUCCESS] ✅ FarmCast — Contenu alimentation bovins FON (4.46s)[0m
+[32m[SUCCESS] ✅ FarmCast — Contenu prévention maladies FR (4.19s)[0m
+[32m[SUCCESS] ✅ FarmCast — Historique contenus (0.05s)[0m
+[35m[SECTION] 
+============================================================[0m
+[35m[SECTION]   9. FARMCOMMUNITY — RÉSEAU ET MARKETPLACE[0m
+[35m[SECTION] ============================================================[0m
+[32m[SUCCESS] ✅ FarmCommunity — Fil actualité (0.09s)[0m
+[32m[SUCCESS] ✅ FarmCommunity — Créer un post (3.35s)[0m
+[32m[SUCCESS] ✅ FarmCommunity — Marketplace annonces (0.05s)[0m
+[32m[SUCCESS] ✅ FarmCommunity — Créer annonce vente (0.24s)[0m
+[32m[SUCCESS] ✅ FarmCommunity — Filtrer marketplace (0.06s)[0m
+[32m[SUCCESS] ✅ FarmCommunity — Stats communauté (0.06s)[0m
+[35m[SECTION] 
+============================================================[0m
+[35m[SECTION]   10. GAMIFICATION — POINTS, NIVEAUX, TROPHÉES[0m
+[35m[SECTION] ============================================================[0m
+[32m[SUCCESS] ✅ Gamification — Action connexion_jour (1.03s)[0m
+[32m[SUCCESS] ✅ Gamification — Action generer_ration (0.5s)[0m
+[32m[SUCCESS] ✅ Gamification — Action generer_ration_langue_locale (0.47s)[0m
+[32m[SUCCESS] ✅ Gamification — Action telecharger_pdf (0.47s)[0m
+[32m[SUCCESS] ✅ Gamification — Action partager_whatsapp (0.55s)[0m
+[32m[SUCCESS] ✅ Gamification — Action diagnostic_vetscan (0.53s)[0m
+[32m[SUCCESS] ✅ Gamification — Action enregistrement_vocal (0.47s)[0m
+[32m[SUCCESS] ✅ Gamification — Action completer_lecon (0.52s)[0m
+[32m[SUCCESS] ✅ Gamification — Action inviter_ami (0.45s)[0m
+[32m[SUCCESS] ✅ Gamification — Profil complet (0.05s)[0m
+[32m[SUCCESS] ✅ Gamification — Classement national (0.04s)[0m
+[32m[SUCCESS] ✅ Gamification — Classement département (0.04s)[0m
+[32m[SUCCESS] ✅ Gamification — Défis du jour (0.06s)[0m
+[32m[SUCCESS] ✅ Gamification — Compléter un défi (0.89s)[0m
+[32m[SUCCESS] ✅ Gamification — Trophées utilisateur (0.05s)[0m
+[32m[SUCCESS] ✅ Gamification — Ligue utilisateur (0.04s)[0m
+[35m[SECTION] 
+============================================================[0m
+[35m[SECTION]   11. AUTHENTIFICATION — INSCRIPTION ET CONNEXION[0m
+[35m[SECTION] ============================================================[0m
+[32m[SUCCESS] ✅ Auth — Inscription nouveau utilisateur (0.33s)[0m
+[32m[SUCCESS] ✅ Auth — Vérification OTP (0.49s)[0m
+[32m[SUCCESS] ✅ Auth — Connexion existante (0.16s)[0m
+[35m[SECTION] 
+============================================================[0m
+[35m[SECTION]   12. AUDIO — SYNTHÈSE VOCALE ET TRANSCRIPTION[0m
+[35m[SECTION] ============================================================[0m
+[32m[SUCCESS] ✅ Audio — Synthèse vocale français (1.09s)[0m
+[32m[SUCCESS] ✅ Audio — Demo français (0.56s)[0m
+[32m[SUCCESS] ✅ Audio — Demo fon (0.64s)[0m
+[32m[SUCCESS] ✅ Audio — Ration vocale (4.33s)[0m
+[35m[SECTION] 
+============================================================[0m
+[35m[SECTION]   13. PAIEMENT — MOBILE MONEY[0m
+[35m[SECTION] ============================================================[0m
+[32m[SUCCESS] ✅ Paiement — Créer transaction Standard (0.68s)[0m
+[32m[SUCCESS] ✅ Paiement — Créer transaction Premium (0.7s)[0m
+[32m[SUCCESS] ✅ Paiement — Abonnement utilisateur (0.04s)[0m
+[32m[SUCCESS] ✅ Paiement — Historique transactions (0.05s)[0m
+[35m[SECTION] 
+============================================================[0m
+[35m[SECTION]   14. NOTIFICATIONS — MESSAGES AYA[0m
+[35m[SECTION] ============================================================[0m
+[32m[SUCCESS] ✅ Notifications — Du jour (0.08s)[0m
+[32m[SUCCESS] ✅ Notifications — Messages Aya (0.03s)[0m
+[35m[SECTION] 
+============================================================[0m
+[35m[SECTION]   15. PERFORMANCE — TEMPS DE RÉPONSE[0m
+[35m[SECTION] ============================================================[0m
+[32m[SUCCESS] ✅ Performance /sante: 0.01s (seuil: 1.0s)[0m
+[32m[SUCCESS] ✅ Performance /marche/prix: 0.08s (seuil: 2.0s)[0m
+[32m[SUCCESS] ✅ Performance /academy/formations: 0.04s (seuil: 5.0s)[0m
+[32m[SUCCESS] ✅ Performance /community/posts: 0.04s (seuil: 3.0s)[0m
+[32m[SUCCESS] ✅ Performance /gamification/defis-du-jour: 0.03s (seuil: 3.0s)[0m
+[35m[SECTION] 
+============================================================[0m
+[35m[SECTION]   16. CHARGE — REQUÊTES SIMULTANÉES[0m
+[35m[SECTION] ============================================================[0m
+[32m[SUCCESS] Charge: 10/10 requêtes réussies, temps moyen: 0.03s[0m
+[35m[SECTION] 
+============================================================[0m
+[35m[SECTION]   17. FRONTEND — VÉRIFICATION FICHIERS[0m
+[35m[SECTION] ============================================================[0m
+[32m[SUCCESS] ✅ frontend/index.html (86643 bytes)[0m
+[32m[SUCCESS] ✅ frontend/modules.html (18285 bytes)[0m
+[32m[SUCCESS] ✅ frontend/nutricore.html (26572 bytes)[0m
+[32m[SUCCESS] ✅ frontend/vetscan.html (17156 bytes)[0m
+[32m[SUCCESS] ✅ frontend/reprotrack.html (17221 bytes)[0m
+[32m[SUCCESS] ✅ frontend/profil.html (31771 bytes)[0m
+[32m[SUCCESS] ✅ frontend/classement.html (15231 bytes)[0m
+[32m[SUCCESS] ✅ frontend/farmacademy.html (23119 bytes)[0m
+[32m[SUCCESS] ✅ frontend/farmcast.html (22123 bytes)[0m
+[32m[SUCCESS] ✅ frontend/farmcommunity.html (25261 bytes)[0m
+[32m[SUCCESS] ✅ frontend/abonnement.html (29688 bytes)[0m
+[32m[SUCCESS] ✅ frontend/pasturemap.html (14314 bytes)[0m
+[32m[SUCCESS] ✅ frontend/farmmanager.html (15307 bytes)[0m
+[32m[SUCCESS] ✅ frontend/investisseurs.html (44458 bytes)[0m
+[32m[SUCCESS] ✅ frontend/offline.html (5029 bytes)[0m
+[32m[SUCCESS] ✅ backend/main.py[0m
+[32m[SUCCESS] ✅ backend/database.py[0m
+[32m[SUCCESS] ✅ backend/auth.py[0m
+[32m[SUCCESS] ✅ backend/nutrition_engine.py[0m
+[32m[SUCCESS] ✅ backend/vetscan_service.py[0m
+[32m[SUCCESS] ✅ backend/audio_service.py[0m
+[32m[SUCCESS] ✅ backend/reprotrack_service.py[0m
+[32m[SUCCESS] ✅ backend/farmcast_service.py[0m
+[32m[SUCCESS] ✅ backend/community_service.py[0m
+[32m[SUCCESS] ✅ backend/paiement_service.py[0m
+[32m[SUCCESS] ✅ backend/notification_service.py[0m
+[32m[SUCCESS] ✅ backend/gamification_api.py[0m
+[32m[SUCCESS] ✅ backend/academy_service.py[0m
+[32m[SUCCESS] ✅ backend/scraper_prix.py[0m
+[32m[SUCCESS] ✅ backend/langue_detector.py[0m
+[32m[SUCCESS] ✅ backend/config.py[0m
+[32m[SUCCESS] ✅ backend/requirements.txt[0m
+[32m[SUCCESS] ✅ data/matieres_premieres.json[0m
+[32m[SUCCESS] ✅ data/besoins_animaux.json[0m
+[32m[SUCCESS] ✅ data/langues_supportees.json[0m
+[32m[SUCCESS] ✅ prompts/system_prompt_principal.txt[0m
+[32m[SUCCESS] ✅ prompts/system_prompt_vetscan.txt[0m
+[32m[SUCCESS] ✅ gamification/points_engine.py[0m
+[32m[SUCCESS] ✅ gamification/aya_engine.py[0m
+[32m[SUCCESS] ✅ gamification/defis_generator.py[0m
+[35m[SECTION] 
+============================================================[0m
+[35m[SECTION]   18. INTÉGRITÉ — FICHIERS JSON ET PYTHON[0m
+[35m[SECTION] ============================================================[0m
+[32m[SUCCESS] ✅ JSON valide: data/matieres_premieres.json[0m
+[32m[SUCCESS] ✅ JSON valide: data/besoins_animaux.json[0m
+[32m[SUCCESS] ✅ JSON valide: data/langues_supportees.json[0m
+[32m[SUCCESS] ✅ JSON valide: gamification/aya_states.json[0m
+[32m[SUCCESS] ✅ Python valide: backend/main.py[0m
+[32m[SUCCESS] ✅ Python valide: backend/database.py[0m
+[32m[SUCCESS] ✅ Python valide: backend/auth.py[0m
+[32m[SUCCESS] ✅ Python valide: backend/nutrition_engine.py[0m
+[32m[SUCCESS] ✅ Python valide: backend/config.py[0m
+[32m[SUCCESS] ✅ Python valide: gamification/points_engine.py[0m
+[35m[SECTION] 
+============================================================[0m
+[35m[SECTION]   RAPPORT FINAL[0m
+[35m[SECTION] ============================================================[0m
+[35m[SECTION] 
+============================================================[0m
+[35m[SECTION]   RÉSULTATS TESTS AUTOMATIQUES FEEDFORMULA AI[0m
+[35m[SECTION] ============================================================[0m
+[36m[INFO]   Total tests      : 175[0m
+[32m[SUCCESS]   Tests passés     : 175[0m
+[36m[INFO]   Tests échoués    : 0[0m
+[32m[SUCCESS]   Taux de réussite : 100.0%[0m
+[36m[INFO]   Durée totale     : 443.6s[0m
+[35m[SECTION] ============================================================[0m
+[32m[SUCCESS] 
+✅ Rapport sauvegardé dans docs/RAPPORT_TESTS_AUTOMATIQUES_COMPLET.md[0m

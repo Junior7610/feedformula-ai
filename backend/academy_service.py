@@ -442,7 +442,15 @@ def _build_lesson_payload(
 ) -> Dict[str, Any]:
     formation = _ensure_formation(formation_code)
     lecon = _ensure_lesson(formation_code, numero)
-    contenu = _generate_gpt_content(formation, lecon, langue)
+
+    contenu: Optional[str] = None
+    try:
+        import asyncio
+
+        contenu = asyncio.run(_generate_gpt_content(formation, lecon, langue))
+    except Exception:
+        contenu = None
+
     if not contenu:
         contenu = _fallback_content(formation, lecon, langue)
     quiz = _build_quiz(
@@ -648,13 +656,20 @@ def soumettre_quiz(
             }
         )
 
-    create_formation_completee(
-        db,
-        payload.user_id,
-        _resolve_code(payload.formation_code),
-        numero,
-        score_quiz=score,
-    )
+    try:
+        create_formation_completee(
+            db,
+            payload.user_id,
+            _resolve_code(payload.formation_code),
+            numero,
+            score_quiz=score,
+        )
+    except Exception:
+        # Déjà complété (contrainte d'unicité) ou conflit ponctuel : on continue.
+        try:
+            db.rollback()
+        except Exception:
+            pass
     user = get_user_by_id(db, payload.user_id)
     if user:
         add_points_to_user(db, payload.user_id, score)

@@ -44,7 +44,7 @@ from database import (
 )
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from jose import JWTError, jwt
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from sqlalchemy.orm import Session
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
@@ -352,9 +352,11 @@ def exiger_utilisateur_authentifie(
 class InscriptionRequest(BaseModel):
     telephone: str = Field(..., description="Numéro de téléphone utilisateur")
     prenom: str = Field(..., min_length=1, max_length=120)
-    langue_preferee: str = Field(default="fr", max_length=20)
+    langue_preferee: Optional[str] = Field(default=None, max_length=20)
+    langue: Optional[str] = Field(default=None, max_length=20)
     espece_principale: Optional[str] = Field(default=None, max_length=80)
-    region: str = Field(default="Bénin", max_length=120)
+    region: Optional[str] = Field(default=None, max_length=120)
+    departement: Optional[str] = Field(default=None, max_length=120)
 
     @field_validator("telephone")
     @classmethod
@@ -372,17 +374,33 @@ class InscriptionRequest(BaseModel):
             raise ValueError("Le prénom est obligatoire.")
         return txt
 
-    @field_validator("langue_preferee")
+    @field_validator("langue_preferee", "langue")
     @classmethod
-    def valider_langue(cls, v: str) -> str:
+    def valider_langue(cls, v: Optional[str]) -> str:
         txt = (v or "fr").strip().lower() or "fr"
         return txt
 
-    @field_validator("region")
+    @field_validator("region", "departement")
     @classmethod
-    def valider_region(cls, v: str) -> str:
+    def valider_region(cls, v: Optional[str]) -> str:
         txt = " ".join((v or "Bénin").strip().split())
         return txt or "Bénin"
+
+    @model_validator(mode="after")
+    def harmoniser_alias(self) -> "InscriptionRequest":
+        if not self.langue_preferee and self.langue:
+            self.langue_preferee = self.langue
+        if not self.langue and self.langue_preferee:
+            self.langue = self.langue_preferee
+        if not self.region and self.departement:
+            self.region = self.departement
+        if not self.departement and self.region:
+            self.departement = self.region
+        if not self.langue_preferee:
+            self.langue_preferee = "fr"
+        if not self.region:
+            self.region = "Bénin"
+        return self
 
 
 class ConnexionRequest(BaseModel):
@@ -399,7 +417,8 @@ class ConnexionRequest(BaseModel):
 
 class VerificationOtpRequest(BaseModel):
     telephone: str = Field(...)
-    code_otp: str = Field(..., min_length=6, max_length=6)
+    code_otp: Optional[str] = Field(default=None, min_length=6, max_length=6)
+    otp: Optional[str] = Field(default=None, min_length=6, max_length=6)
 
     @field_validator("telephone")
     @classmethod
@@ -409,13 +428,22 @@ class VerificationOtpRequest(BaseModel):
             raise ValueError("Numéro de téléphone invalide.")
         return tel
 
-    @field_validator("code_otp")
+    @field_validator("code_otp", "otp")
     @classmethod
-    def valider_code(cls, v: str) -> str:
+    def valider_code(cls, v: Optional[str]) -> str:
         code = (v or "").strip()
-        if not re.fullmatch(r"\d{6}", code):
+        if code and not re.fullmatch(r"\d{6}", code):
             raise ValueError("Le code OTP doit contenir exactement 6 chiffres.")
         return code
+
+    @model_validator(mode="after")
+    def harmoniser_otp(self) -> "VerificationOtpRequest":
+        final_code = (self.code_otp or self.otp or "").strip()
+        if not re.fullmatch(r"\d{6}", final_code):
+            raise ValueError("Le code OTP doit contenir exactement 6 chiffres.")
+        self.code_otp = final_code
+        self.otp = final_code
+        return self
 
 
 # ---------------------------------------------------------------------------
@@ -444,10 +472,10 @@ def inscription(
         db=db,
         telephone=payload.telephone,
         prenom=payload.prenom,
-        langue_preferee=payload.langue_preferee,
+        langue_preferee=(payload.langue_preferee or payload.langue or "fr"),
         espece_principale=payload.espece_principale,
         abonnement="free",
-        region=payload.region,
+        region=(payload.region or payload.departement or "Bénin"),
     )
 
     # Génération OTP.
@@ -460,7 +488,10 @@ def inscription(
         "telephone_masque": _masquer_telephone(payload.telephone),
         "otp_expire_dans_minutes": OTP_EXPIRE_MINUTES,
     }
-    response.update(_payload_otp_debug(code))
+    debug_payload = _payload_otp_debug(code)
+    response.update(debug_payload)
+    if "otp_dev" in debug_payload:
+        response["otp_pour_test"] = debug_payload["otp_dev"]
     return response
 
 

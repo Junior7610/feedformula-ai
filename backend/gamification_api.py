@@ -497,6 +497,13 @@ def enregistrer_action(
         "ligue": ligue,
         "serie": serie_info,
         "nouveaux_trophees": nouveaux_trophees,
+        # Champs de compatibilité pour scripts de tests historiques
+        "points_gagnes": points_total_action,
+        "total_points": _safe_int(getattr(user_updated, "points_total", 0), 0),
+        "niveau_actuel": _safe_int(
+            niveau_info.get("niveau_actuel", getattr(user_updated, "niveau_actuel", 1)),
+            1,
+        ),
     }
 
 
@@ -537,6 +544,8 @@ def profil_gamification(user_id: str, db: Session = Depends(get_db)) -> Dict[str
         "meilleure_serie": _safe_int(user.meilleure_serie, 0),
         "trophees": trophees,
         "actions_count": _get_actions_count(db, uid),
+        # Compatibilité tests
+        "graines_or": _safe_int(getattr(user, "graines_or", 0), 0),
     }
 
 
@@ -712,6 +721,25 @@ def completer_defi(
         "user": serialize_user(user_updated) if user_updated else serialize_user(user),
         "nouveaux_trophees": nouveaux_trophees,
     }
+
+
+@router.get("/trophees/{user_id}")
+def trophees_user(user_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
+    uid = (user_id or "").strip()
+    user = get_user_by_id(db, uid)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Utilisateur introuvable.")
+    return {"user_id": uid, "trophees": [serialize_trophee(t) for t in list_user_trophees(db, uid)]}
+
+
+@router.get("/ligue/{user_id}")
+def ligue_user(user_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
+    uid = (user_id or "").strip()
+    user = get_user_by_id(db, uid)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Utilisateur introuvable.")
+    points = _safe_int(getattr(user, "points_total", 0), 0)
+    return {"user_id": uid, "ligue": _calculer_ligue(points), "points_total": points}
 
 
 @router.get("/defis-du-jour")

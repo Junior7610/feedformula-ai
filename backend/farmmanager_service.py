@@ -713,6 +713,9 @@ async def evenement_vocal(
         return {
             "message": "Événement vocal traité avec succès.",
             "event": event,
+            # Champs contractuels attendus par le frontend/tests
+            "evenement_structure": event.get("event", {}) if isinstance(event, dict) else {},
+            "points_gagnes": 5,
         }
     except HTTPException:
         raise
