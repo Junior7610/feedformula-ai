@@ -91,6 +91,9 @@ detecter_langue = importlib.import_module("langue_detector").detecter_langue
 get_prompt_pour_langue = importlib.import_module(
     "langue_detector"
 ).get_prompt_pour_langue
+traduire_labels_interface = importlib.import_module(
+    "langue_detector"
+).traduire_labels_interface
 notification_router = importlib.import_module("notification_service").router
 gamification_live_router = importlib.import_module("gamification_live").router
 NutritionEngine = importlib.import_module("nutrition_engine").NutritionEngine
@@ -318,33 +321,48 @@ def _fallback_local_ration_text(
     cout_kg = float(ration_calculee.get("cout_fcfa_kg", 0.0))
     cout_7 = float(ration_calculee.get("cout_total_7_jours", 0.0))
     cout_7 = cout_7 if cout_7 else float(ration_calculee.get("cout_7_jours", 0.0))
+    non_fr = langue_norm not in {"fr", "fon", "yor", "den", "adj", "gej", "gen"}
+    label_species = "Species" if non_fr else "Espèce"
+    label_stage = "Stage" if non_fr else "Stade"
+    label_animals = "Animals" if non_fr else "Animaux"
+    label_composition = "Composition" if non_fr else "Composition"
+    label_cost_kg = "Cost/kg" if non_fr else "Coût/kg"
+    label_cost_week = "7-day cost" if non_fr else "Coût 7 jours"
+    label_tips = "Tips" if non_fr else "Conseils"
+
     lines = [
         titres.get(langue_norm, titres["fr"]),
         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
         intro.get(langue_norm, intro["fr"]),
-        f"Espèce: {espece}",
-        f"Stade: {stade}",
-        f"Animaux: {nombre_animaux}",
+        f"{label_species}: {espece}",
+        f"{label_stage}: {stade}",
+        f"{label_animals}: {nombre_animaux}",
         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-        "Composition:",
+        f"{label_composition}:",
     ]
     for item, value in list(comp.items())[:5]:
         lines.append(f"- {item}: {value}")
     lines.extend(
         [
             "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-            f"Coût/kg: {round(cout_kg, 2)} FCFA",
-            f"Coût 7 jours: {round(cout_7, 2)} FCFA",
-            "Conseils:",
+            f"{label_cost_kg}: {round(cout_kg, 2)} FCFA",
+            f"{label_cost_week}: {round(cout_7, 2)} FCFA",
+            f"{label_tips}:",
         ]
     )
-    for conseil in recommandations[:3] or [
-        "Utilisez de l'eau propre.",
-        "Stockez les ingrédients au sec.",
-    ]:
+    conseils_defaut = (
+        ["Use clean water.", "Store feed ingredients in a dry place."]
+        if non_fr
+        else ["Utilisez de l'eau propre.", "Stockez les ingrédients au sec."]
+    )
+    conseils_source = [] if non_fr else recommandations[:3]
+    for conseil in conseils_source or conseils_defaut:
+        if non_fr and isinstance(conseil, str):
+            conseil = conseil.replace("Utilisez", "Use").replace("Stockez", "Store")
         lines.append(f"- {conseil}")
     if ingredients:
-        lines.extend(["━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "Ingrédients disponibles:"])
+        label_ing = "Available ingredients" if non_fr else "Ingrédients disponibles"
+        lines.extend(["━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", f"{label_ing}:"])
         lines.extend(f"- {ingredient}" for ingredient in ingredients[:5])
     return "\n".join(lines)
 
@@ -748,8 +766,32 @@ class ContactRequest(BaseModel):
 
 
 def _normaliser_code_langue(langue: str) -> str:
-    """Normalise un code langue pour les routes audio."""
-    return (langue or "fr").strip().lower() or "fr"
+    """Normalise un code langue avec alias multi-régions."""
+    code = (langue or "fr").strip().lower() or "fr"
+    aliases = {
+        "yo": "yor",
+        "baa": "bba",
+        "gen": "gej",
+        "hau": "ha",
+        "ful": "ff",
+        "ewe": "ee",
+        "aka": "twi",
+        "ibo": "ig",
+        "swa": "sw",
+        "orm": "om",
+        "som": "so",
+        "ber": "zgh",
+        "zlm": "ar",
+        "zul": "zu",
+        "xho": "xh",
+        "sot": "st",
+        "lug": "lg",
+        "kin": "rw",
+        "kon": "kg",
+        "twe": "twi",
+        "kir": "rn",
+    }
+    return aliases.get(code, code)
 
 
 def _chemin_audio_demo(langue: str) -> Path:
@@ -932,6 +974,17 @@ def langues() -> Dict[str, Any]:
         raise HTTPException(status_code=500, detail=str(exc))
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Erreur interne /langues: {exc}")
+
+
+@app.get("/langues/labels/{code_langue}")
+def langues_labels(code_langue: str) -> Dict[str, Any]:
+    """Retourne les labels UI traduits pour une langue donnée."""
+    code = _normaliser_code_langue(code_langue)
+    labels = traduire_labels_interface(code)
+    return {
+        "langue": code,
+        "labels": labels,
+    }
 
 
 @app.post("/traduire-texte")

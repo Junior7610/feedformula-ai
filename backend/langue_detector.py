@@ -36,6 +36,21 @@ LANGUES_BENINOISES = {"fon", "adj", "gej", "yor", "yom", "bba", "den"}
 ALIASES_LANGUES = {
     "yo": "yor",
     "ddn": "den",
+    "gen": "gej",
+    "baa": "bba",
+    "hau": "ha",
+    "ful": "ff",
+    "swa": "sw",
+    "ewe": "ee",
+    "aka": "twi",
+    "ibo": "ig",
+    "orm": "om",
+    "som": "so",
+    "zul": "zu",
+    "xho": "xh",
+    "sot": "st",
+    "lug": "lg",
+    "kin": "rw",
 }
 
 
@@ -131,6 +146,8 @@ def detecter_langue(texte: str) -> str:
         "gej": 0,
         "yom": 0,
         "bba": 0,
+        "hau": 0,
+        "swa": 0,
     }
 
     # --- Mots-clés (heuristiques terrain) ---
@@ -243,6 +260,22 @@ def detecter_langue(texte: str) -> str:
             "sinaboko",
             "baani",
         },
+        "hau": {
+            "ina",
+            "kaji",
+            "masara",
+            "na",
+            "yau",
+            "safe",
+        },
+        "swa": {
+            "nina",
+            "kuku",
+            "wiki",
+            "mahindi",
+            "asubuhi",
+            "chakula",
+        },
     }
 
     # Comptage par mots-clés
@@ -351,6 +384,10 @@ def traduire_labels_interface(code_langue: str) -> Dict[str, str]:
     base_keys = [
         "generer_ration",
         "mes_animaux",
+        "ma_ration",
+        "ecouter",
+        "partager",
+        "telecharger",
         "accueil",
         "modules",
         "classement",
@@ -371,6 +408,10 @@ def traduire_labels_interface(code_langue: str) -> Dict[str, str]:
         "fr": {
             "generer_ration": "Générer ma ration",
             "mes_animaux": "Mes animaux",
+            "ma_ration": "Ma ration",
+            "ecouter": "Écouter",
+            "partager": "Partager",
+            "telecharger": "Télécharger",
             "accueil": "Accueil",
             "modules": "Modules",
             "classement": "Classement",
@@ -389,6 +430,10 @@ def traduire_labels_interface(code_langue: str) -> Dict[str, str]:
         "en": {
             "generer_ration": "Generate my ration",
             "mes_animaux": "My animals",
+            "ma_ration": "My ration",
+            "ecouter": "Listen",
+            "partager": "Share",
+            "telecharger": "Download",
             "accueil": "Home",
             "modules": "Modules",
             "classement": "Leaderboard",

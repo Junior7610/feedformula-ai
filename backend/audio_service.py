@@ -52,7 +52,33 @@ AFRI_STT_MODEL = (os.getenv("AFRI_STT_MODEL") or "afri-stt-1").strip()
 AFRI_CHAT_MODEL = (os.getenv("AFRI_CHAT_MODEL") or "gpt-5.5").strip()
 AFRI_TIMEOUT_SECONDS = float(os.getenv("AFRI_TIMEOUT_SECONDS") or "90")
 
-LANGUES_DEMO = {"fr", "fon", "yor", "en", "den", "adj"}
+LANGUES_DEMO = {
+    "fr",
+    "en",
+    "pt",
+    "ar",
+    "fon",
+    "yor",
+    "den",
+    "adj",
+    "gej",
+    "bba",
+    "yom",
+    "ha",
+    "ff",
+    "sw",
+    "ee",
+    "ig",
+    "twi",
+    "rw",
+    "lg",
+    "zu",
+    "xh",
+    "st",
+    "om",
+    "so",
+    "bam",
+}
 
 # -----------------------------------------------------------------------------
 # Imports optionnels
@@ -110,8 +136,27 @@ def _nettoyer_texte(texte: str) -> str:
 
 
 def _normaliser_langue(langue: str) -> str:
-    lg = (langue or "fr").strip().lower()
-    return lg or "fr"
+    lg = (langue or "fr").strip().lower() or "fr"
+    aliases = {
+        "yo": "yor",
+        "baa": "bba",
+        "gen": "gej",
+        "hau": "ha",
+        "ful": "ff",
+        "swa": "sw",
+        "ewe": "ee",
+        "aka": "twi",
+        "ibo": "ig",
+        "orm": "om",
+        "som": "so",
+        "zul": "zu",
+        "xho": "xh",
+        "sot": "st",
+        "lug": "lg",
+        "kin": "rw",
+        "kir": "rw",
+    }
+    return aliases.get(lg, lg)
 
 
 def _gtts_langue(langue: str) -> str:
@@ -123,13 +168,32 @@ def _gtts_langue(langue: str) -> str:
     mapping = {
         "fr": "fr",
         "en": "en",
+        "pt": "pt",
+        "ar": "ar",
         "yor": "yo",
         "yo": "yo",
         "fon": "fr",
         "den": "fr",
         "adj": "fr",
+        "gej": "fr",
+        "bba": "fr",
+        "yom": "fr",
+        "ha": "fr",
+        "ff": "fr",
+        "sw": "sw",
+        "ee": "fr",
+        "ig": "fr",
+        "twi": "fr",
+        "rw": "fr",
+        "lg": "fr",
+        "zu": "fr",
+        "xh": "fr",
+        "st": "fr",
+        "om": "fr",
+        "so": "fr",
+        "bam": "fr",
     }
-    return mapping.get(langue, langue[:2] or "fr")
+    return mapping.get(langue, "fr")
 
 
 def _json_dumps(data: Dict[str, Any]) -> bytes:
