@@ -12,7 +12,7 @@ import math
 import os
 from collections import Counter
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from database import (
     Ration,
@@ -35,7 +35,7 @@ ADMIN_PASSWORD = (
 
 
 def require_admin_password(
-    x_admin_password: str | None = Header(default=None, alias="X-Admin-Password"),
+    x_admin_password: Optional[str] = Header(default=None, alias="X-Admin-Password"),
 ) -> None:
     """Bloque l'accès si le mot de passe admin est absent ou incorrect."""
     if not ADMIN_PASSWORD:
