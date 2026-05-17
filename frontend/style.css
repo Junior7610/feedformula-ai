@@ -5160,5 +5160,157 @@ body.dark .toast-streak {
 }
 
 /* =========================================================
+   Harmonisation mondiale des modules — UX finale
+   ========================================================= */
+
+body[data-i18n-page] {
+    min-width: 0;
+    overflow-x: hidden;
+}
+
+body[data-i18n-page] .wrap,
+body[data-i18n-page] .page-shell,
+body[data-i18n-page] .investor-page,
+body[data-i18n-page] .shell {
+    width: min(100% - 24px, var(--container-max));
+    margin-inline: auto;
+}
+
+body[data-i18n-page] main,
+body[data-i18n-page] .grid,
+body[data-i18n-page] .modules-grid,
+body[data-i18n-page] .stats,
+body[data-i18n-page] .filters,
+body[data-i18n-page] .contact-form {
+    min-width: 0;
+}
+
+body[data-i18n-page] header.card,
+body[data-i18n-page] .card,
+body[data-i18n-page] .section-card,
+body[data-i18n-page] .module-card,
+body[data-i18n-page] .offer-card,
+body[data-i18n-page] .testimonial,
+body[data-i18n-page] .media-card {
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--gray-100);
+    box-shadow: var(--shadow-md);
+}
+
+body[data-i18n-page] header.card {
+    margin-top: calc(env(safe-area-inset-top) + var(--space-4));
+    background: linear-gradient(135deg, var(--brand-primary), var(--green-700));
+    color: var(--text-inverse);
+}
+
+body[data-i18n-page] header.card .meta,
+body[data-i18n-page] header.card .muted {
+    color: rgba(255, 255, 255, 0.82);
+}
+
+body[data-i18n-page] button,
+body[data-i18n-page] .btn,
+body[data-i18n-page] .primary,
+body[data-i18n-page] .secondary,
+body[data-i18n-page] input,
+body[data-i18n-page] select,
+body[data-i18n-page] textarea {
+    min-height: 48px;
+}
+
+body[data-i18n-page] button:disabled,
+body[data-i18n-page] .btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+    transform: none !important;
+}
+
+body[data-i18n-page] .primary,
+body[data-i18n-page] .btn.primary {
+    background: var(--brand-primary);
+    color: var(--text-inverse);
+    box-shadow: var(--shadow-brand);
+}
+
+body[data-i18n-page] .secondary,
+body[data-i18n-page] .btn.secondary {
+    background: var(--green-50);
+    color: var(--brand-primary);
+    border: 1px solid rgba(27, 94, 32, 0.16);
+}
+
+body[data-i18n-page] img,
+body[data-i18n-page] canvas,
+body[data-i18n-page] video,
+body[data-i18n-page] audio,
+body[data-i18n-page] table {
+    max-width: 100%;
+}
+
+body[data-i18n-page] table {
+    width: 100%;
+}
+
+body[data-i18n-page] .table-wrap,
+body[data-i18n-page] [style*="overflow:auto"],
+body[data-i18n-page] [style*="overflow: auto"] {
+    -webkit-overflow-scrolling: touch;
+}
+
+.module-status,
+.status.ok,
+.badge-green {
+    font-weight: var(--font-bold);
+}
+
+.module-status,
+.status.ok {
+    color: var(--green-800);
+}
+
+body[data-i18n-page] .error,
+body[data-i18n-page] .status.err,
+body[data-i18n-page] [aria-invalid="true"] {
+    color: var(--color-error);
+}
+
+body[data-i18n-page] [aria-live="polite"],
+body[data-i18n-page] [aria-live="assertive"] {
+    scroll-margin-top: calc(var(--header-height) + var(--space-4));
+}
+
+@media (max-width: 639.98px) {
+    body[data-i18n-page] .wrap,
+    body[data-i18n-page] .page-shell,
+    body[data-i18n-page] .investor-page,
+    body[data-i18n-page] .shell {
+        width: min(100% - 20px, 100%);
+        padding-inline: 0;
+    }
+
+    body[data-i18n-page] .grid,
+    body[data-i18n-page] .stats,
+    body[data-i18n-page] .filters,
+    body[data-i18n-page] .contact-form,
+    body[data-i18n-page] [style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+    }
+
+    body[data-i18n-page] header.card,
+    body[data-i18n-page] .card,
+    body[data-i18n-page] .section-card {
+        padding: var(--space-4);
+    }
+
+    body[data-i18n-page] h1 {
+        font-size: clamp(1.8rem, 9vw, 2.5rem);
+    }
+
+    body[data-i18n-page] h2 {
+        font-size: clamp(1.35rem, 7vw, 2rem);
+    }
+}
+
+/* =========================================================
    Fin du fichier
    ========================================================= */

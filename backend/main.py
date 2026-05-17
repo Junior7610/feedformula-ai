@@ -351,9 +351,21 @@ def _fallback_local_ration_text(
         ]
     )
     conseils_defaut = (
-        ["Use clean water.", "Store feed ingredients in a dry place."]
+        [
+            "Provide clean water at all times and keep feeders dry.",
+            "Introduce this ration gradually over 3 to 5 days to avoid digestive stress.",
+            "Store ingredients away from humidity, rodents and direct sun.",
+            "Observe appetite, droppings, weight gain and abnormal behavior every day.",
+            "If mortality, fever, severe diarrhea or sudden drop in production appears, call a veterinarian.",
+        ]
         if non_fr
-        else ["Utilisez de l'eau propre.", "Stockez les ingrédients au sec."]
+        else [
+            "Donnez de l'eau propre en permanence et gardez les mangeoires au sec.",
+            "Introduisez cette ration progressivement sur 3 à 5 jours pour éviter le stress digestif.",
+            "Stockez les ingrédients à l'abri de l'humidité, des rongeurs et du soleil direct.",
+            "Observez chaque jour l'appétit, les fientes, le gain de poids et tout comportement anormal.",
+            "En cas de mortalité, fièvre, diarrhée sévère ou chute brutale de production, contactez un vétérinaire.",
+        ]
     )
     conseils_source = [] if non_fr else recommandations[:3]
     for conseil in conseils_source or conseils_defaut:
@@ -364,6 +376,13 @@ def _fallback_local_ration_text(
         label_ing = "Available ingredients" if non_fr else "Ingrédients disponibles"
         lines.extend(["━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", f"{label_ing}:"])
         lines.extend(f"- {ingredient}" for ingredient in ingredients[:5])
+
+    expert_note = (
+        "Field note: adapt quantities to real feed intake, local ingredient quality and market prices."
+        if non_fr
+        else "Note terrain : ajustez les quantités selon la consommation réelle, la qualité locale des ingrédients et les prix du marché."
+    )
+    lines.extend(["━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", expert_note])
     return "\n".join(lines)
 
 

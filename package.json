@@ -10,7 +10,10 @@
     "frontend": "cd frontend && npm start",
     "backend": "cd backend && uvicorn main:app --reload --port 8000",
     "build": "node -e \"process.stdout.write('Static frontend handled by vercel.json\\n')\"",
-    "test": "echo \"Tests à configurer au Jour 7\""
+    "test": "python -m pytest tests/test_api.py tests/test_ci_strict.py tests/test_frontend_polish.py -q",
+    "test:e2e": "playwright test",
+    "test:e2e:mobile": "playwright test --project=mobile-chrome",
+    "test:quality": "npm run test && npm run test:e2e"
   },
   "keywords": [
     "agriculture",
@@ -21,5 +24,8 @@
     "multilingue",
     "fon",
     "yoruba"
-  ]
+  ],
+  "devDependencies": {
+    "@playwright/test": "^1.49.1"
+  }
 }
