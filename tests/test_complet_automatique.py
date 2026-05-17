@@ -1,5 +1,8 @@
 import ast
+import atexit
 import json
+import os
+import subprocess
 import sys
 import threading
 import time
@@ -56,6 +59,7 @@ def tester(
     verifier_langue=None,
     timeout=60,
     description="",
+    headers=None,
 ):
     global TOTAL_TESTS, TESTS_PASSES, TESTS_ECHOUES
     TOTAL_TESTS += 1
@@ -75,10 +79,15 @@ def tester(
 
     try:
         response = None
+        request_headers = headers or {}
         if methode == "GET":
-            response = requests.get(f"{BASE_URL}{url}", timeout=timeout)
+            response = requests.get(
+                f"{BASE_URL}{url}", timeout=timeout, headers=request_headers
+            )
         elif methode == "POST":
-            response = requests.post(f"{BASE_URL}{url}", json=body, timeout=timeout)
+            response = requests.post(
+                f"{BASE_URL}{url}", json=body, timeout=timeout, headers=request_headers
+            )
         else:
             raise ValueError(f"Méthode HTTP non supportée: {methode}")
 
@@ -217,6 +226,97 @@ def section(titre):
     log(f"\n{'=' * 60}", "SECTION")
     log(f"  {titre}", "SECTION")
     log(f"{'=' * 60}", "SECTION")
+
+
+def enregistrer_assertion(nom, ok, details="", description=""):
+    """Ajoute un résultat de test non HTTP au rapport global."""
+    global TOTAL_TESTS, TESTS_PASSES, TESTS_ECHOUES
+    TOTAL_TESTS += 1
+    resultat = {
+        "nom": nom,
+        "description": description,
+        "url": "fichier/local",
+        "methode": "ASSERT",
+        "statut": "SUCCES" if ok else "ECHEC",
+        "code_http": None,
+        "temps_reponse": 0,
+        "erreur": None if ok else details,
+        "details": [details] if details else [],
+    }
+    if ok:
+        TESTS_PASSES += 1
+        log(f"✅ {nom}", "SUCCESS")
+    else:
+        TESTS_ECHOUES += 1
+        log(f"❌ {nom} — {details}", "ERROR")
+    RAPPORT.append(resultat)
+    return ok
+
+
+_SERVER_PROCESS = None
+
+
+def serveur_disponible(timeout=2):
+    try:
+        response = requests.get(f"{BASE_URL}/sante", timeout=timeout)
+        return response.status_code == 200
+    except Exception:
+        return False
+
+
+def demarrer_serveur_si_necessaire():
+    """Démarre Uvicorn si aucun serveur local n'est disponible."""
+    global _SERVER_PROCESS
+    if os.getenv("FEEDFORMULA_TEST_AUTO_START_SERVER", "1") not in {
+        "1",
+        "true",
+        "TRUE",
+        "yes",
+    }:
+        return
+    if serveur_disponible():
+        log("Serveur déjà disponible sur http://127.0.0.1:8000", "SUCCESS")
+        return
+
+    log("Serveur indisponible — démarrage automatique Uvicorn", "WARNING")
+    env = os.environ.copy()
+    env.setdefault("APP_ENV", "test")
+    # Ne jamais écrire de clé secrète dans le code: fallback local si AFRI_API_KEY est absent.
+    env.setdefault("AFRI_API_KEY", "")
+    _SERVER_PROCESS = subprocess.Popen(
+        [
+            sys.executable,
+            "-m",
+            "uvicorn",
+            "backend.main:app",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            "8000",
+            "--log-level",
+            "warning",
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        env=env,
+    )
+
+    def cleanup():
+        if _SERVER_PROCESS and _SERVER_PROCESS.poll() is None:
+            _SERVER_PROCESS.terminate()
+
+    atexit.register(cleanup)
+    for _ in range(90):
+        if serveur_disponible(timeout=1):
+            log("Serveur démarré avec succès", "SUCCESS")
+            return
+        if _SERVER_PROCESS.poll() is not None:
+            break
+        time.sleep(1)
+    log("Impossible de confirmer le démarrage du serveur local", "WARNING")
+
+
+demarrer_serveur_si_necessaire()
 
 
 # ============================================================
@@ -1369,7 +1469,9 @@ PAGES_FRONTEND = [
     "pasturemap.html",
     "farmmanager.html",
     "investisseurs.html",
+    "analytics.html",
     "offline.html",
+    "erreur.html",
 ]
 
 for page in PAGES_FRONTEND:
@@ -1404,6 +1506,7 @@ FICHIERS_BACKEND = [
     "backend/scraper_prix.py",
     "backend/langue_detector.py",
     "backend/config.py",
+    "backend/analytics_service.py",
     "backend/requirements.txt",
 ]
 
@@ -1421,6 +1524,8 @@ FICHIERS_DATA = [
     "data/matieres_premieres.json",
     "data/besoins_animaux.json",
     "data/langues_supportees.json",
+    "data/rations_demo.json",
+    "data/diagnostics_demo.json",
     "prompts/system_prompt_principal.txt",
     "prompts/system_prompt_vetscan.txt",
     "gamification/points_engine.py",
@@ -1448,6 +1553,9 @@ FICHIERS_JSON = [
     "data/matieres_premieres.json",
     "data/besoins_animaux.json",
     "data/langues_supportees.json",
+    "data/rations_demo.json",
+    "data/diagnostics_demo.json",
+    "frontend/manifest.json",
     "gamification/aya_states.json",
 ]
 
@@ -1473,6 +1581,8 @@ FICHIERS_PYTHON = [
     "backend/auth.py",
     "backend/nutrition_engine.py",
     "backend/config.py",
+    "backend/analytics_service.py",
+    "assets/creer_video_demo_finale.py",
     "gamification/points_engine.py",
 ]
 
@@ -1491,6 +1601,366 @@ for fichier in FICHIERS_PYTHON:
     else:
         TESTS_ECHOUES += 1
         log(f"❌ {fichier} MANQUANT", "ERROR")
+
+# ============================================================
+# SECTION 19 — INVESTISSEURS, CONTACT ET ANALYTICS
+# ============================================================
+
+section("19. INVESTISSEURS — CONTACT ET ANALYTICS")
+
+ADMIN_HEADERS = {
+    "X-Admin-Password": os.getenv("ANALYTICS_ADMIN_PASSWORD", "feedformula-admin-demo")
+}
+
+SECTION19_TESTS = 0
+
+SECTION19_TESTS += 1
+tester(
+    nom="Investisseurs — Formulaire contact",
+    description="Vérifie que le formulaire investisseurs sauvegarde un message",
+    methode="POST",
+    url="/contact",
+    body={
+        "nom": "Leonel Test",
+        "email": "jury@buildwithafri.demo",
+        "organisation": "Build With Afri",
+        "message": "Message de test automatique pour valider le formulaire de contact investisseurs.",
+    },
+    attendu_code=200,
+    verifier_champs=["status", "message", "contact"],
+    timeout=15,
+)
+
+for endpoint, champs in [
+    ("/analytics/stats", ["total_users", "total_rations", "monthly_revenue"]),
+    ("/analytics/rations", ["languages", "modules", "heatmap"]),
+    ("/analytics/utilisateurs", ["top_users", "engagement"]),
+]:
+    SECTION19_TESTS += 1
+    tester(
+        nom=f"Analytics — {endpoint}",
+        description="Endpoint analytics protégé par mot de passe admin",
+        methode="GET",
+        url=endpoint,
+        attendu_code=200,
+        verifier_champs=champs,
+        headers=ADMIN_HEADERS,
+        timeout=20,
+    )
+
+SECTION19_TESTS += 1
+tester(
+    nom="Analytics — Protection mot de passe",
+    description="Vérifie que les métriques analytics refusent un mauvais mot de passe",
+    methode="GET",
+    url="/analytics/stats",
+    attendu_code=401,
+    headers={"X-Admin-Password": "mauvais-mot-de-passe"},
+    timeout=10,
+)
+
+# ============================================================
+# SECTION 20 — DONNÉES DE DÉMO OFFLINE
+# ============================================================
+
+section("20. OFFLINE — DONNÉES DE DÉMONSTRATION")
+
+SECTION20_TESTS = 0
+
+for endpoint, champs in [
+    ("/data/rations_demo.json", None),
+    ("/data/diagnostics_demo.json", None),
+]:
+    SECTION20_TESTS += 1
+    tester(
+        nom=f"Données démo — {endpoint}",
+        description="Vérifie que les données offline sont exposées par le backend",
+        methode="GET",
+        url=endpoint,
+        attendu_code=200,
+        verifier_champs=champs,
+        timeout=10,
+    )
+
+try:
+    rations_demo = json.loads(
+        Path("data/rations_demo.json").read_text(encoding="utf-8")
+    )
+except Exception:
+    rations_demo = []
+try:
+    diagnostics_demo = json.loads(
+        Path("data/diagnostics_demo.json").read_text(encoding="utf-8")
+    )
+except Exception:
+    diagnostics_demo = []
+
+SECTION20_TESTS += 1
+enregistrer_assertion(
+    "Données démo — 10 rations minimum",
+    isinstance(rations_demo, list) and len(rations_demo) >= 10,
+    f"Rations trouvées: {len(rations_demo) if isinstance(rations_demo, list) else 'invalides'}",
+)
+SECTION20_TESTS += 1
+enregistrer_assertion(
+    "Données démo — 5 diagnostics minimum",
+    isinstance(diagnostics_demo, list) and len(diagnostics_demo) >= 5,
+    f"Diagnostics trouvés: {len(diagnostics_demo) if isinstance(diagnostics_demo, list) else 'invalides'}",
+)
+
+rations_langues = {
+    str(item.get("language", "")).lower()
+    for item in rations_demo
+    if isinstance(item, dict)
+}
+rations_especes = {
+    str(item.get("speciesKey", "")).lower()
+    for item in rations_demo
+    if isinstance(item, dict)
+}
+SECTION20_TESTS += 1
+enregistrer_assertion(
+    "Données démo — langues clés",
+    {"fr", "fon", "yor"}.issubset(rations_langues),
+    f"Langues trouvées: {sorted(rations_langues)}",
+)
+SECTION20_TESTS += 1
+enregistrer_assertion(
+    "Données démo — espèces clés",
+    {
+        "poulet",
+        "pondeuse",
+        "vache",
+        "mouton",
+        "tilapia",
+        "porc",
+        "pintade",
+        "lapin",
+    }.issubset(rations_especes),
+    f"Espèces trouvées: {sorted(rations_especes)}",
+)
+
+# ============================================================
+# SECTION 21 — FRONTEND — PAGES ET FLUX UTILISATEUR
+# ============================================================
+
+section("21. FRONTEND — PAGES ET FLUX UTILISATEUR")
+
+PAGE_MARKERS = {
+    "index.html": [
+        "splashScreen",
+        "dailyChallengeTitle",
+        "preferredLanguageSelect",
+        "Générer ma ration",
+        "bottom-nav",
+    ],
+    "modules.html": ["modules", "badge", "filter", "NutriCore", "VetScan"],
+    "nutricore.html": ["Générer", "historique", "PDF", "WhatsApp"],
+    "vetscan.html": ["photo", "diagnostic", "urgence", "sympt"],
+    "reprotrack.html": ["calendrier", "evenement", "alerte", "stat"],
+    "profil.html": ["niveau", "trophee", "classement", "serie"],
+    "classement.html": ["podium", "rang", "Commune", "National"],
+    "farmacademy.html": ["formation", "quiz", "lecon", "progress"],
+    "farmcast.html": ["audio", "script", "partage", "FarmCast"],
+    "farmcommunity.html": ["post", "like", "marche", "annonce"],
+    "abonnement.html": [
+        "Comparatif des 5 offres",
+        "Mobile Money",
+        "MTN Money",
+        "Moov Money",
+    ],
+    "investisseurs.html": [
+        "data-counter",
+        "IntersectionObserver",
+        "contact",
+        "media-logo",
+        "testimonial",
+    ],
+    "analytics.html": [
+        "Chart",
+        "adminPassword",
+        "languagesChart",
+        "heatmap",
+        "topUsersTable",
+    ],
+}
+
+SECTION21_TESTS = 0
+for page, markers in PAGE_MARKERS.items():
+    contenu = (
+        Path(f"frontend/{page}").read_text(encoding="utf-8")
+        if Path(f"frontend/{page}").exists()
+        else ""
+    )
+    for marker in markers:
+        SECTION21_TESTS += 1
+        enregistrer_assertion(
+            f"Frontend — {page} contient {marker}",
+            marker.lower() in contenu.lower(),
+            f"Marqueur absent: {marker}",
+        )
+
+# ============================================================
+# SECTION 22 — FRONTEND — GAMIFICATION ET ANIMATIONS
+# ============================================================
+
+section("22. FRONTEND — GAMIFICATION ET ANIMATIONS")
+
+SECTION22_TESTS = 0
+script_js = Path("frontend/script.js").read_text(encoding="utf-8")
+style_css = Path("frontend/style.css").read_text(encoding="utf-8")
+
+SCRIPT_MARKERS = [
+    "function showToast",
+    "function toggleDarkMode",
+    "function genererRationAvecFallback",
+    "function showLevelUpCelebration",
+    "function showRankOvertakeToast",
+    "function showStreakCelebration",
+    "function showChallengeCompleted",
+    "function playTamTamCelebration",
+    "window.genererRationAvecFallback",
+]
+STYLE_MARKERS = [
+    "@keyframes fadeInUp",
+    "@keyframes levelUp",
+    "@keyframes pointsFloat",
+    ".level-up-overlay",
+    ".benin-confetti",
+    ".toast-rank-overtake",
+    ".toast-streak",
+    ".challenge-completed",
+    ".challenge-checkmark",
+    "@media (prefers-color-scheme: dark)",
+]
+
+for marker in SCRIPT_MARKERS:
+    SECTION22_TESTS += 1
+    enregistrer_assertion(
+        f"JS gamification — {marker}",
+        marker in script_js,
+        f"Marqueur JS absent: {marker}",
+    )
+
+for marker in STYLE_MARKERS:
+    SECTION22_TESTS += 1
+    enregistrer_assertion(
+        f"CSS animation — {marker}",
+        marker in style_css,
+        f"Marqueur CSS absent: {marker}",
+    )
+
+# ============================================================
+# SECTION 23 — PWA, SEO, ACCESSIBILITÉ ET DÉPLOIEMENT
+# ============================================================
+
+section("23. PWA — SEO — ACCESSIBILITÉ — DÉPLOIEMENT")
+
+SECTION23_TESTS = 0
+HTML_HEAD_MARKERS = [
+    'name="viewport"',
+    "maximum-scale=1.0",
+    'name="theme-color"',
+    'rel="manifest"',
+    "Plus+Jakarta+Sans",
+    'property="og:title"',
+    'name="twitter:card"',
+]
+for page in Path("frontend").glob("*.html"):
+    contenu = " ".join(page.read_text(encoding="utf-8").split())
+    for marker in HTML_HEAD_MARKERS:
+        SECTION23_TESTS += 1
+        enregistrer_assertion(
+            f"SEO/PWA — {page.name} contient {marker}",
+            marker in contenu,
+            f"Marqueur head absent: {marker}",
+        )
+    SECTION23_TESTS += 1
+    enregistrer_assertion(
+        f"Assets source — {page.name} sans bundle minifié obsolète",
+        "script.min.js" not in contenu and "style.min.css" not in contenu,
+        "Référence à script.min.js ou style.min.css détectée",
+    )
+
+SECTION23_TESTS += 1
+manifest = json.loads(Path("frontend/manifest.json").read_text(encoding="utf-8"))
+enregistrer_assertion(
+    "PWA — manifest valide",
+    manifest.get("name") == "FeedFormula AI" and manifest.get("start_url") == "/app/",
+    "Manifest incomplet ou start_url incorrect",
+)
+
+SECTION23_TESTS += 1
+vercel_config = json.loads(Path("vercel.json").read_text(encoding="utf-8"))
+routes = {
+    (route.get("src"), route.get("dest")) for route in vercel_config.get("routes", [])
+}
+enregistrer_assertion(
+    "Vercel — routes /app et /api présentes",
+    ("/app/(.*)", "/frontend/$1") in routes
+    and ("/api/(.*)", "/backend/main.py") in routes,
+    f"Routes trouvées: {routes}",
+)
+
+# ============================================================
+# SECTION 24 — LIENS, IMAGES ET SUPPORTS DE PRÉSENTATION
+# ============================================================
+
+section("24. LIENS, IMAGES ET SUPPORTS DE PRÉSENTATION")
+
+SECTION24_TESTS = 0
+supports = [
+    "docs/SCRIPT_PRESENTATION.md",
+    "docs/REPONSES_JURY.md",
+    "docs/CHECKLIST_DEMO.md",
+    "docs/RAPPORT_NUIT_JOUR8.md",
+    "assets/creer_video_demo_finale.py",
+    "README.md",
+]
+for support in supports:
+    SECTION24_TESTS += 1
+    enregistrer_assertion(
+        f"Support présentation — {support}",
+        Path(support).exists() and Path(support).stat().st_size > 500,
+        "Support absent ou trop court",
+    )
+
+liens_casses = []
+images_manquantes = []
+for page in Path("frontend").glob("*.html"):
+    contenu = page.read_text(encoding="utf-8")
+    for href in __import__("re").findall(r'href="([^"]+\.html)"', contenu):
+        cible = href.split("#", 1)[0].split("?", 1)[0]
+        cible_path = (
+            Path("frontend") / cible.replace("/app/", "")
+            if cible.startswith("/app/")
+            else page.parent / cible
+        )
+        if not cible_path.exists():
+            liens_casses.append(f"{page.name} → {href}")
+    for src in __import__("re").findall(r'src="([^"]+)"', contenu):
+        if src.startswith(("http://", "https://", "data:", "//")):
+            continue
+        cible_path = None
+        if src.startswith("../assets/"):
+            cible_path = (page.parent / src).resolve()
+        elif src.startswith("/assets/"):
+            cible_path = Path(src.lstrip("/"))
+        elif src.startswith("assets/"):
+            cible_path = page.parent / src
+        if cible_path and not cible_path.exists():
+            images_manquantes.append(f"{page.name} → {src}")
+
+SECTION24_TESTS += 1
+enregistrer_assertion(
+    "Liens HTML — aucun lien cassé", not liens_casses, "; ".join(liens_casses[:10])
+)
+SECTION24_TESTS += 1
+enregistrer_assertion(
+    "Images HTML — aucune image manquante",
+    not images_manquantes,
+    "; ".join(images_manquantes[:10]),
+)
 
 # ============================================================
 # GÉNÉRATION DU RAPPORT FINAL COMPLET
@@ -1550,6 +2020,12 @@ rapport_md = f"""# 🌾 RAPPORT TESTS AUTOMATIQUES COMPLET — FeedFormula AI
 | 16. Charge | 1 | - |
 | 17. Fichiers Frontend | {len(PAGES_FRONTEND) + len(FICHIERS_BACKEND) + len(FICHIERS_DATA)} | - |
 | 18. Intégrité JSON/Python | {len(FICHIERS_JSON) + len(FICHIERS_PYTHON)} | - |
+| 19. Investisseurs/Analytics | {SECTION19_TESTS} | - |
+| 20. Données démo offline | {SECTION20_TESTS} | - |
+| 21. Frontend flux utilisateur | {SECTION21_TESTS} | - |
+| 22. Gamification/animations | {SECTION22_TESTS} | - |
+| 23. PWA/SEO/Déploiement | {SECTION23_TESTS} | - |
+| 24. Liens/images/supports | {SECTION24_TESTS} | - |
 
 ## ❌ TESTS ÉCHOUÉS
 
