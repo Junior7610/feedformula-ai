@@ -1,11 +1,13 @@
-import requests
+import atexit
 import json
-import time
 import os
+import subprocess
 import sys
-import re
+import time
 from datetime import datetime
 from pathlib import Path
+
+import requests
 
 BASE_URL = "http://127.0.0.1:8000"
 RAPPORT = []
@@ -22,6 +24,16 @@ VIOLET = "\033[35m"
 RESET = "\033[0m"
 GRAS = "\033[1m"
 
+try:
+    stdout_reconfigure = getattr(sys.stdout, "reconfigure", None)
+    stderr_reconfigure = getattr(sys.stderr, "reconfigure", None)
+    if callable(stdout_reconfigure):
+        stdout_reconfigure(encoding="utf-8", errors="replace")
+    if callable(stderr_reconfigure):
+        stderr_reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
+
 
 def log(msg, niveau="INFO"):
     couleurs = {
@@ -35,25 +47,75 @@ def log(msg, niveau="INFO"):
 
 
 def titre(texte):
-    log(f"\n{'━'*65}", "TITRE")
+    log(f"\n{'━' * 65}", "TITRE")
     log(f"  {texte}", "TITRE")
-    log(f"{'━'*65}", "TITRE")
+    log(f"{'━' * 65}", "TITRE")
+
+
+_SERVER_PROCESS = None
+
+
+def serveur_disponible(timeout=2):
+    try:
+        r = requests.get(f"{BASE_URL}/sante", timeout=timeout)
+        return r.status_code == 200
+    except Exception:
+        return False
 
 
 def attendre_serveur(timeout=90):
     """Attend que le serveur local réponde sur /sante avant les tests."""
     debut = time.time()
     while time.time() - debut <= timeout:
-        try:
-            r = requests.get(f"{BASE_URL}/sante", timeout=3)
-            if r.status_code == 200:
-                log("✅ Serveur API détecté et prêt", "OK")
-                return True
-        except Exception:
-            pass
+        if serveur_disponible(timeout=3):
+            log("✅ Serveur API détecté et prêt", "OK")
+            return True
         time.sleep(1)
     log("❌ Serveur API non disponible après attente", "FAIL")
     return False
+
+
+def demarrer_serveur_si_necessaire():
+    """Démarre Uvicorn automatiquement si aucun serveur local ne répond."""
+    global _SERVER_PROCESS
+    if os.getenv("FEEDFORMULA_TEST_AUTO_START_SERVER", "1") not in {
+        "1",
+        "true",
+        "TRUE",
+        "yes",
+    }:
+        return
+    if serveur_disponible():
+        log("✅ Serveur déjà disponible", "OK")
+        return
+
+    log("⚠️ Serveur indisponible — démarrage automatique Uvicorn", "WARN")
+    env = os.environ.copy()
+    env.setdefault("APP_ENV", "test")
+    env.setdefault("AFRI_API_KEY", "")
+    _SERVER_PROCESS = subprocess.Popen(
+        [
+            sys.executable,
+            "-m",
+            "uvicorn",
+            "backend.main:app",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            "8000",
+            "--log-level",
+            "warning",
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        env=env,
+    )
+
+    def cleanup():
+        if _SERVER_PROCESS and _SERVER_PROCESS.poll() is None:
+            _SERVER_PROCESS.terminate()
+
+    atexit.register(cleanup)
 
 
 def tester_langue(
@@ -199,63 +261,526 @@ def tester_langue(
         return False, None
 
 
+demarrer_serveur_si_necessaire()
+
 if not attendre_serveur(timeout=90):
     with open("docs/RAPPORT_TESTS_MULTILINGUES_COMPLET.md", "w", encoding="utf-8") as f:
-        f.write("# Rapport tests multilingues\n\n❌ Serveur API indisponible sur http://127.0.0.1:8000\n")
+        f.write(
+            "# Rapport tests multilingues\n\n❌ Serveur API indisponible sur http://127.0.0.1:8000\n"
+        )
     sys.exit(1)
 
 LANGUES_50 = [
-    {"code": "fon", "nom": "Fon", "pays": "Bénin", "priorite": 1, "population_benin_pct": 39, "mots_test": ["kpakpa", "agbado", "nɔ", "ɖo"], "phrase_test": "Un ɖó kpakpa lɛ 50 e ɖó sɔ wɛkɛ atɔn", "salutation": "Axɔsu"},
-    {"code": "yor", "nom": "Yoruba", "pays": "Bénin/Nigeria", "priorite": 1, "population_benin_pct": 12, "mots_test": ["adiye", "agbado", "mo ni"], "phrase_test": "Mo ni adie 50 ti o ni ose meta", "salutation": "Ẹ káaro"},
-    {"code": "baa", "nom": "Baatonum", "pays": "Bénin", "priorite": 1, "population_benin_pct": 10, "mots_test": [], "phrase_test": "J ai 50 poulets de trois semaines", "salutation": "Bonjour en baatonum"},
-    {"code": "adj", "nom": "Adja", "pays": "Bénin", "priorite": 1, "population_benin_pct": 8, "mots_test": [], "phrase_test": "J ai 50 poulets nourris au maïs", "salutation": "Bonjour en adja"},
-    {"code": "gen", "nom": "Gen (Mina)", "pays": "Bénin/Togo", "priorite": 1, "population_benin_pct": 8, "mots_test": [], "phrase_test": "J ai des poulets et du maïs disponible", "salutation": "Bonjour en gen"},
-    {"code": "yom", "nom": "Yom", "pays": "Bénin", "priorite": 1, "population_benin_pct": 6, "mots_test": [], "phrase_test": "Mes poulets ont besoin d une ration", "salutation": "Bonjour en yom"},
-    {"code": "den", "nom": "Dendi", "pays": "Bénin Nord", "priorite": 1, "population_benin_pct": 5, "mots_test": [], "phrase_test": "J ai 50 poulets et du maïs", "salutation": "Bonjour en dendi"},
-    {"code": "fr", "nom": "Français", "pays": "Bénin/International", "priorite": 0, "population_benin_pct": 80, "mots_test": ["ration", "FCFA", "kg", "poulets"], "phrase_test": "J ai 50 poulets de chair de 3 semaines. J ai du maïs et du tourteau de soja.", "salutation": "Bonjour"},
-    {"code": "en", "nom": "Anglais", "pays": "International", "priorite": 0, "population_benin_pct": 15, "mots_test": ["ration", "FCFA", "kg", "feed"], "phrase_test": "I have 50 broiler chickens 3 weeks old. I have corn and soybean meal available.", "salutation": "Hello"},
-    {"code": "pt", "nom": "Portugais", "pays": "International", "priorite": 0, "population_benin_pct": 5, "mots_test": [], "phrase_test": "Tenho 50 frangos de corte com 3 semanas.", "salutation": "Olá"},
-    {"code": "ar", "nom": "Arabe", "pays": "Afrique du Nord", "priorite": 0, "population_benin_pct": 3, "mots_test": [], "phrase_test": "لدي 50 دجاجة عمرها 3 أسابيع", "salutation": "مرحبا"},
-    {"code": "hau", "nom": "Haoussa", "pays": "Niger/Nigeria", "priorite": 2, "population_benin_pct": 2, "mots_test": [], "phrase_test": "Ina da kaji 50 na makonni uku", "salutation": "Sannu"},
-    {"code": "ful", "nom": "Peul (Fulfulde)", "pays": "Afrique de l Ouest", "priorite": 2, "population_benin_pct": 3, "mots_test": [], "phrase_test": "Mi ina hannde gertooɗe 50", "salutation": "Jam waali"},
-    {"code": "ewe", "nom": "Ewe", "pays": "Togo/Ghana", "priorite": 2, "population_benin_pct": 2, "mots_test": [], "phrase_test": "Manye koklowo 50 wolea ɖa wɔ", "salutation": "Ŋdi"},
-    {"code": "aka", "nom": "Akan (Twi)", "pays": "Ghana", "priorite": 2, "population_benin_pct": 1, "mots_test": [], "phrase_test": "Me wɔ akokɔ 50 a wɔdi mfimfini", "salutation": "Maakye"},
-    {"code": "ibo", "nom": "Igbo", "pays": "Nigeria", "priorite": 2, "population_benin_pct": 1, "mots_test": [], "phrase_test": "Nwere m ọkụkọ iri ise nke izu atọ", "salutation": "Nnọọ"},
-    {"code": "wol", "nom": "Wolof", "pays": "Sénégal", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Am naa jën yi 50 ci aJanviye", "salutation": "Asalaa maalekum"},
-    {"code": "bam", "nom": "Bambara", "pays": "Mali", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "N be gwanfɛn 50 de la", "salutation": "I ni ce"},
-    {"code": "moore", "nom": "Mooré", "pays": "Burkina Faso", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Mam tõnd kõngo 50 wã", "salutation": "Laafi"},
-    {"code": "dyu", "nom": "Dioula", "pays": "Côte d Ivoire", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "N be sɔndan 50 le la", "salutation": "I ni ce"},
-    {"code": "kab", "nom": "Kabiyé", "pays": "Togo", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Mam kpɛntɛ 50 tɔ", "salutation": "Koɓa"},
-    {"code": "tem", "nom": "Tem (Kotokoli)", "pays": "Togo/Bénin", "priorite": 2, "population_benin_pct": 1, "mots_test": [], "phrase_test": "J ai des volailles qui ont besoin d aliment", "salutation": "Bonjour en tem"},
-    {"code": "kir", "nom": "Kirundi", "pays": "Burundi", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Mfise inkoko 50", "salutation": "Amahoro"},
-    {"code": "lin", "nom": "Lingala", "pays": "RDC/Congo", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Naza na banganga 50", "salutation": "Mbote"},
-    {"code": "kik", "nom": "Kikongo", "pays": "RDC/Congo/Angola", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Nzola nge nsuni 50", "salutation": "Mbote"},
-    {"code": "swa", "nom": "Swahili", "pays": "Afrique de l Est", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Nina kuku 50 wenye wiki tatu", "salutation": "Habari"},
-    {"code": "nya", "nom": "Chichewa", "pays": "Malawi/Zambie", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Ndiri ndi nkhuku 50", "salutation": "Moni"},
-    {"code": "orm", "nom": "Oromo", "pays": "Éthiopie", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Loon 50 qaba", "salutation": "Nagaatti"},
-    {"code": "amh", "nom": "Amharique", "pays": "Éthiopie", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "50 ዶሮዎች አሉኝ", "salutation": "ሰላም"},
-    {"code": "som", "nom": "Somali", "pays": "Somalie", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Waxaan hayaa 50 digaag", "salutation": "Nabad"},
-    {"code": "ber", "nom": "Tamazight (Berbère)", "pays": "Maroc/Algérie", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Lli d aɣyul 50 n tyezziwin", "salutation": "Azul"},
-    {"code": "zlm", "nom": "Darija (Arabe marocain)", "pays": "Maroc", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "عندي 50 دجاجة", "salutation": "السلام"},
-    {"code": "zul", "nom": "Zoulou", "pays": "Afrique du Sud", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Nginezinkukhu ezingama-50", "salutation": "Sawubona"},
-    {"code": "xho", "nom": "Xhosa", "pays": "Afrique du Sud", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Ndinamazantsi 50 eenkukhu", "salutation": "Molo"},
-    {"code": "sot", "nom": "Sesotho", "pays": "Lesotho/Afrique du Sud", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Ke na le likhoho tse 50", "salutation": "Lumela"},
-    {"code": "twe", "nom": "Twi", "pays": "Ghana", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Me wɔ akokɔ 50", "salutation": "Akwaaba"},
-    {"code": "kri", "nom": "Krio", "pays": "Sierra Leone", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "I get fowl 50 dem", "salutation": "Kusheh"},
-    {"code": "lug", "nom": "Luganda", "pays": "Ouganda", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Nfunze enkoko 50", "salutation": "Oli otya"},
-    {"code": "kin", "nom": "Kinyarwanda", "pays": "Rwanda", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Nfite inkoko 50", "salutation": "Muraho"},
-    {"code": "maa", "nom": "Maasai", "pays": "Kenya/Tanzanie", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Enkitok 50 nanu", "salutation": "Sopa"},
-    {"code": "san", "nom": "Sango", "pays": "RCA", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Mo nia koli 50", "salutation": "Bara"},
-    {"code": "tum", "nom": "Tumbuka", "pays": "Malawi", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Nili na nkhuku 50", "salutation": "Yewo"},
-    {"code": "loz", "nom": "Lozi", "pays": "Zambie", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Ni na likuku ze 50", "salutation": "Lumela"},
-    {"code": "ndz", "nom": "Ndebele", "pays": "Zimbabwe", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Nginezinkukhu ezingama 50", "salutation": "Sawubona"},
-    {"code": "she", "nom": "Shona", "pays": "Zimbabwe", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Ndine huku makumi mashanu", "salutation": "Mhoro"},
-    {"code": "mak", "nom": "Makonde", "pays": "Mozambique/Tanzanie", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Nili na kuku 50", "salutation": "Habari"},
-    {"code": "tsw", "nom": "Tswana", "pays": "Botswana", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Nna dikgogo di le 50", "salutation": "Dumela"},
-    {"code": "ven", "nom": "Venda", "pays": "Afrique du Sud", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Ndi na zwikhowo 50", "salutation": "Aa"},
-    {"code": "kon", "nom": "Kongo", "pays": "Angola/RDC", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Nzola nguba 50", "salutation": "Mbote"},
-    {"code": "gaa", "nom": "Ga", "pays": "Ghana", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "Mi gbɛ akrɔkrɔ 50", "salutation": "Ojekoo"},
-    {"code": "dag", "nom": "Dagbani", "pays": "Ghana Nord", "priorite": 2, "population_benin_pct": 0, "mots_test": [], "phrase_test": "N bia kpɛŋ 50", "salutation": "Despa"},
+    {
+        "code": "fon",
+        "nom": "Fon",
+        "pays": "Bénin",
+        "priorite": 1,
+        "population_benin_pct": 39,
+        "mots_test": ["kpakpa", "agbado", "nɔ", "ɖo"],
+        "phrase_test": "Un ɖó kpakpa lɛ 50 e ɖó sɔ wɛkɛ atɔn",
+        "salutation": "Axɔsu",
+    },
+    {
+        "code": "yor",
+        "nom": "Yoruba",
+        "pays": "Bénin/Nigeria",
+        "priorite": 1,
+        "population_benin_pct": 12,
+        "mots_test": ["adiye", "agbado", "mo ni"],
+        "phrase_test": "Mo ni adie 50 ti o ni ose meta",
+        "salutation": "Ẹ káaro",
+    },
+    {
+        "code": "baa",
+        "nom": "Baatonum",
+        "pays": "Bénin",
+        "priorite": 1,
+        "population_benin_pct": 10,
+        "mots_test": [],
+        "phrase_test": "J ai 50 poulets de trois semaines",
+        "salutation": "Bonjour en baatonum",
+    },
+    {
+        "code": "adj",
+        "nom": "Adja",
+        "pays": "Bénin",
+        "priorite": 1,
+        "population_benin_pct": 8,
+        "mots_test": [],
+        "phrase_test": "J ai 50 poulets nourris au maïs",
+        "salutation": "Bonjour en adja",
+    },
+    {
+        "code": "gen",
+        "nom": "Gen (Mina)",
+        "pays": "Bénin/Togo",
+        "priorite": 1,
+        "population_benin_pct": 8,
+        "mots_test": [],
+        "phrase_test": "J ai des poulets et du maïs disponible",
+        "salutation": "Bonjour en gen",
+    },
+    {
+        "code": "yom",
+        "nom": "Yom",
+        "pays": "Bénin",
+        "priorite": 1,
+        "population_benin_pct": 6,
+        "mots_test": [],
+        "phrase_test": "Mes poulets ont besoin d une ration",
+        "salutation": "Bonjour en yom",
+    },
+    {
+        "code": "den",
+        "nom": "Dendi",
+        "pays": "Bénin Nord",
+        "priorite": 1,
+        "population_benin_pct": 5,
+        "mots_test": [],
+        "phrase_test": "J ai 50 poulets et du maïs",
+        "salutation": "Bonjour en dendi",
+    },
+    {
+        "code": "fr",
+        "nom": "Français",
+        "pays": "Bénin/International",
+        "priorite": 0,
+        "population_benin_pct": 80,
+        "mots_test": ["ration", "FCFA", "kg", "poulets"],
+        "phrase_test": "J ai 50 poulets de chair de 3 semaines. J ai du maïs et du tourteau de soja.",
+        "salutation": "Bonjour",
+    },
+    {
+        "code": "en",
+        "nom": "Anglais",
+        "pays": "International",
+        "priorite": 0,
+        "population_benin_pct": 15,
+        "mots_test": ["ration", "FCFA", "kg", "feed"],
+        "phrase_test": "I have 50 broiler chickens 3 weeks old. I have corn and soybean meal available.",
+        "salutation": "Hello",
+    },
+    {
+        "code": "pt",
+        "nom": "Portugais",
+        "pays": "International",
+        "priorite": 0,
+        "population_benin_pct": 5,
+        "mots_test": [],
+        "phrase_test": "Tenho 50 frangos de corte com 3 semanas.",
+        "salutation": "Olá",
+    },
+    {
+        "code": "ar",
+        "nom": "Arabe",
+        "pays": "Afrique du Nord",
+        "priorite": 0,
+        "population_benin_pct": 3,
+        "mots_test": [],
+        "phrase_test": "لدي 50 دجاجة عمرها 3 أسابيع",
+        "salutation": "مرحبا",
+    },
+    {
+        "code": "hau",
+        "nom": "Haoussa",
+        "pays": "Niger/Nigeria",
+        "priorite": 2,
+        "population_benin_pct": 2,
+        "mots_test": [],
+        "phrase_test": "Ina da kaji 50 na makonni uku",
+        "salutation": "Sannu",
+    },
+    {
+        "code": "ful",
+        "nom": "Peul (Fulfulde)",
+        "pays": "Afrique de l Ouest",
+        "priorite": 2,
+        "population_benin_pct": 3,
+        "mots_test": [],
+        "phrase_test": "Mi ina hannde gertooɗe 50",
+        "salutation": "Jam waali",
+    },
+    {
+        "code": "ewe",
+        "nom": "Ewe",
+        "pays": "Togo/Ghana",
+        "priorite": 2,
+        "population_benin_pct": 2,
+        "mots_test": [],
+        "phrase_test": "Manye koklowo 50 wolea ɖa wɔ",
+        "salutation": "Ŋdi",
+    },
+    {
+        "code": "aka",
+        "nom": "Akan (Twi)",
+        "pays": "Ghana",
+        "priorite": 2,
+        "population_benin_pct": 1,
+        "mots_test": [],
+        "phrase_test": "Me wɔ akokɔ 50 a wɔdi mfimfini",
+        "salutation": "Maakye",
+    },
+    {
+        "code": "ibo",
+        "nom": "Igbo",
+        "pays": "Nigeria",
+        "priorite": 2,
+        "population_benin_pct": 1,
+        "mots_test": [],
+        "phrase_test": "Nwere m ọkụkọ iri ise nke izu atọ",
+        "salutation": "Nnọọ",
+    },
+    {
+        "code": "wol",
+        "nom": "Wolof",
+        "pays": "Sénégal",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Am naa jën yi 50 ci aJanviye",
+        "salutation": "Asalaa maalekum",
+    },
+    {
+        "code": "bam",
+        "nom": "Bambara",
+        "pays": "Mali",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "N be gwanfɛn 50 de la",
+        "salutation": "I ni ce",
+    },
+    {
+        "code": "moore",
+        "nom": "Mooré",
+        "pays": "Burkina Faso",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Mam tõnd kõngo 50 wã",
+        "salutation": "Laafi",
+    },
+    {
+        "code": "dyu",
+        "nom": "Dioula",
+        "pays": "Côte d Ivoire",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "N be sɔndan 50 le la",
+        "salutation": "I ni ce",
+    },
+    {
+        "code": "kab",
+        "nom": "Kabiyé",
+        "pays": "Togo",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Mam kpɛntɛ 50 tɔ",
+        "salutation": "Koɓa",
+    },
+    {
+        "code": "tem",
+        "nom": "Tem (Kotokoli)",
+        "pays": "Togo/Bénin",
+        "priorite": 2,
+        "population_benin_pct": 1,
+        "mots_test": [],
+        "phrase_test": "J ai des volailles qui ont besoin d aliment",
+        "salutation": "Bonjour en tem",
+    },
+    {
+        "code": "kir",
+        "nom": "Kirundi",
+        "pays": "Burundi",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Mfise inkoko 50",
+        "salutation": "Amahoro",
+    },
+    {
+        "code": "lin",
+        "nom": "Lingala",
+        "pays": "RDC/Congo",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Naza na banganga 50",
+        "salutation": "Mbote",
+    },
+    {
+        "code": "kik",
+        "nom": "Kikongo",
+        "pays": "RDC/Congo/Angola",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Nzola nge nsuni 50",
+        "salutation": "Mbote",
+    },
+    {
+        "code": "swa",
+        "nom": "Swahili",
+        "pays": "Afrique de l Est",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Nina kuku 50 wenye wiki tatu",
+        "salutation": "Habari",
+    },
+    {
+        "code": "nya",
+        "nom": "Chichewa",
+        "pays": "Malawi/Zambie",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Ndiri ndi nkhuku 50",
+        "salutation": "Moni",
+    },
+    {
+        "code": "orm",
+        "nom": "Oromo",
+        "pays": "Éthiopie",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Loon 50 qaba",
+        "salutation": "Nagaatti",
+    },
+    {
+        "code": "amh",
+        "nom": "Amharique",
+        "pays": "Éthiopie",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "50 ዶሮዎች አሉኝ",
+        "salutation": "ሰላም",
+    },
+    {
+        "code": "som",
+        "nom": "Somali",
+        "pays": "Somalie",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Waxaan hayaa 50 digaag",
+        "salutation": "Nabad",
+    },
+    {
+        "code": "ber",
+        "nom": "Tamazight (Berbère)",
+        "pays": "Maroc/Algérie",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Lli d aɣyul 50 n tyezziwin",
+        "salutation": "Azul",
+    },
+    {
+        "code": "zlm",
+        "nom": "Darija (Arabe marocain)",
+        "pays": "Maroc",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "عندي 50 دجاجة",
+        "salutation": "السلام",
+    },
+    {
+        "code": "zul",
+        "nom": "Zoulou",
+        "pays": "Afrique du Sud",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Nginezinkukhu ezingama-50",
+        "salutation": "Sawubona",
+    },
+    {
+        "code": "xho",
+        "nom": "Xhosa",
+        "pays": "Afrique du Sud",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Ndinamazantsi 50 eenkukhu",
+        "salutation": "Molo",
+    },
+    {
+        "code": "sot",
+        "nom": "Sesotho",
+        "pays": "Lesotho/Afrique du Sud",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Ke na le likhoho tse 50",
+        "salutation": "Lumela",
+    },
+    {
+        "code": "twe",
+        "nom": "Twi",
+        "pays": "Ghana",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Me wɔ akokɔ 50",
+        "salutation": "Akwaaba",
+    },
+    {
+        "code": "kri",
+        "nom": "Krio",
+        "pays": "Sierra Leone",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "I get fowl 50 dem",
+        "salutation": "Kusheh",
+    },
+    {
+        "code": "lug",
+        "nom": "Luganda",
+        "pays": "Ouganda",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Nfunze enkoko 50",
+        "salutation": "Oli otya",
+    },
+    {
+        "code": "kin",
+        "nom": "Kinyarwanda",
+        "pays": "Rwanda",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Nfite inkoko 50",
+        "salutation": "Muraho",
+    },
+    {
+        "code": "maa",
+        "nom": "Maasai",
+        "pays": "Kenya/Tanzanie",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Enkitok 50 nanu",
+        "salutation": "Sopa",
+    },
+    {
+        "code": "san",
+        "nom": "Sango",
+        "pays": "RCA",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Mo nia koli 50",
+        "salutation": "Bara",
+    },
+    {
+        "code": "tum",
+        "nom": "Tumbuka",
+        "pays": "Malawi",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Nili na nkhuku 50",
+        "salutation": "Yewo",
+    },
+    {
+        "code": "loz",
+        "nom": "Lozi",
+        "pays": "Zambie",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Ni na likuku ze 50",
+        "salutation": "Lumela",
+    },
+    {
+        "code": "ndz",
+        "nom": "Ndebele",
+        "pays": "Zimbabwe",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Nginezinkukhu ezingama 50",
+        "salutation": "Sawubona",
+    },
+    {
+        "code": "she",
+        "nom": "Shona",
+        "pays": "Zimbabwe",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Ndine huku makumi mashanu",
+        "salutation": "Mhoro",
+    },
+    {
+        "code": "mak",
+        "nom": "Makonde",
+        "pays": "Mozambique/Tanzanie",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Nili na kuku 50",
+        "salutation": "Habari",
+    },
+    {
+        "code": "tsw",
+        "nom": "Tswana",
+        "pays": "Botswana",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Nna dikgogo di le 50",
+        "salutation": "Dumela",
+    },
+    {
+        "code": "ven",
+        "nom": "Venda",
+        "pays": "Afrique du Sud",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Ndi na zwikhowo 50",
+        "salutation": "Aa",
+    },
+    {
+        "code": "kon",
+        "nom": "Kongo",
+        "pays": "Angola/RDC",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Nzola nguba 50",
+        "salutation": "Mbote",
+    },
+    {
+        "code": "gaa",
+        "nom": "Ga",
+        "pays": "Ghana",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "Mi gbɛ akrɔkrɔ 50",
+        "salutation": "Ojekoo",
+    },
+    {
+        "code": "dag",
+        "nom": "Dagbani",
+        "pays": "Ghana Nord",
+        "priorite": 2,
+        "population_benin_pct": 0,
+        "mots_test": [],
+        "phrase_test": "N bia kpɛŋ 50",
+        "salutation": "Despa",
+    },
 ]
 
 
@@ -408,7 +933,9 @@ for langue in LANGUES_50:
 
 titre("3. SYNTHÈSE VOCALE TTS — LES 50 LANGUES")
 
-TEXTE_TTS_BASE = "Voici votre ration optimale. Maïs 74 kilogrammes. Coût total 13 000 francs CFA."
+TEXTE_TTS_BASE = (
+    "Voici votre ration optimale. Maïs 74 kilogrammes. Coût total 13 000 francs CFA."
+)
 
 for langue in LANGUES_50:
     tester_langue(
@@ -474,7 +1001,14 @@ SYMPTOMES_PAR_LANGUE = {
 }
 
 for code, symptomes in SYMPTOMES_PAR_LANGUE.items():
-    nom_langue = next((l["nom"] for l in LANGUES_50 if l["code"] == code), code)
+    nom_langue = next(
+        (
+            langue_info["nom"]
+            for langue_info in LANGUES_50
+            if langue_info["code"] == code
+        ),
+        code,
+    )
     tester_langue(
         nom=f"VetScan — Diagnostic en {nom_langue}",
         methode="POST",
@@ -508,7 +1042,14 @@ EVENEMENTS_MULTILINGUES = [
 ]
 
 for code, texte in EVENEMENTS_MULTILINGUES:
-    nom_langue = next((l["nom"] for l in LANGUES_50 if l["code"] == code), code)
+    nom_langue = next(
+        (
+            langue_info["nom"]
+            for langue_info in LANGUES_50
+            if langue_info["code"] == code
+        ),
+        code,
+    )
     payload_evt = {"texte": texte, "user_id": "test_multilang", "langue": code}
     ok_evt, data_evt = tester_langue(
         nom=f"FarmManager — Événement en {nom_langue}",
@@ -546,7 +1087,14 @@ if data:
     messages_data = json.dumps(data)
     for code in ["fr", "fon", "yor", "den", "adj", "gen", "yom", "baa", "en"]:
         TOTAL += 1
-        nom_langue = next((l["nom"] for l in LANGUES_50 if l["code"] == code), code)
+        nom_langue = next(
+            (
+                langue_info["nom"]
+                for langue_info in LANGUES_50
+                if langue_info["code"] == code
+            ),
+            code,
+        )
         if code in messages_data:
             PASSES += 1
             log(f"✅ Aya — Messages en {nom_langue} présents", "OK")
@@ -571,7 +1119,14 @@ LABELS_ATTENDUS = [
 ]
 
 for code in ["fr", "fon", "yor", "den", "en"]:
-    nom_langue = next((l["nom"] for l in LANGUES_50 if l["code"] == code), code)
+    nom_langue = next(
+        (
+            langue_info["nom"]
+            for langue_info in LANGUES_50
+            if langue_info["code"] == code
+        ),
+        code,
+    )
     ok, data = tester_langue(
         nom=f"Interface — Labels traduits en {nom_langue}",
         methode="GET",
@@ -582,7 +1137,9 @@ for code in ["fr", "fon", "yor", "den", "en"]:
 
     if data:
         TOTAL += 1
-        labels_presents = sum(1 for label in LABELS_ATTENDUS if label in json.dumps(data))
+        labels_presents = sum(
+            1 for label in LABELS_ATTENDUS if label in json.dumps(data)
+        )
         if labels_presents >= 8:
             PASSES += 1
             log(f"✅ Interface — {labels_presents}/10 labels en {nom_langue}", "OK")
@@ -594,14 +1151,42 @@ for code in ["fr", "fon", "yor", "den", "en"]:
 titre("9. DÉTECTION AUTOMATIQUE DE LANGUE")
 
 TEXTES_DETECTION = [
-    {"texte": "J ai du maïs et du soja pour mes poulets", "langue_attendue": "fr", "nom": "Texte français"},
-    {"texte": "Un ɖó kpakpa lɛ 50 e ɖó sɔ atɔn", "langue_attendue": "fon", "nom": "Texte fon"},
-    {"texte": "Mo ni adie 50 ti ọsẹ mẹta", "langue_attendue": "yor", "nom": "Texte yoruba"},
-    {"texte": "I have 50 broiler chickens three weeks old", "langue_attendue": "en", "nom": "Texte anglais"},
+    {
+        "texte": "J ai du maïs et du soja pour mes poulets",
+        "langue_attendue": "fr",
+        "nom": "Texte français",
+    },
+    {
+        "texte": "Un ɖó kpakpa lɛ 50 e ɖó sɔ atɔn",
+        "langue_attendue": "fon",
+        "nom": "Texte fon",
+    },
+    {
+        "texte": "Mo ni adie 50 ti ọsẹ mẹta",
+        "langue_attendue": "yor",
+        "nom": "Texte yoruba",
+    },
+    {
+        "texte": "I have 50 broiler chickens three weeks old",
+        "langue_attendue": "en",
+        "nom": "Texte anglais",
+    },
     {"texte": "Na kula kaji 50", "langue_attendue": "hau", "nom": "Texte haoussa"},
-    {"texte": "Nina kuku 50 wenye wiki tatu", "langue_attendue": "swa", "nom": "Texte swahili"},
-    {"texte": "Tenho 50 frangos de corte", "langue_attendue": "pt", "nom": "Texte portugais"},
-    {"texte": "لدي 50 دجاجة عمرها 3 أسابيع", "langue_attendue": "ar", "nom": "Texte arabe"},
+    {
+        "texte": "Nina kuku 50 wenye wiki tatu",
+        "langue_attendue": "swa",
+        "nom": "Texte swahili",
+    },
+    {
+        "texte": "Tenho 50 frangos de corte",
+        "langue_attendue": "pt",
+        "nom": "Texte portugais",
+    },
+    {
+        "texte": "لدي 50 دجاجة عمرها 3 أسابيع",
+        "langue_attendue": "ar",
+        "nom": "Texte arabe",
+    },
 ]
 
 for test in TEXTES_DETECTION:
@@ -657,8 +1242,16 @@ PHRASES_LOCALES = [
         "nom": "Dendi — Demande simple",
         "phrase": "J ai du maïs et du soja. 50 poulets de 3 semaines. Donnez-moi la meilleure ration.",
     },
-    {"langue": "hau", "nom": "Haoussa — Demande", "phrase": "Ina da masara da wake. Ina da kaji 50 na makonni uku."},
-    {"langue": "swa", "nom": "Swahili — Demande", "phrase": "Nina mahindi na soya. Nina kuku 50 wenye wiki tatu."},
+    {
+        "langue": "hau",
+        "nom": "Haoussa — Demande",
+        "phrase": "Ina da masara da wake. Ina da kaji 50 na makonni uku.",
+    },
+    {
+        "langue": "swa",
+        "nom": "Swahili — Demande",
+        "phrase": "Nina mahindi na soya. Nina kuku 50 wenye wiki tatu.",
+    },
     {
         "langue": "ful",
         "nom": "Peul — Demande",
@@ -742,10 +1335,16 @@ for code, nom, mots_attendus in LANGUES_COHERENCE:
         TOTAL += 1
         if len(ration) >= 200:
             PASSES += 1
-            log(f"✅ Cohérence {nom} — Réponse substantielle ({len(ration)} chars)", "OK")
+            log(
+                f"✅ Cohérence {nom} — Réponse substantielle ({len(ration)} chars)",
+                "OK",
+            )
         else:
             ECHOUES += 1
-            log(f"❌ Cohérence {nom} — Réponse trop courte ({len(ration)} chars)", "FAIL")
+            log(
+                f"❌ Cohérence {nom} — Réponse trop courte ({len(ration)} chars)",
+                "FAIL",
+            )
 
 
 titre("12. AUDIO DEMO — TOUTES LES LANGUES SUPPORTÉES")
@@ -769,7 +1368,14 @@ LANGUES_DEMO_AUDIO = [
 ]
 
 for code in LANGUES_DEMO_AUDIO:
-    nom_langue = next((l["nom"] for l in LANGUES_50 if l["code"] == code), code)
+    nom_langue = next(
+        (
+            langue_info["nom"]
+            for langue_info in LANGUES_50
+            if langue_info["code"] == code
+        ),
+        code,
+    )
     tester_langue(
         nom=f"Demo Audio — {nom_langue} ({code})",
         methode="GET",
@@ -849,10 +1455,22 @@ else:
 titre("14. LANGUE_DETECTOR — TEST EN PROFONDEUR")
 
 TESTS_DETECTION_DIRECTE = [
-    {"texte": "J ai du maïs pour mes poulets", "attendu": "fr", "nom": "Détection directe français"},
+    {
+        "texte": "J ai du maïs pour mes poulets",
+        "attendu": "fr",
+        "nom": "Détection directe français",
+    },
     {"texte": "Un ɖó agbado kpo", "attendu": "fon", "nom": "Détection directe fon"},
-    {"texte": "Mo ni agbado ati soya", "attendu": "yor", "nom": "Détection directe yoruba"},
-    {"texte": "I have corn and soybeans", "attendu": "en", "nom": "Détection directe anglais"},
+    {
+        "texte": "Mo ni agbado ati soya",
+        "attendu": "yor",
+        "nom": "Détection directe yoruba",
+    },
+    {
+        "texte": "I have corn and soybeans",
+        "attendu": "en",
+        "nom": "Détection directe anglais",
+    },
     {"texte": "Ina da masara", "attendu": "hau", "nom": "Détection directe haoussa"},
     {"texte": "Nina mahindi", "attendu": "swa", "nom": "Détection directe swahili"},
 ]
@@ -863,6 +1481,8 @@ if p.exists():
         import importlib.util
 
         spec = importlib.util.spec_from_file_location("langue_detector", str(p))
+        if spec is None or spec.loader is None:
+            raise RuntimeError("Impossible de charger le module langue_detector")
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
 
@@ -958,13 +1578,13 @@ titre("RAPPORT FINAL — TESTS MULTILINGUES")
 duree = round((datetime.now() - DEBUT).total_seconds(), 1)
 taux = round(PASSES / TOTAL * 100, 1) if TOTAL > 0 else 0
 
-print(f"\n{VIOLET+GRAS}{'='*65}{RESET}")
-print(f"{VIOLET+GRAS}  RÉSULTATS TESTS MULTILINGUES — FEEDFORMULA AI{RESET}")
-print(f"{VIOLET+GRAS}{'='*65}{RESET}")
+print(f"\n{VIOLET + GRAS}{'=' * 65}{RESET}")
+print(f"{VIOLET + GRAS}  RÉSULTATS TESTS MULTILINGUES — FEEDFORMULA AI{RESET}")
+print(f"{VIOLET + GRAS}{'=' * 65}{RESET}")
 print(f"{CYAN}  Total tests      : {TOTAL}{RESET}")
 print(f"{VERT}  Tests passés     : {PASSES}{RESET}")
 print(f"{ROUGE}  Tests échoués    : {ECHOUES}{RESET}")
-print(f"{''+VERT if taux >= 95 else ROUGE}  Taux réussite   : {taux}%{RESET}")
+print(f"{'' + VERT if taux >= 95 else ROUGE}  Taux réussite   : {taux}%{RESET}")
 print(f"{CYAN}  Durée totale     : {duree}s{RESET}")
 
 print(f"\n{CYAN}RÉSULTATS LANGUES BÉNINOISES (Priorité 1):{RESET}")
@@ -976,7 +1596,7 @@ for code in ["fr", "fon", "yor", "baa", "adj", "gen", "yom", "den"]:
 
 rapport_md = f"""# 🌍 RAPPORT TESTS MULTILINGUES — FeedFormula AI
 
-**Date :** {datetime.now().strftime('%d/%m/%Y à %H:%M')}
+**Date :** {datetime.now().strftime("%d/%m/%Y à %H:%M")}
 **Durée :** {duree}s
 
 ## 📊 RÉSULTATS GLOBAUX
@@ -1000,9 +1620,7 @@ for langue in LANGUES_50:
     if langue["priorite"] == 1 or langue["code"] in ["fr", "en"]:
         res = RESULTATS_LANGUES.get(langue["code"], {})
         status = "✅" if res.get("ok") else "❌"
-        rapport_md += (
-            f"| {langue['nom']} | `{langue['code']}` | {langue['population_benin_pct']}% | {status} | - | {status} |\n"
-        )
+        rapport_md += f"| {langue['nom']} | `{langue['code']}` | {langue['population_benin_pct']}% | {status} | - | {status} |\n"
 
 rapport_md += "\n### Autres Langues Africaines (Priorité 2)\n\n"
 rapport_md += "| Langue | Code | Pays | Statut |\n"
@@ -1012,7 +1630,9 @@ for langue in LANGUES_50:
     if langue["priorite"] == 2:
         res = RESULTATS_LANGUES.get(langue["code"], {})
         status = "✅" if res.get("ok") else "⚠️"
-        rapport_md += f"| {langue['nom']} | `{langue['code']}` | {langue['pays']} | {status} |\n"
+        rapport_md += (
+            f"| {langue['nom']} | `{langue['code']}` | {langue['pays']} | {status} |\n"
+        )
 
 rapport_md += "\n## ❌ TESTS ÉCHOUÉS\n\n"
 echoues = [r for r in RAPPORT if r.get("statut") == "FAIL"]
@@ -1047,7 +1667,7 @@ if taux < 95:
    api_afri_supporte: true.
 """
 
-rapport_md += f"""
+rapport_md += """
 ---
 *Tests Multilingues V1 | FeedFormula AI*
 *Leonel TOGBE — Technicien Agricole 🇧🇯*
