@@ -200,36 +200,53 @@ def _build_openai_client() -> Optional[Any]:
 
 
 def _default_protocol_for_species(espece: str) -> List[str]:
-    """Retourne un protocole de soins générique selon l'espèce."""
+    """Retourne un protocole de premiers gestes prudent et exploitable terrain."""
     s = _normalize_text(espece)
-    if "poulet" in s or "volaille" in s:
+    if "poulet" in s or "volaille" in s or "pintade" in s:
         return [
-            "Isoler immédiatement les sujets atteints.",
-            "Fournir de l'eau propre et un aliment facile à consommer.",
-            "Désinfecter le matériel et surveiller l'évolution deux fois par jour.",
+            "Isoler immédiatement les sujets atteints dans une cage propre et ventilée.",
+            "Retirer les cadavres, les fientes très humides et les aliments souillés pour limiter la propagation.",
+            "Fournir de l'eau propre avec électrolytes/vitamines si disponibles et un aliment facile à consommer.",
+            "Désinfecter abreuvoirs, mangeoires et chaussures à l'entrée du poulailler.",
+            "Noter le nombre de sujets malades/morts matin et soir ; appeler un vétérinaire si la mortalité augmente.",
         ]
-    if "vache" in s or "bovin" in s:
+    if "vache" in s or "bovin" in s or "zebu" in s:
         return [
-            "Mettre l'animal à l'ombre et vérifier l'hydratation.",
-            "Contrôler la température, l'appétit et la rumination.",
-            "Contacter un vétérinaire si les signes persistent ou s'aggravent.",
+            "Mettre l'animal à l'ombre, au calme, avec accès immédiat à de l'eau propre.",
+            "Contrôler température, appétit, rumination, respiration, aspect du lait et état des muqueuses.",
+            "Séparer l'animal si fièvre, diarrhée, écoulement, boiterie sévère ou suspicion contagieuse.",
+            "Éviter tout traitement injectable sans avis vétérinaire ; préparer poids, âge et symptômes.",
+            "Contacter un vétérinaire si fièvre, chute de lait, abattement marqué ou aggravation en 12 heures.",
         ]
     if "chevre" in s or "chèvre" in s or "mouton" in s:
         return [
-            "Isoler l'animal et nettoyer l'enclos.",
-            "Vérifier la qualité de l'eau, des fourrages et de la litière.",
-            "Observer les selles, la locomotion et l'appétit pendant 24 h.",
+            "Isoler l'animal et placer de l'eau propre, du fourrage sain et de la litière sèche.",
+            "Observer selles, respiration, boiterie, appétit et couleur des paupières pour détecter anémie ou parasites.",
+            "Nettoyer l'enclos et éviter le pâturage humide si diarrhée ou suspicion parasitaire.",
+            "Noter le poids approximatif avant tout antiparasitaire afin d'éviter sous-dosage ou surdosage.",
+            "Appeler un vétérinaire si l'animal ne se lève pas, respire mal, a du sang dans les selles ou avorte.",
         ]
     if "porc" in s:
         return [
-            "Séparer l'animal malade des autres porcs.",
-            "Maintenir une litière sèche et une eau propre.",
-            "Surveiller la température et la respiration.",
+            "Séparer l'animal malade et limiter strictement les déplacements entre cases.",
+            "Vérifier température, respiration, appétit, couleur de peau et présence de taches rouges.",
+            "Maintenir sol sec, eau propre et retirer les restes d'aliment fermenté.",
+            "Désinfecter bottes, mains et matériel ; ne pas vendre ni déplacer les porcs suspects.",
+            "En cas de forte fièvre ou mortalité rapide, alerter immédiatement les services vétérinaires.",
+        ]
+    if "tilapia" in s or "poisson" in s:
+        return [
+            "Réduire temporairement l'aliment si les poissons mangent peu.",
+            "Vérifier oxygène, couleur/odeur de l'eau, mortalité en surface et fonctionnement de l'aération.",
+            "Retirer rapidement les poissons morts et éviter de transférer l'eau ou les alevins vers d'autres bassins.",
+            "Renouveler partiellement l'eau si elle sent mauvais ou devient très trouble.",
+            "Contacter un spécialiste aquacole si mortalité répétée, nage anormale ou lésions visibles.",
         ]
     return [
-        "Isoler l'animal dans un espace calme.",
-        "Lui donner de l'eau propre et un abri ventilé.",
-        "Surveiller l'évolution toutes les 6 à 12 heures.",
+        "Isoler l'animal dans un espace calme, ventilé et facile à nettoyer.",
+        "Lui donner de l'eau propre, un aliment sain et noter précisément les symptômes observés.",
+        "Surveiller l'évolution toutes les 6 à 12 heures et éviter les mélanges avec le reste du troupeau.",
+        "Préparer âge, poids approximatif, alimentation récente et date de début des signes pour le vétérinaire.",
     ]
 
 
@@ -326,6 +343,20 @@ def _fallback_diagnostic(espece: str, symptomes: str, langue: str) -> Dict[str, 
         if s in txt
     ]
 
+    signes_urgence = [
+        "respiration difficile",
+        "sang dans les selles ou les sécrétions",
+        "animal couché ou incapable de se lever",
+        "mortalité rapide ou plusieurs animaux touchés",
+        "fièvre élevée ou abattement marqué",
+    ]
+    conduite_terrain = [
+        "Comparer les signes sur 2 ou 3 animaux avant de conclure.",
+        "Noter l'heure d'apparition, les aliments distribués et les traitements déjà donnés.",
+        "Prendre une photo nette des lésions ou fientes pour le vétérinaire.",
+        "Ne pas mélanger les animaux suspects avec le lot sain.",
+    ]
+
     return {
         "diagnostic_1": {
             "nom": diagnostics[0][0],
@@ -353,6 +384,15 @@ def _fallback_diagnostic(espece: str, symptomes: str, langue: str) -> Dict[str, 
             if not urgent
             else "Isolez les animaux malades, limitez les contacts et consultez rapidement pour éviter la propagation."
         ),
+        "niveau_confiance": "élevé" if urgent else "modéré",
+        "signes_urgence": signes_urgence,
+        "conduite_terrain": conduite_terrain,
+        "quand_appeler_veterinaire": (
+            "Immédiatement : signes graves ou propagation rapide."
+            if urgent
+            else "Sous 24 à 48 h si les signes persistent, s'étendent ou si l'animal refuse de manger."
+        ),
+        "limites": "Analyse indicative : seul un vétérinaire peut confirmer le diagnostic et prescrire un traitement.",
         "langue": langue,
         "espece": espece,
         "mode": "fallback_local",
@@ -645,15 +685,25 @@ class VetScanService:
             return _normalize_ai_payload(payload, espece, langue)
 
         except AuthenticationError:
-            return _fallback_diagnostic(espece, "Photo analysée en mode secours.", langue)
+            return _fallback_diagnostic(
+                espece, "Photo analysée en mode secours.", langue
+            )
         except APITimeoutError:
-            return _fallback_diagnostic(espece, "Photo analysée en mode secours.", langue)
+            return _fallback_diagnostic(
+                espece, "Photo analysée en mode secours.", langue
+            )
         except APIConnectionError:
-            return _fallback_diagnostic(espece, "Photo analysée en mode secours.", langue)
+            return _fallback_diagnostic(
+                espece, "Photo analysée en mode secours.", langue
+            )
         except OpenAIError:
-            return _fallback_diagnostic(espece, "Photo analysée en mode secours.", langue)
+            return _fallback_diagnostic(
+                espece, "Photo analysée en mode secours.", langue
+            )
         except Exception:
-            return _fallback_diagnostic(espece, "Photo analysée en mode secours.", langue)
+            return _fallback_diagnostic(
+                espece, "Photo analysée en mode secours.", langue
+            )
 
     def trouver_veterinaire_proche(
         self, latitude: float, longitude: float

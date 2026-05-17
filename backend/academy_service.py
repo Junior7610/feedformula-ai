@@ -358,22 +358,41 @@ async def _generate_gpt_content(
 def _fallback_content(
     formation: Dict[str, Any], lecon: Dict[str, Any], langue: str
 ) -> str:
+    actions_terrain = [
+        "Observer la situation réelle de la ferme avant d'agir.",
+        "Noter une donnée simple aujourd'hui : quantité, coût, poids, ponte, lait ou mortalité.",
+        "Comparer cette donnée dans 7 jours pour voir si la pratique améliore réellement le résultat.",
+        "Demander l'avis d'un technicien si la santé ou la reproduction est en jeu.",
+    ]
+    erreurs = [
+        "Copier une pratique d'une autre ferme sans adapter aux prix, races et bâtiments locaux.",
+        "Changer toute la conduite d'un coup sans période d'observation.",
+        "Oublier de mesurer le coût réel : aliment, médicaments, pertes et main-d'œuvre.",
+    ]
+    mini_plan = [
+        "Jour 1 : appliquer une seule action prioritaire.",
+        "Jour 3 : vérifier les premiers signes d'amélioration ou d'alerte.",
+        "Jour 7 : décider de maintenir, corriger ou demander un appui technique.",
+    ]
     base = (
         f"{lecon['titre']} — {formation['titre']}\n\n"
-        f"Objectif de la leçon: {lecon['objectif']}\n\n"
-        "Aya vous explique pas à pas. Commencez par observer la réalité de votre ferme, "
-        "puis appliquez une petite action concrète aujourd'hui. Quand vous notez vos résultats, "
-        "vous prenez de meilleures décisions et vous progressez plus vite.\n\n"
-        f"Exemple terrain: un éleveur béninois ajuste ses pratiques selon les observations du jour, "
-        f"les prix du marché et l'état de santé de son troupeau.\n\n"
-        f"Rappel important: {lecon['objectif']}."
+        f"Objectif de la leçon : {lecon['objectif']}\n\n"
+        "Pourquoi c'est important : une bonne décision d'élevage doit être simple, mesurable et adaptée au terrain. "
+        "Aya vous guide pour transformer l'observation quotidienne en action rentable.\n\n"
+        "Exemple béninois : un éleveur compare le prix du maïs, l'état de ses animaux et les résultats de la semaine "
+        "avant de modifier sa ration, son calendrier sanitaire ou son plan de reproduction.\n\n"
+        "Actions terrain immédiates :\n- " + "\n- ".join(actions_terrain) + "\n\n"
+        "Erreurs à éviter :\n- " + "\n- ".join(erreurs) + "\n\n"
+        "Mini-plan 7 jours :\n- " + "\n- ".join(mini_plan) + "\n\n"
+        f"Rappel important : {lecon['objectif']}."
     )
     if langue.lower().startswith("fr"):
         return base
     return (
         f"{lecon['titre']} - {formation['titre']}\n\n"
-        "Start with simple observations, apply one useful action today, and note the result. "
-        "This habit improves your farm decisions over time.\n\n"
+        "Why it matters: a strong farm decision must be simple, measurable and adapted to local prices, animal stage and health status.\n\n"
+        "Field action: observe one problem, apply one practical action today, write down the result, then compare again in 7 days.\n\n"
+        "Avoid copying another farm blindly. Adapt to your feed prices, climate, breed, housing and veterinary reality.\n\n"
         f"Key reminder: {lecon['objectif']}"
     )
 
@@ -429,7 +448,7 @@ def _build_quiz(
                 "question": f"Question {i + 1} sur {theme} : quelle est la meilleure pratique ?",
                 "choix": choices,
                 "bonne_reponse": correct,
-                "explication": "Aya recommande une approche simple, régulière et adaptée au terrain.",
+                "explication": "Aya recommande une pratique mesurable, adaptée aux prix locaux, à l'état des animaux et aux moyens réels de la ferme.",
                 "points_gagnes": POINTS_PAR_BONNE_REPONSE,
                 "langue": langue,
             }

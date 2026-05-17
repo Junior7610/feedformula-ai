@@ -118,6 +118,43 @@ def _build_whatsapp_url(message: str) -> str:
     return f"https://wa.me/?text={_whatsapp_text(message)}"
 
 
+def _repro_expert_notes(espece: str, type_evenement: str) -> List[str]:
+    """Conseils terrain courts pour rendre ReproTrack actionnable."""
+    espece_norm = _species_key(espece)
+    type_norm = _clean_text(type_evenement).lower()
+    notes = [
+        "Vérifiez l'identification de l'animal et notez l'événement le jour même.",
+        "Surveillez l'appétit, le comportement et tout écoulement anormal pendant 48 h.",
+    ]
+    if type_norm in {"saillie", "insemination", "insémination"}:
+        notes.extend(
+            [
+                "Recontrôlez les chaleurs au cycle suivant pour détecter un éventuel retour.",
+                "Évitez le stress, les longs déplacements et les changements brusques de ration après la saillie.",
+            ]
+        )
+    if type_norm in {"mise-bas", "mise bas", "misebas", "velage", "vêlage"}:
+        notes.extend(
+            [
+                "Vérifiez que le nouveau-né respire, tète rapidement et reste au sec.",
+                "Contrôlez la mère: délivrance, appétit, température et absence d'écoulement malodorant.",
+            ]
+        )
+    if "vache" in espece_norm or "bovin" in espece_norm:
+        notes.append(
+            "Pour les bovins, confirmez la gestation avec un technicien si possible entre 45 et 90 jours."
+        )
+    elif "chevre" in espece_norm or "mouton" in espece_norm:
+        notes.append(
+            "Pour petits ruminants, améliorez minéraux et fourrages avant la reproduction pour limiter les pertes."
+        )
+    elif "porc" in espece_norm:
+        notes.append(
+            "Pour les truies, préparez une case propre et sèche avant la mise-bas prévue."
+        )
+    return notes[:5]
+
+
 # -----------------------------------------------------------------------------
 # Service métier
 # -----------------------------------------------------------------------------
@@ -535,6 +572,15 @@ def enregistrer_evenement(
 
         return {
             "message": "Événement enregistré avec succès.",
+            "conseils_experts": _repro_expert_notes(
+                str(evenement.espece), str(evenement.type_evenement)
+            ),
+            "prochaine_action": (
+                "Surveiller un retour en chaleur au prochain cycle."
+                if _clean_text(evenement.type_evenement).lower()
+                in {"saillie", "insemination", "insémination"}
+                else "Mettre à jour l'état de l'animal après observation."
+            ),
             "evenement": {
                 "id": evenement.id,
                 "user_id": evenement.user_id,
@@ -624,6 +670,17 @@ def get_stats(user_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
 
         return {
             "user_id": user_id,
+            "interpretation_experte": (
+                "Historique encore limité: continuez à enregistrer chaleurs, saillies et mises-bas pour fiabiliser les statistiques."
+                if len(evenements) < 5
+                else "Données suffisantes pour commencer à piloter la reproduction par indicateurs."
+            ),
+            "recommandations": [
+                "Enregistrez systématiquement les chaleurs observées, même sans saillie.",
+                "Contrôlez les retours en chaleur 18 à 24 jours après saillie selon l'espèce.",
+                "Préparez la mise-bas au moins 7 jours avant la date prévue.",
+                "Analysez les échecs: retour en chaleur, avortement, alimentation, parasitisme et stress thermique.",
+            ],
             "taux_gestation_global": taux.get("taux_gestation", 0.0),
             "confiance_calcul": taux.get("confiance", 0.0),
             "total_evenements": taux.get("total_evenements", len(evenements)),

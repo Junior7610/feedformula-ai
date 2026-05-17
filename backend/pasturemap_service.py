@@ -153,40 +153,46 @@ def _rotation_recommendations(
 
     if surpaturage:
         recommandations.append(
-            "La charge animale est trop élevée : réduisez le nombre d'animaux ou augmentez la surface disponible."
+            "La charge animale est trop élevée : réduisez le nombre d'animaux, augmentez la surface ou complémentez au râtelier pendant la période critique."
+        )
+        recommandations.append(
+            "Mettez immédiatement en repos les zones dénudées pour éviter érosion, parasites et baisse de repousse."
         )
     else:
         recommandations.append(
-            "La charge actuelle semble acceptable, mais surveillez régulièrement la hauteur d'herbe."
+            "La charge actuelle semble acceptable : mesurez chaque semaine la hauteur d'herbe et l'état corporel des animaux."
         )
 
     if total_area < 1:
         recommandations.append(
-            "La surface totale est faible : privilégiez un pâturage tournant très court et un repos prolongé."
+            "Surface faible : faites des passages courts, retirez vite les animaux et prévoyez fourrage coupé ou concentré."
         )
     else:
         recommandations.append(
-            "Fractionnez les parcelles et laissez chaque zone en repos avant une nouvelle entrée des animaux."
+            "Fractionnez les parcelles, entrez quand l'herbe est disponible et laissez un repos complet avant le retour des animaux."
         )
 
     if charge_recommandee <= 2:
         recommandations.append(
-            "Pour les bovins, évitez une pression continue sur les mêmes zones et gardez des réserves fourragères."
+            "Bovins : sécurisez une réserve de foin ou pailles traitées pour la saison sèche et protégez les points d'eau."
         )
     elif charge_recommandee >= 8:
         recommandations.append(
-            "Pour les petits ruminants, alternez les parcelles plus fréquemment pour limiter le broutage sélectif."
+            "Petits ruminants : alternez plus souvent les parcelles et limitez le pâturage humide pour réduire les parasites."
         )
 
     if "poulet" in (espece or "").lower() or "pintade" in (espece or "").lower():
         recommandations.append(
-            "Pour la volaille en parcours, déplacez les zones d'accès pour préserver le couvert végétal."
+            "Volaille en parcours : déplacez abris, mangeoires et points d'eau pour répartir les déjections et préserver le couvert végétal."
         )
 
     recommandations.append(
         f"Charge actuelle estimée : {charge:.2f} animaux/ha ; charge recommandée : {charge_recommandee:.2f} animaux/ha."
     )
-    return recommandations[:4]
+    recommandations.append(
+        "Note terrain : combinez observation visuelle, pluviométrie locale, prix du fourrage et état corporel avant toute décision de vente ou d'achat."
+    )
+    return recommandations[:6]
 
 
 def _fallback_recommendation(
@@ -201,6 +207,28 @@ def _fallback_recommendation(
         payload.espece, surpaturage, charge, charge_recommandee, total_area
     )
     statut = "surpature" if surpaturage else "optimal"
+    jours_repos = 35 if surpaturage else 24
+    plan_rotation_detaille = [
+        {
+            "etape": 1,
+            "action": "Retirer les animaux des zones les plus rasées"
+            if surpaturage
+            else "Démarrer par la parcelle avec la meilleure herbe",
+            "objectif": "Protéger la repousse et éviter l'érosion"
+            if surpaturage
+            else "Utiliser l'herbe disponible sans épuiser la parcelle",
+        },
+        {
+            "etape": 2,
+            "action": f"Prévoir au moins {jours_repos} jours de repos avant le retour",
+            "objectif": "Laisser reconstituer les réserves de la plante",
+        },
+        {
+            "etape": 3,
+            "action": "Contrôler l'état corporel et ajuster la complémentation",
+            "objectif": "Éviter perte de poids, baisse de lait ou pression parasitaire",
+        },
+    ]
     return {
         "espece": payload.espece,
         "nombre_animaux": payload.nombre_animaux,
@@ -213,6 +241,14 @@ def _fallback_recommendation(
             for p in payload.parcelles
         ],
         "rotation_recommandee": rotation,
+        "plan_rotation_detaille": plan_rotation_detaille,
+        "indicateurs_a_suivre": [
+            "hauteur d'herbe",
+            "zones de sol nu",
+            "présence de tiques ou parasites",
+            "état corporel",
+            "disponibilité eau/fourrage",
+        ],
         "message": (
             "Surpâturage probable" if surpaturage else "Charge animale raisonnable"
         ),
@@ -394,25 +430,25 @@ def analyser(payload: AnalysePastureMapRequest) -> Dict[str, Any]:
         data.setdefault("mode", "ia")
 
         # Alias contractuels attendus par certains clients/tests
-        data.setdefault("charge_animale_actuelle", data.get("charge_animale_ha", round(charge, 2)))
-        data.setdefault("charge_recommandee", data.get("charge_recommandee_ha", round(charge_recommandee, 2)))
-        data.setdefault("statut", "surpature" if bool(data.get("alerte_surpaturage", surpaturage)) else "optimal")
+        data.setdefault(
+            "charge_animale_actuelle", data.get("charge_animale_ha", round(charge, 2))
+        )
+        data.setdefault(
+            "charge_recommandee",
+            data.get("charge_recommandee_ha", round(charge_recommandee, 2)),
+        )
+        data.setdefault(
+            "statut",
+            "surpature"
+            if bool(data.get("alerte_surpaturage", surpaturage))
+            else "optimal",
+        )
         data.setdefault("plan_rotation", data.get("rotation_recommandee", []))
         data.setdefault("recommandations", data.get("rotation_recommandee", []))
 
         return data
 
     except ValueError as exc:
-        fallback = _fallback_recommendation(
-            payload=payload,
-            total_area=total_area,
-            charge=charge,
-            charge_recommandee=charge_recommandee,
-            surpaturage=surpaturage,
-        )
-        fallback["message"] = str(exc) or fallback.get("message")
-        return fallback
-    except (AuthenticationError, APITimeoutError, APIConnectionError) as exc:
         fallback = _fallback_recommendation(
             payload=payload,
             total_area=total_area,

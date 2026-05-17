@@ -99,6 +99,83 @@ def _now() -> datetime:
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
+def _post_quality_guidance(type_post: str, espece: str, contenu: str) -> Dict[str, Any]:
+    """Ajoute une lecture experte au contenu communautaire."""
+    text = _clean(contenu).lower()
+    badges: List[str] = []
+    conseils: List[str] = []
+    if any(word in text for word in ["fcfa", "kg", "%", "litre", "poids"]):
+        badges.append("donnée_chiffrée")
+    if any(
+        word in text for word in ["vaccin", "maladie", "diarr", "toux", "mortalité"]
+    ):
+        badges.append("santé_animale")
+        conseils.append(
+            "Indiquez la commune, l'âge des animaux et depuis quand les signes sont observés."
+        )
+    if any(word in text for word in ["ration", "maïs", "soja", "aliment"]):
+        badges.append("nutrition")
+        conseils.append(
+            "Précisez les quantités, le prix local des ingrédients et le nombre d'animaux concernés."
+        )
+    if _clean(type_post).lower() == "question":
+        conseils.append(
+            "Formulez une question précise pour recevoir une réponse utile de la communauté."
+        )
+    if _clean(type_post).lower() == "alerte":
+        badges.append("alerte_communautaire")
+        conseils.append(
+            "Évitez les rumeurs : mentionnez uniquement les faits observés et conseillez de confirmer avec un technicien."
+        )
+    if not conseils:
+        conseils.append(
+            "Ajoutez une observation mesurable pour aider les autres éleveurs à comparer les résultats."
+        )
+    return {
+        "badges_experts": badges or ["partage_terrain"],
+        "conseils_publication": conseils[:3],
+        "niveau_fiabilite": "élevé" if badges else "à compléter",
+        "espece_cible": espece or "toutes espèces",
+    }
+
+
+def _market_advice(
+    type_annonce: str, espece: str, prix: Any, quantite: Any
+) -> Dict[str, Any]:
+    """Conseils de marché pour rendre les annonces plus professionnelles."""
+    prix_float = float(prix or 0)
+    quantite_int = int(quantite or 0)
+    conseils = [
+        "Ajoutez une photo nette et récente de l'animal ou du lot.",
+        "Précisez le poids moyen, l'âge, la race et l'état sanitaire si possible.",
+        "Confirmez le prix par téléphone avant déplacement pour éviter les pertes de temps.",
+    ]
+    if prix_float <= 0:
+        conseils.insert(
+            0,
+            "Prix absent ou nul : indiquez un prix de référence ou précisez que la négociation est ouverte.",
+        )
+    if quantite_int <= 0:
+        conseils.insert(
+            0,
+            "Quantité absente : indiquez le nombre exact d'animaux ou de kilogrammes disponibles.",
+        )
+    if _clean(type_annonce).lower() == "vente":
+        conseils.append(
+            "Pour une vente, mentionnez si le transport, la vaccination ou l'aliment récent sont inclus."
+        )
+    return {
+        "conseils_marche": conseils[:4],
+        "score_confiance_annonce": max(
+            35,
+            min(
+                95, 55 + (20 if prix_float > 0 else 0) + (20 if quantite_int > 0 else 0)
+            ),
+        ),
+        "resume_offre": f"{type_annonce or 'annonce'} {espece or 'animal'} — {quantite_int or 'quantité à préciser'} unité(s) à {int(prix_float) if prix_float else 'prix à préciser'} FCFA",
+    }
+
+
 class CommunityService:
     async def moderer_contenu(self, contenu: str) -> bool:
         texte = (contenu or "").strip()
@@ -162,7 +239,13 @@ class CommunityService:
             langue=langue,
         )
         add_points_to_user(db, user_id, 12)
-        return {**serialize_post(post), "points_gagnes": 12}
+        return {
+            **serialize_post(post),
+            "points_gagnes": 12,
+            "lecture_experte": _post_quality_guidance(
+                type_post, espece_concernee, contenu
+            ),
+        }
 
     def get_fil_actualite(self, user_id, page, db) -> List[Dict[str, Any]]:
         user = get_user_by_id(db, user_id)
@@ -189,6 +272,11 @@ class CommunityService:
                     "espece_concernee": getattr(post, "espece_concernee", ""),
                     "langue": getattr(post, "langue", "fr"),
                     "commentaires": [serialize_commentaire(c) for c in commentaires],
+                    "lecture_experte": _post_quality_guidance(
+                        getattr(post, "type_contenu", "conseil"),
+                        getattr(post, "espece_concernee", ""),
+                        getattr(post, "contenu", ""),
+                    ),
                 }
             )
         return result
@@ -240,6 +328,7 @@ class CommunityService:
         return {
             **serialize_annonce_marche(annonce),
             "whatsapp_link": f"https://wa.me/?text={uuid.uuid4().hex[:8]}%20{espece}%20{prix}",
+            "lecture_marche": _market_advice(type_annonce, espece, prix, quantite),
         }
 
     def rechercher_annonces(

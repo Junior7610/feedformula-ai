@@ -237,11 +237,56 @@ def _structure_event_text(texte: str) -> Dict[str, Any]:
         if type_evt == "vente":
             revenu = cout_total
 
+    priorite = (
+        "haute"
+        if type_evt in {"traitement", "naissance", "reproduction"}
+        else "normale"
+    )
+    checklist = [
+        "Noter la date, l'animal concerné et le responsable de l'action.",
+        "Joindre une photo ou une observation chiffrée si possible.",
+    ]
+    if type_evt == "traitement":
+        checklist.extend(
+            [
+                "Vérifier la dose selon le poids estimé et conserver le nom du produit utilisé.",
+                "Contrôler l'évolution sous 24 à 48 h et respecter les délais d'attente avant vente/consommation.",
+            ]
+        )
+    elif type_evt == "vente":
+        checklist.extend(
+            [
+                "Comparer le prix de vente au coût d'alimentation estimé.",
+                "Noter l'acheteur, le poids ou le nombre d'animaux vendus et les frais de transport.",
+            ]
+        )
+    elif type_evt == "alimentation":
+        checklist.extend(
+            [
+                "Comparer la consommation prévue et la consommation réelle.",
+                "Surveiller refus d'aliment, humidité et variation de prix des intrants.",
+            ]
+        )
+    elif type_evt in {"naissance", "reproduction"}:
+        checklist.extend(
+            [
+                "Programmer un rappel de suivi et vérifier l'état corporel de la mère.",
+                "Mettre à jour ReproTrack si l'événement influence le calendrier reproductif.",
+            ]
+        )
+
     return {
         "animal_id": animal,
         "type_evenement": type_evt,
         "date_evenement": _today_iso(),
         "details": original,
+        "priorite": priorite,
+        "checklist_terrain": checklist[:5],
+        "indicateurs": {
+            "cout_detecte_fcfa": round(cout_total, 2),
+            "revenu_detecte_fcfa": round(revenu, 2),
+            "rappel_recommande": bool(date_rappel),
+        },
         "action_requise": (
             "Contrôle de suivi dans les prochains jours"
             if type_evt in {"traitement", "reproduction"}
@@ -335,10 +380,32 @@ def _financial_dashboard(rows: List[UserActionLog]) -> Dict[str, Any]:
             revenus += amount
 
     marge = revenus - cout_alimentation
+    marge_pct = (marge / revenus * 100.0) if revenus > 0 else 0.0
+    alertes: List[str] = []
+    if cout_alimentation > revenus and revenus > 0:
+        alertes.append(
+            "Les coûts d'alimentation dépassent les revenus enregistrés ce mois-ci."
+        )
+    if revenus == 0 and cout_alimentation > 0:
+        alertes.append(
+            "Aucun revenu de vente détecté : vérifiez que les ventes sont bien enregistrées."
+        )
+    if marge_pct < 15 and revenus > 0:
+        alertes.append(
+            "Marge faible : comparez prix d'achat des intrants, conversion alimentaire et prix de vente."
+        )
+
     return {
         "cout_total_alimentation_mois": round(cout_alimentation, 2),
         "revenus_ventes_animaux": round(revenus, 2),
         "marge_nette_estimee": round(marge, 2),
+        "marge_nette_pct": round(marge_pct, 2),
+        "alertes_gestion": alertes,
+        "conseils_experts": [
+            "Séparez dépenses alimentation, santé, reproduction et main-d'œuvre pour connaître le vrai coût de revient.",
+            "Enregistrez les poids ou productions au même rythme que les dépenses pour relier coûts et performances.",
+            "Si la marge baisse deux mois de suite, ajustez ration, prix de vente ou calendrier de sortie des animaux.",
+        ],
     }
 
 
@@ -383,7 +450,17 @@ def _monthly_summary(
         "naissances": naissances,
         "ventes": ventes,
         "reproduction": repro,
-        **dashboard,
+        "dashboard_financier": dashboard,
+        "lecture_experte": (
+            "Les données sont encore insuffisantes pour une analyse fiable. Enregistrez chaque dépense et chaque vente."
+            if total < 5
+            else "Le registre contient assez d'événements pour suivre les tendances de gestion du mois."
+        ),
+        "priorites_mois_suivant": [
+            "Continuer l'enregistrement vocal quotidien.",
+            "Comparer les coûts alimentaires avec les performances obtenues.",
+            "Identifier les animaux ou lots qui coûtent plus qu'ils ne rapportent.",
+        ],
     }
 
 
@@ -710,12 +787,20 @@ async def evenement_vocal(
         event = await traiter_evenement_vocal(
             payload.texte, payload.user_id, payload.langue, db
         )
+        event_payload = event.get("event", {}) if isinstance(event, dict) else {}
         return {
             "message": "Événement vocal traité avec succès.",
             "event": event,
             # Champs contractuels attendus par le frontend/tests
-            "evenement_structure": event.get("event", {}) if isinstance(event, dict) else {},
+            "evenement_structure": event_payload,
             "points_gagnes": 5,
+            "qualite_donnee": "bonne"
+            if event_payload.get("animal_id") != "animal inconnu"
+            else "à compléter",
+            "conseils_experts": event_payload.get("checklist_terrain", []),
+            "prochaine_action": event_payload.get(
+                "action_requise", "Vérifier et compléter la fiche événement."
+            ),
         }
     except HTTPException:
         raise
@@ -942,11 +1027,13 @@ def finances(user_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
             "marge_brute": dashboard.get("revenus_ventes_animaux", 0)
             - dashboard.get("cout_total_alimentation_mois", 0),
             "marge_nette": dashboard.get("marge_nette_estimee", 0),
-            "benchmarks": "à compléter localement",
+            "marge_nette_pct": dashboard.get("marge_nette_pct", 0),
+            "benchmarks": "à compléter localement avec poids de sortie, litres de lait ou nombre d'œufs",
+            "alertes": dashboard.get("alertes_gestion", []),
             "optimisations": [
-                "Réduire les pertes d'aliment.",
-                "Sécuriser la saisie des ventes et achats.",
-                "Suivre les traitements et coûts vétérinaires séparément.",
+                "Réduire les pertes d'aliment et protéger les stocks contre humidité/rongeurs.",
+                "Comparer le coût par lot et par espèce au lieu de seulement regarder le total mensuel.",
+                "Associer chaque vente à un poids, une quantité ou une production pour calculer le coût de revient réel.",
             ],
         },
     }

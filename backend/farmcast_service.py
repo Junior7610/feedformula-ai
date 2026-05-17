@@ -138,19 +138,40 @@ class FarmCastService:
             except Exception:
                 pass
 
-        # Fallback local structuré.
+        # Fallback local structuré avec vraie valeur de vulgarisation terrain.
         if langue.lower().startswith("fr"):
             return (
-                f"Accroche choc: {theme} peut faire gagner ou perdre de l'argent en une seule saison.\n\n"
-                f"Problème: beaucoup de {public_cible} perdent du temps faute d'informations simples et fiables.\n\n"
-                "Solution FeedFormula AI: utilisez un conseil clair, une action simple et un suivi régulier pour mieux décider chaque jour.\n\n"
-                "Appel à l'action: testez une bonne pratique dès aujourd'hui, observez les résultats et partagez ce message avec votre équipe."
+                f"ACCROCHE — {theme}\n"
+                "Une seule mauvaise pratique peut réduire la marge d'un éleveur pendant toute une saison.\n\n"
+                f"PROBLÈME TERRAIN\n"
+                f"Chez les {public_cible}, le problème n'est pas seulement le manque d'information. "
+                "C'est surtout le manque d'information simple, vérifiable et adaptée aux prix locaux, aux animaux disponibles et au climat du moment.\n\n"
+                "GESTE À FAIRE AUJOURD'HUI\n"
+                "1. Observez un indicateur mesurable : poids, ponte, lait, mortalité, consommation ou coût.\n"
+                "2. Notez la valeur dans votre carnet ou dans FarmManager.\n"
+                "3. Appliquez une seule correction pendant 7 jours.\n"
+                "4. Comparez le résultat avant de changer toute la conduite.\n\n"
+                "CE QUE FEEDFORMULA AI APPORTE\n"
+                "FeedFormula AI transforme vos observations en ration, alerte, formation ou conseil pratique. "
+                "Vous gardez la décision finale, mais vous décidez avec des chiffres et non au hasard.\n\n"
+                "ERREURS À ÉVITER\n"
+                "- Copier une recette sans vérifier le prix local des ingrédients.\n"
+                "- Augmenter la quantité d'aliment sans mesurer la performance.\n"
+                "- Attendre plusieurs jours avant d'isoler un animal malade.\n\n"
+                "APPEL À L'ACTION\n"
+                "Aujourd'hui, choisissez une action simple, mesurez-la, puis partagez le résultat avec votre groupe d'éleveurs."
             )
         return (
-            f"Big hook: {theme} can change your farm results fast.\n\n"
-            f"Problem: many {public_cible} lose money because the basics are unclear.\n\n"
-            "FeedFormula AI solution: take one simple action, track the result, and improve step by step.\n\n"
-            "Call to action: try it today and keep learning with FeedFormula AI."
+            f"HOOK — {theme}\n"
+            "One poor farm practice can reduce profit for a whole season.\n\n"
+            "FIELD PROBLEM\n"
+            f"For {public_cible}, the challenge is not only access to information; it is practical, measurable advice adapted to local prices and animals.\n\n"
+            "ACTION TODAY\n"
+            "Observe one metric, write it down, apply one correction for 7 days, then compare the result.\n\n"
+            "FEEDFORMULA AI VALUE\n"
+            "FeedFormula AI turns observations into ration advice, alerts, learning content and practical farm decisions.\n\n"
+            "CALL TO ACTION\n"
+            "Try one measurable improvement today and keep learning with FeedFormula AI."
         )
 
     async def _generate_audio(self, script: str, langue: str) -> str:
@@ -301,6 +322,17 @@ class FarmCastService:
             "format_type": format_effectif,
             "format_souhaite": format_effectif,
             "public_cible": public_cible,
+            "plan_diffusion": [
+                "Partager d'abord dans un groupe WhatsApp d'éleveurs local.",
+                "Publier ensuite une version courte avec 3 conseils maximum.",
+                "Demander aux éleveurs de commenter leurs résultats après 7 jours.",
+            ],
+            "checklist_qualite": [
+                "Message compréhensible sans jargon.",
+                "Une action pratique et mesurable.",
+                "Un exemple lié au terrain africain.",
+                "Un appel à l'action clair.",
+            ],
         }
 
     def _share_links(self, contenu: Dict[str, Any]) -> Dict[str, str]:
