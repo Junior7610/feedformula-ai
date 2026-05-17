@@ -441,7 +441,11 @@
                 window.FEEDFORMULA_API_BASE_URL ||
                     window.__FEEDFORMULA_API_BASE_URL__ ||
                     window.API_BASE ||
-                    "http://127.0.0.1:8000",
+                    (["localhost", "127.0.0.1", "0.0.0.0"].includes(
+                        window.location.hostname,
+                    )
+                        ? "http://127.0.0.1:8000"
+                        : "/"),
             ).replace(/\/$/, "");
             const api = API_BASE;
             let currentContent = null;
