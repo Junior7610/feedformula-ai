@@ -1,15 +1,16 @@
-import requests
-import json
-import time
-import os
-import sys
 import ast
+import atexit
+import json
+import os
+import subprocess
+import sys
 import threading
-import hashlib
-import re
-from datetime import datetime, date, timedelta
+import time
+from datetime import date, datetime
 from pathlib import Path
 from urllib.parse import urlencode
+
+import requests
 
 BASE_URL = "http://127.0.0.1:8000"
 RAPPORT = []
@@ -30,12 +31,15 @@ RESET = "\033[0m"
 GRAS = "\033[1m"
 
 # Compatibilité Windows console (évite UnicodeEncodeError cp1252)
-if hasattr(sys.stdout, "reconfigure"):
-    try:
-        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
-    except Exception:
-        pass
+try:
+    stdout_reconfigure = getattr(sys.stdout, "reconfigure", None)
+    stderr_reconfigure = getattr(sys.stderr, "reconfigure", None)
+    if callable(stdout_reconfigure):
+        stdout_reconfigure(encoding="utf-8", errors="replace")
+    if callable(stderr_reconfigure):
+        stderr_reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
 
 
 def log(msg, niveau="INFO"):
@@ -62,7 +66,7 @@ def tester(
     body=None,
     params=None,
     headers=None,
-    attendu_code=200,
+    attendu_code: int | list[int] | tuple[int, ...] | set[int] = 200,
     verifier_champs=None,
     verifier_valeurs=None,
     verifier_types=None,
@@ -105,9 +109,13 @@ def tester(
         if methode == "GET":
             r = requests.get(url_complete, timeout=timeout, headers=req_headers)
         elif methode == "POST":
-            r = requests.post(url_complete, json=body, timeout=timeout, headers=req_headers)
+            r = requests.post(
+                url_complete, json=body, timeout=timeout, headers=req_headers
+            )
         elif methode == "PUT":
-            r = requests.put(url_complete, json=body, timeout=timeout, headers=req_headers)
+            r = requests.put(
+                url_complete, json=body, timeout=timeout, headers=req_headers
+            )
         elif methode == "DELETE":
             r = requests.delete(url_complete, timeout=timeout, headers=req_headers)
         else:
@@ -125,7 +133,9 @@ def tester(
 
         if r.status_code not in codes_attendus:
             resultat["statut"] = "FAIL"
-            resultat["erreur"] = f"HTTP {r.status_code} attendu {sorted(codes_attendus)}"
+            resultat["erreur"] = (
+                f"HTTP {r.status_code} attendu {sorted(codes_attendus)}"
+            )
             ECHOUES += 1
             log(f"❌ {nom} — HTTP {r.status_code} au lieu de {attendu_code}", "FAIL")
             RAPPORT.append(resultat)
@@ -147,8 +157,7 @@ def tester(
             for champ, valeur_attendue in verifier_valeurs.items():
                 if champ in data and data[champ] != valeur_attendue:
                     erreurs.append(
-                        f"'{champ}' vaut '{data[champ]}' "
-                        f"au lieu de '{valeur_attendue}'"
+                        f"'{champ}' vaut '{data[champ]}' au lieu de '{valeur_attendue}'"
                     )
 
         if verifier_types:
@@ -241,6 +250,97 @@ def titre(texte):
     log(f"\n{'━' * 65}", "TITRE")
     log(f"  {texte}", "TITRE")
     log(f"{'━' * 65}", "TITRE")
+
+
+def enregistrer_assertion(nom, ok, erreur="", categorie="local", description=""):
+    """Enregistre un test statique/local dans le même rapport que les tests HTTP."""
+    global TOTAL, PASSES, ECHOUES
+    TOTAL += 1
+    resultat = {
+        "nom": nom,
+        "categorie": categorie,
+        "description": description,
+        "url": "local/fichier",
+        "methode": "ASSERT",
+        "statut": "OK" if ok else "FAIL",
+        "code_http": None,
+        "temps": 0,
+        "erreur": None if ok else erreur,
+        "details": [] if ok else [erreur],
+    }
+    if ok:
+        PASSES += 1
+        log(f"✅ {nom}", "OK")
+    else:
+        ECHOUES += 1
+        log(f"❌ {nom} — {erreur}", "FAIL")
+    RAPPORT.append(resultat)
+    return ok
+
+
+_SERVER_PROCESS = None
+
+
+def serveur_disponible(timeout=2):
+    try:
+        r = requests.get(f"{BASE_URL}/sante", timeout=timeout)
+        return r.status_code == 200
+    except Exception:
+        return False
+
+
+def demarrer_serveur_si_necessaire():
+    """Démarre automatiquement le serveur local si nécessaire."""
+    global _SERVER_PROCESS
+    if os.getenv("FEEDFORMULA_TEST_AUTO_START_SERVER", "1") not in {
+        "1",
+        "true",
+        "TRUE",
+        "yes",
+    }:
+        return
+    if serveur_disponible():
+        log("Serveur déjà disponible sur http://127.0.0.1:8000", "OK")
+        return
+
+    log("Serveur indisponible — démarrage automatique Uvicorn", "WARN")
+    env = os.environ.copy()
+    env.setdefault("APP_ENV", "test")
+    env.setdefault("AFRI_API_KEY", "")
+    _SERVER_PROCESS = subprocess.Popen(
+        [
+            sys.executable,
+            "-m",
+            "uvicorn",
+            "backend.main:app",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            "8000",
+            "--log-level",
+            "warning",
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        env=env,
+    )
+
+    def cleanup():
+        if _SERVER_PROCESS and _SERVER_PROCESS.poll() is None:
+            _SERVER_PROCESS.terminate()
+
+    atexit.register(cleanup)
+    for _ in range(90):
+        if serveur_disponible(timeout=1):
+            log("Serveur démarré avec succès", "OK")
+            return
+        if _SERVER_PROCESS.poll() is not None:
+            break
+        time.sleep(1)
+    log("Impossible de confirmer le démarrage automatique du serveur", "WARN")
+
+
+demarrer_serveur_si_necessaire()
 
 
 # ================================================================
@@ -622,7 +722,9 @@ if data and "protocole_soins" in data:
     TOTAL += 1
     if isinstance(data["protocole_soins"], list) and len(data["protocole_soins"]) > 0:
         PASSES += 1
-        log(f"✅ VetScan — Protocole soins: {len(data['protocole_soins'])} étapes", "OK")
+        log(
+            f"✅ VetScan — Protocole soins: {len(data['protocole_soins'])} étapes", "OK"
+        )
     else:
         ECHOUES += 1
         log("❌ VetScan — Protocole soins vide ou invalide", "FAIL")
@@ -776,14 +878,23 @@ ok, data = tester(
 )
 
 # Vérifie que la date de mise-bas est ~283 jours après
-if data and isinstance(data.get("evenement"), dict) and data["evenement"].get("date_prevue_prochain"):
+if (
+    data
+    and isinstance(data.get("evenement"), dict)
+    and data["evenement"].get("date_prevue_prochain")
+):
     TOTAL += 1
     try:
-        date_mb = datetime.fromisoformat(data["evenement"]["date_prevue_prochain"].replace("Z", "")).date()
+        date_mb = datetime.fromisoformat(
+            data["evenement"]["date_prevue_prochain"].replace("Z", "")
+        ).date()
         jours = (date_mb - date.today()).days
         if 140 <= jours <= 290:
             PASSES += 1
-            log(f"✅ ReproTrack — Date mise-bas vache: {jours} jours (plage acceptable)", "OK")
+            log(
+                f"✅ ReproTrack — Date mise-bas vache: {jours} jours (plage acceptable)",
+                "OK",
+            )
         else:
             # Certaines implémentations utilisent une durée standardisée.
             PASSES += 1
@@ -815,10 +926,16 @@ for espece, duree in GESTATIONS:
         timeout=30,
         categorie="reprotrack_gestations",
     )
-    if data and isinstance(data.get("evenement"), dict) and data["evenement"].get("date_prevue_prochain"):
+    if (
+        data
+        and isinstance(data.get("evenement"), dict)
+        and data["evenement"].get("date_prevue_prochain")
+    ):
         TOTAL += 1
         try:
-            date_mb = datetime.fromisoformat(data["evenement"]["date_prevue_prochain"].replace("Z", "")).date()
+            date_mb = datetime.fromisoformat(
+                data["evenement"]["date_prevue_prochain"].replace("Z", "")
+            ).date()
             jours = (date_mb - date.today()).days
             tolerance = 3
             if abs(jours - duree) <= tolerance:
@@ -1100,10 +1217,16 @@ for code_formation, nb_lecons in FORMATIONS:
             TOTAL += 1
             if isinstance(contenu, str) and len(contenu.strip()) > 20:
                 PASSES += 1
-                log(f"✅ FarmAcademy — Contenu {code_formation} L{num_lecon} non vide", "OK")
+                log(
+                    f"✅ FarmAcademy — Contenu {code_formation} L{num_lecon} non vide",
+                    "OK",
+                )
             else:
                 ECHOUES += 1
-                log(f"❌ FarmAcademy — Contenu {code_formation} L{num_lecon} vide", "FAIL")
+                log(
+                    f"❌ FarmAcademy — Contenu {code_formation} L{num_lecon} vide",
+                    "FAIL",
+                )
 
         if lecon and isinstance(lecon.get("quiz"), dict):
             questions = lecon["quiz"].get("questions", [])
@@ -1293,14 +1416,70 @@ for post_id in post_ids[:3]:
 
 # 9C — Marketplace — 8 annonces différentes
 ANNONCES = [
-    {"type": "vente", "espece": "poulet_chair", "race": "Cobb 500", "quantite": 100, "prix": 3500, "dept": "Atlantique"},
-    {"type": "vente", "espece": "vache_laitiere", "race": "Borgou", "quantite": 2, "prix": 450000, "dept": "Borgou"},
-    {"type": "vente", "espece": "mouton", "race": "Djallonké", "quantite": 10, "prix": 35000, "dept": "Zou"},
-    {"type": "achat", "espece": "poulet_chair", "race": "Ross 308", "quantite": 200, "prix": 3000, "dept": "Atlantique"},
-    {"type": "vente", "espece": "tilapia", "race": "Tilapia du Nil", "quantite": 500, "prix": 1200, "dept": "Mono"},
-    {"type": "vente", "espece": "porc", "race": "Large White", "quantite": 5, "prix": 85000, "dept": "Oueme"},
-    {"type": "service", "espece": "tous", "race": "N/A", "quantite": 1, "prix": 15000, "dept": "Atlantique"},
-    {"type": "vente", "espece": "lapin", "race": "Géant des Flandres", "quantite": 20, "prix": 8000, "dept": "Collines"},
+    {
+        "type": "vente",
+        "espece": "poulet_chair",
+        "race": "Cobb 500",
+        "quantite": 100,
+        "prix": 3500,
+        "dept": "Atlantique",
+    },
+    {
+        "type": "vente",
+        "espece": "vache_laitiere",
+        "race": "Borgou",
+        "quantite": 2,
+        "prix": 450000,
+        "dept": "Borgou",
+    },
+    {
+        "type": "vente",
+        "espece": "mouton",
+        "race": "Djallonké",
+        "quantite": 10,
+        "prix": 35000,
+        "dept": "Zou",
+    },
+    {
+        "type": "achat",
+        "espece": "poulet_chair",
+        "race": "Ross 308",
+        "quantite": 200,
+        "prix": 3000,
+        "dept": "Atlantique",
+    },
+    {
+        "type": "vente",
+        "espece": "tilapia",
+        "race": "Tilapia du Nil",
+        "quantite": 500,
+        "prix": 1200,
+        "dept": "Mono",
+    },
+    {
+        "type": "vente",
+        "espece": "porc",
+        "race": "Large White",
+        "quantite": 5,
+        "prix": 85000,
+        "dept": "Oueme",
+    },
+    {
+        "type": "service",
+        "espece": "tous",
+        "race": "N/A",
+        "quantite": 1,
+        "prix": 15000,
+        "dept": "Atlantique",
+    },
+    {
+        "type": "vente",
+        "espece": "lapin",
+        "race": "Géant des Flandres",
+        "quantite": 20,
+        "prix": 8000,
+        "dept": "Collines",
+    },
 ]
 
 for annonce in ANNONCES:
@@ -1387,7 +1566,11 @@ for action, points_attendus in ACTIONS_POINTS_ATTENDUS.items():
             "contexte": {"langue": "fon"} if "langue" in action else {},
         },
         verifier_champs=["points_gagnes", "total_points", "niveau_actuel"],
-        verifier_types={"points_gagnes": int, "total_points": int, "niveau_actuel": int},
+        verifier_types={
+            "points_gagnes": int,
+            "total_points": int,
+            "niveau_actuel": int,
+        },
         verifier_points_positifs=["points_gagnes"],
         verifier_niveau_valide=True,
         timeout=10,
@@ -1400,7 +1583,10 @@ for action, points_attendus in ACTIONS_POINTS_ATTENDUS.items():
             PASSES += 1
             log(f"✅ Points {action}: {data['points_gagnes']} (correct)", "OK")
         else:
-            log(f"⚠️ Points {action}: {data['points_gagnes']} (attendu {points_attendus})", "WARN")
+            log(
+                f"⚠️ Points {action}: {data['points_gagnes']} (attendu {points_attendus})",
+                "WARN",
+            )
             PASSES += 1
 
 # 10B — Vérification des 10 niveaux (référentiel local)
@@ -1422,11 +1608,24 @@ for niveau, nom, min_pts, max_pts in NIVEAUX_SEUILS:
     if min_pts <= max_pts and niveau >= 1:
         PASSES += 1
         log(f"✅ Gamification — Niveau {niveau} ({nom}) bornes valides", "OK")
-        RAPPORT.append({"nom": f"Gamification — Niveau {niveau} ({nom})", "statut": "OK", "categorie": "gamification_niveaux"})
+        RAPPORT.append(
+            {
+                "nom": f"Gamification — Niveau {niveau} ({nom})",
+                "statut": "OK",
+                "categorie": "gamification_niveaux",
+            }
+        )
     else:
         ECHOUES += 1
         log(f"❌ Gamification — Niveau {niveau} ({nom}) bornes invalides", "FAIL")
-        RAPPORT.append({"nom": f"Gamification — Niveau {niveau} ({nom})", "statut": "FAIL", "categorie": "gamification_niveaux", "erreur": "Bornes invalides"})
+        RAPPORT.append(
+            {
+                "nom": f"Gamification — Niveau {niveau} ({nom})",
+                "statut": "FAIL",
+                "categorie": "gamification_niveaux",
+                "erreur": "Bornes invalides",
+            }
+        )
 
 # 10C — Classements multi-scopes
 CLASSEMENT_PARAMS = [
@@ -1528,9 +1727,27 @@ titre("11. AUTHENTIFICATION — TESTS COMPLETS")
 
 # 11A — Inscription 3 utilisateurs différents
 USERS_TEST = [
-    {"telephone": "+22961111111", "prenom": "Kofi", "langue": "fr", "espece": "poulet_chair", "dept": "Atlantique"},
-    {"telephone": "+22962222222", "prenom": "Amara", "langue": "fon", "espece": "vache_laitiere", "dept": "Borgou"},
-    {"telephone": "+22963333333", "prenom": "Fatou", "langue": "yor", "espece": "mouton", "dept": "Zou"},
+    {
+        "telephone": "+22961111111",
+        "prenom": "Kofi",
+        "langue": "fr",
+        "espece": "poulet_chair",
+        "dept": "Atlantique",
+    },
+    {
+        "telephone": "+22962222222",
+        "prenom": "Amara",
+        "langue": "fon",
+        "espece": "vache_laitiere",
+        "dept": "Borgou",
+    },
+    {
+        "telephone": "+22963333333",
+        "prenom": "Fatou",
+        "langue": "yor",
+        "espece": "mouton",
+        "dept": "Zou",
+    },
 ]
 
 otps = {}
@@ -1646,8 +1863,14 @@ for langue in ["fr", "fon", "yor", "den", "adj", "en"]:
 
 # 12C — Ration vocale résumée
 RATIONS_VOCALES = [
-    {"ration_texte": "Ration poulet 50 animaux. Maïs 74kg. Soja 9kg. Coût 13462 FCFA.", "langue": "fr"},
-    {"ration_texte": "Ration vache laitière. Foin 8kg. Maïs 3kg. Coût 2100 FCFA.", "langue": "fr"},
+    {
+        "ration_texte": "Ration poulet 50 animaux. Maïs 74kg. Soja 9kg. Coût 13462 FCFA.",
+        "langue": "fr",
+    },
+    {
+        "ration_texte": "Ration vache laitière. Foin 8kg. Maïs 3kg. Coût 2100 FCFA.",
+        "langue": "fr",
+    },
 ]
 
 for ration in RATIONS_VOCALES:
@@ -1837,18 +2060,36 @@ for ingredient in INGREDIENTS_PRIX:
 # ================================================================
 titre("16. ANALYTICS — TABLEAU DE BORD")
 
-ENDPOINTS_ANALYTICS = ["/analytics/stats", "/analytics/rations", "/analytics/utilisateurs"]
+ENDPOINTS_ANALYTICS = [
+    "/analytics/stats",
+    "/analytics/rations",
+    "/analytics/utilisateurs",
+]
+
+ADMIN_HEADERS = {
+    "X-Admin-Password": os.getenv("ANALYTICS_ADMIN_PASSWORD", "feedformula-admin-demo")
+}
 
 for endpoint in ENDPOINTS_ANALYTICS:
     tester(
         nom=f"Analytics — {endpoint}",
         methode="GET",
         url=endpoint,
-        headers={"X-Admin-Password": "feedformula-admin-demo"},
+        headers=ADMIN_HEADERS,
         attendu_code=200,
         timeout=10,
         categorie="analytics",
     )
+
+tester(
+    nom="Analytics — Refus mauvais mot de passe",
+    methode="GET",
+    url="/analytics/stats",
+    headers={"X-Admin-Password": "mauvais-secret"},
+    attendu_code=401,
+    timeout=10,
+    categorie="analytics_securite",
+)
 
 # ================================================================
 # SECTION 17 — PERFORMANCE AVANCÉE
@@ -1902,7 +2143,9 @@ def req_charge(n):
     try:
         t = time.time()
         r = requests.get(f"{BASE_URL}/sante", timeout=10)
-        resultats_charge.append({"n": n, "code": r.status_code, "temps": round(time.time() - t, 2)})
+        resultats_charge.append(
+            {"n": n, "code": r.status_code, "temps": round(time.time() - t, 2)}
+        )
     except Exception as e:
         resultats_charge.append({"n": n, "erreur": str(e)})
 
@@ -1972,7 +2215,11 @@ FICHIERS_REQUIS = {
         "api.js",
         "manifest.json",
     ],
-    "data": ["matieres_premieres.json", "besoins_animaux.json", "langues_supportees.json"],
+    "data": [
+        "matieres_premieres.json",
+        "besoins_animaux.json",
+        "langues_supportees.json",
+    ],
     "prompts": [
         "system_prompt_principal.txt",
         "system_prompt_vetscan.txt",
@@ -1982,7 +2229,13 @@ FICHIERS_REQUIS = {
         "system_prompt_farmcast.txt",
         "system_prompt_farmcommunity.txt",
     ],
-    "gamification": ["points_engine.py", "aya_engine.py", "defis_generator.py", "boutique.py", "aya_states.json"],
+    "gamification": [
+        "points_engine.py",
+        "aya_engine.py",
+        "defis_generator.py",
+        "boutique.py",
+        "aya_states.json",
+    ],
     "assets/branding": [
         "logo_principal_hd.png",
         "aya_mascotte_officielle.png",
@@ -2086,7 +2339,11 @@ for chemin_py in PYTHONS_VALIDER:
 p = Path("backend/requirements.txt")
 if p.exists():
     with open(p, "r") as f:
-        lignes = [l.strip() for l in f.readlines() if l.strip() and not l.startswith("#")]
+        lignes = [
+            line.strip()
+            for line in f.readlines()
+            if line.strip() and not line.startswith("#")
+        ]
     TOTAL += 1
     if len(lignes) >= 15:
         PASSES += 1
@@ -2126,7 +2383,7 @@ for r in RAPPORT:
 
 rapport_md = f"""# 🌾 RAPPORT TESTS ULTRA-COMPLETS V2 — FeedFormula AI
 
-**Date :** {datetime.now().strftime('%d/%m/%Y à %H:%M')}
+**Date :** {datetime.now().strftime("%d/%m/%Y à %H:%M")}
 **Durée :** {duree}s | **Version :** V2
 
 ## 📊 RÉSULTATS GLOBAUX
@@ -2154,17 +2411,21 @@ rapport_md += "\n## ❌ TESTS ÉCHOUÉS\n\n"
 echoues = [r for r in RAPPORT if r.get("statut") not in ["OK", None]]
 if echoues:
     for t in echoues:
-        rapport_md += f"- **[{t.get('categorie', '?')}]** `{t['nom']}` → {t.get('erreur', '?')}\n"
+        rapport_md += (
+            f"- **[{t.get('categorie', '?')}]** `{t['nom']}` → {t.get('erreur', '?')}\n"
+        )
 else:
     rapport_md += "✅ **Aucun test échoué — Score parfait !**\n"
 
-rapport_md += f"""
+rapport_md += """
 
 ## 🚀 VERDICT
 
 """
 if taux >= 98:
-    rapport_md += "🏆 **EXCELLENT — FeedFormula AI est parfait pour la présentation !**\n"
+    rapport_md += (
+        "🏆 **EXCELLENT — FeedFormula AI est parfait pour la présentation !**\n"
+    )
 elif taux >= 95:
     rapport_md += "✅ **TRÈS BON — Quelques ajustements mineurs.**\n"
 elif taux >= 85:
@@ -2172,7 +2433,7 @@ elif taux >= 85:
 else:
     rapport_md += "❌ **INSUFFISANT — Corrections importantes requises.**\n"
 
-rapport_md += f"""
+rapport_md += """
 ---
 *Tests V2 — FeedFormula AI | Leonel TOGBE 🇧🇯*
 """
