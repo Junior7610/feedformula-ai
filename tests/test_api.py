@@ -72,7 +72,9 @@ def client(monkeypatch):
 
 
 def _register_user(client: TestClient):
-    phone = "229" + uuid.uuid4().hex[:10]
+    # Numéro strictement numérique pour éviter que la normalisation téléphone
+    # supprime les lettres hexadécimales de uuid4 et provoque un 422 aléatoire.
+    phone = "+2296" + str(uuid.uuid4().int % 10**8).rjust(8, "0")
     payload = {
         "telephone": phone,
         "prenom": "Testeur",
@@ -194,7 +196,7 @@ def test_gamification_points_and_levels(client):
 
 def test_auth_otp_flow(client):
     phone, token, user_id = _register_user(client)
-    assert phone.startswith("229")
+    assert phone.startswith("+229")
     assert token
     assert user_id
 

@@ -1,10 +1,12 @@
-import requests
+import ast
 import json
-import time
-import os
 import sys
+import threading
+import time
 from datetime import datetime
 from pathlib import Path
+
+import requests
 
 BASE_URL = "http://127.0.0.1:8000"
 RAPPORT = []
@@ -17,12 +19,15 @@ AUTH_TEST_OTP = "123456"
 
 # Force un encodage console robuste (Windows cp1252 -> UTF-8)
 try:
-    if hasattr(sys.stdout, "reconfigure"):
-        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    if hasattr(sys.stderr, "reconfigure"):
-        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    stdout_reconfigure = getattr(sys.stdout, "reconfigure", None)
+    stderr_reconfigure = getattr(sys.stderr, "reconfigure", None)
+    if callable(stdout_reconfigure):
+        stdout_reconfigure(encoding="utf-8", errors="replace")
+    if callable(stderr_reconfigure):
+        stderr_reconfigure(encoding="utf-8", errors="replace")
 except Exception:
     pass
+
 
 def log(message, niveau="INFO"):
     couleurs = {
@@ -31,7 +36,7 @@ def log(message, niveau="INFO"):
         "ERROR": "\033[31m",
         "WARNING": "\033[33m",
         "SECTION": "\033[35m",
-        "RESET": "\033[0m"
+        "RESET": "\033[0m",
     }
     ligne = f"{couleurs[niveau]}[{niveau}] {message}{couleurs['RESET']}"
     try:
@@ -39,6 +44,7 @@ def log(message, niveau="INFO"):
     except UnicodeEncodeError:
         # Fallback si terminal ne supporte pas certains emojis/caractères
         print(ligne.encode("ascii", errors="replace").decode("ascii"))
+
 
 def tester(
     nom,
@@ -49,7 +55,7 @@ def tester(
     verifier_champs=None,
     verifier_langue=None,
     timeout=60,
-    description=""
+    description="",
 ):
     global TOTAL_TESTS, TESTS_PASSES, TESTS_ECHOUES
     TOTAL_TESTS += 1
@@ -64,21 +70,17 @@ def tester(
         "code_http": None,
         "temps_reponse": None,
         "erreur": None,
-        "details": []
+        "details": [],
     }
 
     try:
+        response = None
         if methode == "GET":
-            response = requests.get(
-                f"{BASE_URL}{url}",
-                timeout=timeout
-            )
+            response = requests.get(f"{BASE_URL}{url}", timeout=timeout)
         elif methode == "POST":
-            response = requests.post(
-                f"{BASE_URL}{url}",
-                json=body,
-                timeout=timeout
-            )
+            response = requests.post(f"{BASE_URL}{url}", json=body, timeout=timeout)
+        else:
+            raise ValueError(f"Méthode HTTP non supportée: {methode}")
 
         temps = round(time.time() - debut, 2)
         resultat["temps_reponse"] = temps
@@ -110,13 +112,37 @@ def tester(
                         return False
 
                     aliases = {
-                        "evenement_structure": ["evenement", "event", "payload", "evenement_parse"],
-                        "diagnostic_1": ["diagnostics", "diagnostic", "diagnostic_principal", "diagnostic_diff"],
-                        "points_gagnes": ["points", "points_total", "score", "user", "gamification"],
+                        "evenement_structure": [
+                            "evenement",
+                            "event",
+                            "payload",
+                            "evenement_parse",
+                        ],
+                        "diagnostic_1": [
+                            "diagnostics",
+                            "diagnostic",
+                            "diagnostic_principal",
+                            "diagnostic_diff",
+                        ],
+                        "points_gagnes": [
+                            "points",
+                            "points_total",
+                            "score",
+                            "user",
+                            "gamification",
+                        ],
                         "niveau_actuel": ["niveau", "user", "niveau_info"],
                         "total_points": ["points_total", "user"],
-                        "charge_animale_actuelle": ["charge_animale_ha", "charge", "charge_actuelle"],
-                        "plan_rotation": ["rotation_recommandee", "recommandations", "plan"],
+                        "charge_animale_actuelle": [
+                            "charge_animale_ha",
+                            "charge",
+                            "charge_actuelle",
+                        ],
+                        "plan_rotation": [
+                            "rotation_recommandee",
+                            "recommandations",
+                            "plan",
+                        ],
                     }
 
                     for champ in verifier_champs:
@@ -143,7 +169,9 @@ def tester(
                     )
 
                 if verifier_langue and isinstance(data, dict) and "ration" in data:
-                    ration = str(data["ration"]).lower()
+                    resultat["details"].append(
+                        f"Langue attendue: {verifier_langue}; ration reçue: {str(data['ration'])[:80]}"
+                    )
 
                 resultat["statut"] = "SUCCES"
                 TESTS_PASSES += 1
@@ -160,7 +188,9 @@ def tester(
                 return False
         else:
             resultat["statut"] = "ECHEC"
-            resultat["erreur"] = f"Code HTTP {response.status_code} au lieu de {attendu_code}"
+            resultat["erreur"] = (
+                f"Code HTTP {response.status_code} au lieu de {attendu_code}"
+            )
             TESTS_ECHOUES += 1
             log(f"❌ {nom} — HTTP {response.status_code}", "ERROR")
             RAPPORT.append(resultat)
@@ -182,10 +212,12 @@ def tester(
         RAPPORT.append(resultat)
         return False
 
+
 def section(titre):
-    log(f"\n{'='*60}", "SECTION")
+    log(f"\n{'=' * 60}", "SECTION")
     log(f"  {titre}", "SECTION")
-    log(f"{'='*60}", "SECTION")
+    log(f"{'=' * 60}", "SECTION")
+
 
 # ============================================================
 # SECTION 1 — SANTÉ ET CONFIGURATION DU SERVEUR
@@ -199,7 +231,7 @@ tester(
     methode="GET",
     url="/sante",
     attendu_code=200,
-    verifier_champs=["status", "app", "version"]
+    verifier_champs=["status", "app", "version"],
 )
 
 tester(
@@ -207,7 +239,7 @@ tester(
     description="Vérifie que /docs est accessible",
     methode="GET",
     url="/docs",
-    attendu_code=200
+    attendu_code=200,
 )
 
 tester(
@@ -215,7 +247,7 @@ tester(
     description="Vérifie les 50 langues africaines",
     methode="GET",
     url="/langues",
-    attendu_code=200
+    attendu_code=200,
 )
 
 tester(
@@ -223,7 +255,7 @@ tester(
     description="Vérifie les prix des matières premières",
     methode="GET",
     url="/marche/prix",
-    attendu_code=200
+    attendu_code=200,
 )
 
 tester(
@@ -231,7 +263,7 @@ tester(
     description="Vérifie le prix du maïs",
     methode="GET",
     url="/marche/prix/mais",
-    attendu_code=200
+    attendu_code=200,
 )
 
 # ============================================================
@@ -250,8 +282,8 @@ ESPECES_TESTS = [
             "ingredients_disponibles": ["mais", "tourteau_soja", "farine_poisson"],
             "nombre_animaux": 50,
             "langue": "fr",
-            "objectif": "equilibre"
-        }
+            "objectif": "equilibre",
+        },
     },
     {
         "nom": "Poulet de chair — Croissance",
@@ -261,8 +293,8 @@ ESPECES_TESTS = [
             "ingredients_disponibles": ["mais", "tourteau_soja"],
             "nombre_animaux": 100,
             "langue": "fr",
-            "objectif": "economique"
-        }
+            "objectif": "economique",
+        },
     },
     {
         "nom": "Poulet de chair — Finition",
@@ -272,8 +304,8 @@ ESPECES_TESTS = [
             "ingredients_disponibles": ["mais", "tourteau_soja", "son_ble"],
             "nombre_animaux": 200,
             "langue": "fr",
-            "objectif": "riche_proteines"
-        }
+            "objectif": "riche_proteines",
+        },
     },
     {
         "nom": "Poule pondeuse — Pré-ponte",
@@ -283,8 +315,8 @@ ESPECES_TESTS = [
             "ingredients_disponibles": ["mais", "tourteau_soja", "son_ble"],
             "nombre_animaux": 500,
             "langue": "fr",
-            "objectif": "equilibre"
-        }
+            "objectif": "equilibre",
+        },
     },
     {
         "nom": "Poule pondeuse — Ponte active",
@@ -294,8 +326,8 @@ ESPECES_TESTS = [
             "ingredients_disponibles": ["mais", "son_ble", "tourteau_soja"],
             "nombre_animaux": 1000,
             "langue": "fr",
-            "objectif": "equilibre"
-        }
+            "objectif": "equilibre",
+        },
     },
     {
         "nom": "Pintade — Démarrage",
@@ -305,8 +337,8 @@ ESPECES_TESTS = [
             "ingredients_disponibles": ["mais", "tourteau_soja", "son_ble"],
             "nombre_animaux": 100,
             "langue": "fr",
-            "objectif": "equilibre"
-        }
+            "objectif": "equilibre",
+        },
     },
     {
         "nom": "Vache laitière — Mi-lactation",
@@ -316,8 +348,8 @@ ESPECES_TESTS = [
             "ingredients_disponibles": ["foin", "mais", "tourteau_soja"],
             "nombre_animaux": 1,
             "langue": "fr",
-            "objectif": "equilibre"
-        }
+            "objectif": "equilibre",
+        },
     },
     {
         "nom": "Zébu — Croissance",
@@ -327,8 +359,8 @@ ESPECES_TESTS = [
             "ingredients_disponibles": ["mais", "tourteau_soja", "son_ble"],
             "nombre_animaux": 10,
             "langue": "fr",
-            "objectif": "economique"
-        }
+            "objectif": "economique",
+        },
     },
     {
         "nom": "Mouton — Finition",
@@ -338,8 +370,8 @@ ESPECES_TESTS = [
             "ingredients_disponibles": ["mais", "tourteau_soja", "son_ble"],
             "nombre_animaux": 15,
             "langue": "fr",
-            "objectif": "equilibre"
-        }
+            "objectif": "equilibre",
+        },
     },
     {
         "nom": "Chèvre — Lactation",
@@ -349,8 +381,8 @@ ESPECES_TESTS = [
             "ingredients_disponibles": ["mais", "tourteau_soja", "son_ble"],
             "nombre_animaux": 5,
             "langue": "fr",
-            "objectif": "equilibre"
-        }
+            "objectif": "equilibre",
+        },
     },
     {
         "nom": "Porc — Croissance",
@@ -360,8 +392,8 @@ ESPECES_TESTS = [
             "ingredients_disponibles": ["mais", "tourteau_soja", "son_ble"],
             "nombre_animaux": 20,
             "langue": "fr",
-            "objectif": "economique"
-        }
+            "objectif": "economique",
+        },
     },
     {
         "nom": "Tilapia — Grossissement",
@@ -371,8 +403,8 @@ ESPECES_TESTS = [
             "ingredients_disponibles": ["son_riz", "farine_poisson", "tourteau_soja"],
             "nombre_animaux": 500,
             "langue": "fr",
-            "objectif": "equilibre"
-        }
+            "objectif": "equilibre",
+        },
     },
     {
         "nom": "Lapin — Croissance",
@@ -382,9 +414,9 @@ ESPECES_TESTS = [
             "ingredients_disponibles": ["son_ble", "tourteau_soja", "foin"],
             "nombre_animaux": 30,
             "langue": "fr",
-            "objectif": "equilibre"
-        }
-    }
+            "objectif": "equilibre",
+        },
+    },
 ]
 
 for test in ESPECES_TESTS:
@@ -395,10 +427,15 @@ for test in ESPECES_TESTS:
         url="/generer-ration",
         body=test["body"],
         attendu_code=200,
-        verifier_champs=["ration", "composition",
-                         "cout_fcfa_kg", "cout_7_jours",
-                         "langue_detectee", "points_gagnes"],
-        timeout=60
+        verifier_champs=[
+            "ration",
+            "composition",
+            "cout_fcfa_kg",
+            "cout_7_jours",
+            "langue_detectee",
+            "points_gagnes",
+        ],
+        timeout=60,
     )
 
 # Tests multilingues OBLIGATOIRES
@@ -411,7 +448,7 @@ LANGUES_TESTS = [
     ("gen", "Gen (Mina)"),
     ("yom", "Yom"),
     ("baa", "Baatonum"),
-    ("en", "Anglais")
+    ("en", "Anglais"),
 ]
 
 for code_langue, nom_langue in LANGUES_TESTS:
@@ -426,11 +463,11 @@ for code_langue, nom_langue in LANGUES_TESTS:
             "ingredients_disponibles": ["mais", "tourteau_soja"],
             "nombre_animaux": 50,
             "langue": code_langue,
-            "objectif": "equilibre"
+            "objectif": "equilibre",
         },
         attendu_code=200,
         verifier_champs=["ration", "langue_detectee"],
-        timeout=60
+        timeout=60,
     )
 
 # Tests objectifs différents
@@ -447,10 +484,10 @@ for objectif in OBJECTIFS:
             "ingredients_disponibles": ["mais", "tourteau_soja", "son_ble"],
             "nombre_animaux": 50,
             "langue": "fr",
-            "objectif": objectif
+            "objectif": objectif,
         },
         attendu_code=200,
-        timeout=60
+        timeout=60,
     )
 
 # ============================================================
@@ -467,8 +504,8 @@ DIAGNOSTICS_TESTS = [
             "symptomes": "toux sèche, diarrhée verte, perte d appétit, mortalité élevée, torticolis",
             "langue": "fr",
             "user_id": "test_user_001",
-            "departement": "Atlantique"
-        }
+            "departement": "Atlantique",
+        },
     },
     {
         "nom": "Poulet — Coccidiose",
@@ -477,8 +514,8 @@ DIAGNOSTICS_TESTS = [
             "symptomes": "diarrhée sanglante, plumes ébouriffées, perte de poids, sang dans les fientes",
             "langue": "fr",
             "user_id": "test_user_001",
-            "departement": "Atlantique"
-        }
+            "departement": "Atlantique",
+        },
     },
     {
         "nom": "Vache — Mammite",
@@ -487,8 +524,8 @@ DIAGNOSTICS_TESTS = [
             "symptomes": "mamelle enflée et chaude, lait anormal avec grumeaux, vache agitée, fièvre",
             "langue": "fr",
             "user_id": "test_user_001",
-            "departement": "Borgou"
-        }
+            "departement": "Borgou",
+        },
     },
     {
         "nom": "Mouton — Pneumonie",
@@ -497,8 +534,8 @@ DIAGNOSTICS_TESTS = [
             "symptomes": "toux humide, difficultés respiratoires, écoulement nasal, fièvre 40 degrés",
             "langue": "fr",
             "user_id": "test_user_001",
-            "departement": "Zou"
-        }
+            "departement": "Zou",
+        },
     },
     {
         "nom": "Tilapia — Maladie bactérienne",
@@ -507,8 +544,8 @@ DIAGNOSTICS_TESTS = [
             "symptomes": "ulcères sur le corps, nageoires rongées, comportement anormal, mortalité",
             "langue": "fr",
             "user_id": "test_user_001",
-            "departement": "Mono"
-        }
+            "departement": "Mono",
+        },
     },
     {
         "nom": "Porc — PPA suspicion",
@@ -517,8 +554,8 @@ DIAGNOSTICS_TESTS = [
             "symptomes": "fièvre très élevée, points rouges sur la peau, prostration, mort rapide",
             "langue": "fr",
             "user_id": "test_user_001",
-            "departement": "Atlantique"
-        }
+            "departement": "Atlantique",
+        },
     },
     {
         "nom": "VetScan — Test en fon",
@@ -527,9 +564,9 @@ DIAGNOSTICS_TESTS = [
             "symptomes": "kpakpa lɛ ɖó xomɛ, ye nɔ shi, ye ma ɖu vɔ",
             "langue": "fon",
             "user_id": "test_user_001",
-            "departement": "Atlantique"
-        }
-    }
+            "departement": "Atlantique",
+        },
+    },
 ]
 
 for test in DIAGNOSTICS_TESTS:
@@ -541,7 +578,7 @@ for test in DIAGNOSTICS_TESTS:
         body=test["body"],
         attendu_code=200,
         verifier_champs=["decision"],
-        timeout=60
+        timeout=60,
     )
 
 tester(
@@ -549,7 +586,7 @@ tester(
     description="Récupère vétérinaires du département Atlantique",
     methode="GET",
     url="/vetscan/veterinaires/Atlantique",
-    attendu_code=200
+    attendu_code=200,
 )
 
 tester(
@@ -557,7 +594,7 @@ tester(
     description="Récupère historique des diagnostics utilisateur",
     methode="GET",
     url="/vetscan/historique/test_user_001",
-    attendu_code=200
+    attendu_code=200,
 )
 
 # ============================================================
@@ -575,8 +612,8 @@ EVENEMENTS_REPRO = [
             "espece": "vache_laitiere",
             "type_evenement": "chaleur_observee",
             "date_evenement": "2026-05-13",
-            "notes": "Chaleur observée le matin, animal agité"
-        }
+            "notes": "Chaleur observée le matin, animal agité",
+        },
     },
     {
         "nom": "Enregistrement saillie bœuf",
@@ -586,8 +623,8 @@ EVENEMENTS_REPRO = [
             "espece": "vache_laitiere",
             "type_evenement": "saillie",
             "date_evenement": "2026-05-13",
-            "notes": "Saillie naturelle avec taureau Borgou"
-        }
+            "notes": "Saillie naturelle avec taureau Borgou",
+        },
     },
     {
         "nom": "Enregistrement mise bas chèvre",
@@ -597,8 +634,8 @@ EVENEMENTS_REPRO = [
             "espece": "chevre",
             "type_evenement": "mise_bas",
             "date_evenement": "2026-05-10",
-            "notes": "Mise-bas de 2 chevreaux, tous en bonne santé"
-        }
+            "notes": "Mise-bas de 2 chevreaux, tous en bonne santé",
+        },
     },
     {
         "nom": "Enregistrement insémination",
@@ -608,9 +645,9 @@ EVENEMENTS_REPRO = [
             "espece": "vache_laitiere",
             "type_evenement": "insemination",
             "date_evenement": "2026-05-12",
-            "notes": "IA avec semence importée race Girolando"
-        }
-    }
+            "notes": "IA avec semence importée race Girolando",
+        },
+    },
 ]
 
 for test in EVENEMENTS_REPRO:
@@ -621,7 +658,7 @@ for test in EVENEMENTS_REPRO:
         url="/reprotrack/evenement",
         body=test["body"],
         attendu_code=200,
-        timeout=30
+        timeout=30,
     )
 
 tester(
@@ -629,7 +666,7 @@ tester(
     description="Récupère le calendrier de reproduction",
     methode="GET",
     url="/reprotrack/calendrier/test_user_001",
-    attendu_code=200
+    attendu_code=200,
 )
 
 tester(
@@ -637,7 +674,7 @@ tester(
     description="Récupère les alertes de reproduction",
     methode="GET",
     url="/reprotrack/alertes/test_user_001",
-    attendu_code=200
+    attendu_code=200,
 )
 
 tester(
@@ -645,7 +682,7 @@ tester(
     description="Récupère les stats de reproduction",
     methode="GET",
     url="/reprotrack/stats/test_user_001",
-    attendu_code=200
+    attendu_code=200,
 )
 
 # ============================================================
@@ -663,8 +700,8 @@ PATURAGE_TESTS = [
             "espece": "zebu",
             "nombre_animaux": 8,
             "saison": "saison_seche",
-            "langue": "fr"
-        }
+            "langue": "fr",
+        },
     },
     {
         "nom": "Pâturage ovins — Surpâturage",
@@ -674,9 +711,9 @@ PATURAGE_TESTS = [
             "espece": "mouton",
             "nombre_animaux": 50,
             "saison": "saison_pluvieuse",
-            "langue": "fr"
-        }
-    }
+            "langue": "fr",
+        },
+    },
 ]
 
 for test in PATURAGE_TESTS:
@@ -687,9 +724,8 @@ for test in PATURAGE_TESTS:
         url="/pasturemap/analyser",
         body=test["body"],
         attendu_code=200,
-        verifier_champs=["charge_animale_actuelle",
-                         "plan_rotation"],
-        timeout=30
+        verifier_champs=["charge_animale_actuelle", "plan_rotation"],
+        timeout=30,
     )
 
 # ============================================================
@@ -701,32 +737,32 @@ section("6. FARMMANAGER — REGISTRE ÉLEVAGE VOCAL")
 EVENEMENTS_FARM = [
     {
         "nom": "Traitement médical poulet",
-        "texte": "Lot de 50 poulets traité ce matin avec Tylosine 100mg, revoir dans 5 jours"
+        "texte": "Lot de 50 poulets traité ce matin avec Tylosine 100mg, revoir dans 5 jours",
     },
     {
         "nom": "Vaccination volailles",
-        "texte": "Vaccination Newcastle sur 200 poules pondeuses, lot A, vaccin Hitchner B1"
+        "texte": "Vaccination Newcastle sur 200 poules pondeuses, lot A, vaccin Hitchner B1",
     },
     {
         "nom": "Vente animaux",
-        "texte": "Vendu 10 poulets de chair à 3500 FCFA pièce au marché de Cotonou"
+        "texte": "Vendu 10 poulets de chair à 3500 FCFA pièce au marché de Cotonou",
     },
     {
         "nom": "Achat intrants",
-        "texte": "Acheté 100 kg de maïs à 250 FCFA le kg et 50 kg de soja à 450 FCFA"
+        "texte": "Acheté 100 kg de maïs à 250 FCFA le kg et 50 kg de soja à 450 FCFA",
     },
     {
         "nom": "Naissance veaux",
-        "texte": "Vache numéro 47 a vêlé cette nuit, veau mâle en bonne santé, 28 kg"
+        "texte": "Vache numéro 47 a vêlé cette nuit, veau mâle en bonne santé, 28 kg",
     },
     {
         "nom": "Mortalité poulets",
-        "texte": "3 poulets morts ce matin dans le poulailler 2, diarrhée verdâtre"
+        "texte": "3 poulets morts ce matin dans le poulailler 2, diarrhée verdâtre",
     },
     {
         "nom": "Pesée animaux",
-        "texte": "Pesée lot de finition, poids moyen 1850 grammes, prêts dans 2 semaines"
-    }
+        "texte": "Pesée lot de finition, poids moyen 1850 grammes, prêts dans 2 semaines",
+    },
 ]
 
 for test in EVENEMENTS_FARM:
@@ -735,13 +771,9 @@ for test in EVENEMENTS_FARM:
         description=f"Enregistrement vocal: {test['nom']}",
         methode="POST",
         url="/farmmanager/evenement",
-        body={
-            "texte": test["texte"],
-            "user_id": "test_user_001",
-            "langue": "fr"
-        },
+        body={"texte": test["texte"], "user_id": "test_user_001", "langue": "fr"},
         attendu_code=200,
-        timeout=30
+        timeout=30,
     )
 
 tester(
@@ -749,7 +781,7 @@ tester(
     description="Récupère la liste des événements",
     methode="GET",
     url="/farmmanager/evenements/test_user_001",
-    attendu_code=200
+    attendu_code=200,
 )
 
 tester(
@@ -757,7 +789,7 @@ tester(
     description="Récupère l analyse financière",
     methode="GET",
     url="/farmmanager/finances/test_user_001",
-    attendu_code=200
+    attendu_code=200,
 )
 
 # ============================================================
@@ -771,7 +803,7 @@ tester(
     description="Récupère le catalogue des formations",
     methode="GET",
     url="/academy/formations",
-    attendu_code=200
+    attendu_code=200,
 )
 
 FORMATIONS_CODES = [
@@ -779,7 +811,7 @@ FORMATIONS_CODES = [
     "sante_prevention",
     "reproduction_bovine",
     "finance_agricole",
-    "paturages_durables"
+    "paturages_durables",
 ]
 
 for code in FORMATIONS_CODES:
@@ -788,7 +820,7 @@ for code in FORMATIONS_CODES:
         description=f"Détail de la formation {code}",
         methode="GET",
         url=f"/academy/formation/{code}",
-        attendu_code=200
+        attendu_code=200,
     )
 
 for code in FORMATIONS_CODES:
@@ -799,7 +831,7 @@ for code in FORMATIONS_CODES:
             methode="GET",
             url=f"/academy/lecon/{code}/{numero}",
             attendu_code=200,
-            timeout=30
+            timeout=30,
         )
 
 tester(
@@ -812,11 +844,11 @@ tester(
         "formation_code": "alimentation_volailles",
         "lecon_numero": 1,
         "reponses": [1, 2, 3],
-        "langue": "fr"
+        "langue": "fr",
     },
     attendu_code=200,
     verifier_champs=["score", "points_gagnes"],
-    timeout=30
+    timeout=30,
 )
 
 tester(
@@ -824,7 +856,7 @@ tester(
     description="Récupère progression dans les formations",
     methode="GET",
     url="/academy/progression/test_user_001",
-    attendu_code=200
+    attendu_code=200,
 )
 
 # ============================================================
@@ -841,8 +873,8 @@ FARMCAST_TESTS = [
             "langue": "fr",
             "format_type": "audio",
             "public_cible": "éleveurs avicoles débutants",
-            "user_id": "test_user_001"
-        }
+            "user_id": "test_user_001",
+        },
     },
     {
         "nom": "Contenu alimentation bovins FON",
@@ -851,8 +883,8 @@ FARMCAST_TESTS = [
             "langue": "fon",
             "format_type": "fiche",
             "public_cible": "éleveurs bovins",
-            "user_id": "test_user_001"
-        }
+            "user_id": "test_user_001",
+        },
     },
     {
         "nom": "Contenu prévention maladies FR",
@@ -861,9 +893,9 @@ FARMCAST_TESTS = [
             "langue": "fr",
             "format_type": "audio",
             "public_cible": "techniciens agricoles",
-            "user_id": "test_user_001"
-        }
-    }
+            "user_id": "test_user_001",
+        },
+    },
 ]
 
 for test in FARMCAST_TESTS:
@@ -875,7 +907,7 @@ for test in FARMCAST_TESTS:
         body=test["body"],
         attendu_code=200,
         verifier_champs=["script", "audio_url"],
-        timeout=120
+        timeout=120,
     )
 
 tester(
@@ -883,7 +915,7 @@ tester(
     description="Récupère les contenus créés",
     methode="GET",
     url="/farmcast/contenus/test_user_001",
-    attendu_code=200
+    attendu_code=200,
 )
 
 # ============================================================
@@ -897,7 +929,7 @@ tester(
     description="Récupère le fil d actualité",
     methode="GET",
     url="/community/posts",
-    attendu_code=200
+    attendu_code=200,
 )
 
 tester(
@@ -911,11 +943,11 @@ tester(
         "contenu": "J ai essayé FeedFormula AI pour mes 200 poulets, résultat impressionnant ! Économie de 15% sur l alimentation.",
         "type_post": "conseil",
         "espece_concernee": "poulet_chair",
-        "langue": "fr"
+        "langue": "fr",
     },
     attendu_code=200,
     verifier_champs=["id", "contenu"],
-    timeout=30
+    timeout=30,
 )
 
 tester(
@@ -923,7 +955,7 @@ tester(
     description="Récupère les annonces du marketplace",
     methode="GET",
     url="/community/marche",
-    attendu_code=200
+    attendu_code=200,
 )
 
 tester(
@@ -942,10 +974,10 @@ tester(
         "description": "Poulets de chair bien nourris, poids moyen 2kg, prêts à la vente",
         "localisation": "Cotonou, Akpakpa",
         "departement": "Atlantique",
-        "telephone_contact": "+22961234567"
+        "telephone_contact": "+22961234567",
     },
     attendu_code=200,
-    timeout=30
+    timeout=30,
 )
 
 tester(
@@ -953,7 +985,7 @@ tester(
     description="Filtrer annonces par espèce et département",
     methode="GET",
     url="/community/marche?type=vente&espece=poulet_chair&departement=Atlantique",
-    attendu_code=200
+    attendu_code=200,
 )
 
 tester(
@@ -961,7 +993,7 @@ tester(
     description="Statistiques globales de la communauté",
     methode="GET",
     url="/community/stats",
-    attendu_code=200
+    attendu_code=200,
 )
 
 # ============================================================
@@ -979,7 +1011,7 @@ ACTIONS_GAMIFICATION = [
     "diagnostic_vetscan",
     "enregistrement_vocal",
     "completer_lecon",
-    "inviter_ami"
+    "inviter_ami",
 ]
 
 for action in ACTIONS_GAMIFICATION:
@@ -991,11 +1023,11 @@ for action in ACTIONS_GAMIFICATION:
         body={
             "user_id": "test_user_001",
             "action": action,
-            "contexte": {"langue": "fon"} if "langue" in action else {}
+            "contexte": {"langue": "fon"} if "langue" in action else {},
         },
         attendu_code=200,
         verifier_champs=["points_gagnes", "total_points", "niveau_actuel"],
-        timeout=10
+        timeout=10,
     )
 
 tester(
@@ -1004,8 +1036,13 @@ tester(
     methode="GET",
     url="/gamification/profil/test_user_001",
     attendu_code=200,
-    verifier_champs=["niveau", "points_total", "serie_actuelle",
-                     "trophees", "graines_or"]
+    verifier_champs=[
+        "niveau",
+        "points_total",
+        "serie_actuelle",
+        "trophees",
+        "graines_or",
+    ],
 )
 
 tester(
@@ -1013,7 +1050,7 @@ tester(
     description="Récupère le classement national",
     methode="GET",
     url="/gamification/classement?scope=national",
-    attendu_code=200
+    attendu_code=200,
 )
 
 tester(
@@ -1021,7 +1058,7 @@ tester(
     description="Récupère le classement par département",
     methode="GET",
     url="/gamification/classement?scope=departement&departement=Atlantique",
-    attendu_code=200
+    attendu_code=200,
 )
 
 tester(
@@ -1029,7 +1066,7 @@ tester(
     description="Récupère les 3 défis quotidiens",
     methode="GET",
     url="/gamification/defis-du-jour",
-    attendu_code=200
+    attendu_code=200,
 )
 
 tester(
@@ -1037,13 +1074,9 @@ tester(
     description="Marque un défi comme complété",
     methode="POST",
     url="/gamification/defi/completer",
-    body={
-        "user_id": "test_user_001",
-        "defi_numero": 1,
-        "date": "2026-05-13"
-    },
+    body={"user_id": "test_user_001", "defi_numero": 1, "date": "2026-05-13"},
     attendu_code=200,
-    timeout=10
+    timeout=10,
 )
 
 tester(
@@ -1051,7 +1084,7 @@ tester(
     description="Récupère les trophées débloqués",
     methode="GET",
     url="/gamification/trophees/test_user_001",
-    attendu_code=200
+    attendu_code=200,
 )
 
 tester(
@@ -1059,7 +1092,7 @@ tester(
     description="Récupère la ligue actuelle",
     methode="GET",
     url="/gamification/ligue/test_user_001",
-    attendu_code=200
+    attendu_code=200,
 )
 
 # ============================================================
@@ -1078,11 +1111,11 @@ tester(
         "prenom": "Kofi",
         "langue": "fr",
         "espece_principale": "poulet_chair",
-        "departement": "Atlantique"
+        "departement": "Atlantique",
     },
     attendu_code=200,
     verifier_champs=["message", "otp_pour_test"],
-    timeout=10
+    timeout=10,
 )
 
 tester(
@@ -1090,12 +1123,9 @@ tester(
     description="Vérification code OTP reçu",
     methode="POST",
     url="/auth/verifier-otp",
-    body={
-        "telephone": AUTH_TEST_PHONE,
-        "otp": AUTH_TEST_OTP
-    },
+    body={"telephone": AUTH_TEST_PHONE, "otp": AUTH_TEST_OTP},
     attendu_code=200,
-    timeout=10
+    timeout=10,
 )
 
 tester(
@@ -1105,7 +1135,7 @@ tester(
     url="/auth/connexion",
     body={"telephone": AUTH_TEST_PHONE},
     attendu_code=200,
-    timeout=10
+    timeout=10,
 )
 
 # ============================================================
@@ -1121,10 +1151,10 @@ tester(
     url="/audio/synthese",
     body={
         "texte": "Bonjour, voici votre ration optimale pour 50 poulets.",
-        "langue": "fr"
+        "langue": "fr",
     },
     attendu_code=200,
-    timeout=30
+    timeout=30,
 )
 
 tester(
@@ -1133,7 +1163,7 @@ tester(
     methode="GET",
     url="/audio/demo/fr",
     attendu_code=200,
-    timeout=30
+    timeout=30,
 )
 
 tester(
@@ -1142,7 +1172,7 @@ tester(
     methode="GET",
     url="/audio/demo/fon",
     attendu_code=200,
-    timeout=30
+    timeout=30,
 )
 
 tester(
@@ -1152,10 +1182,10 @@ tester(
     url="/audio/ration-vocale",
     body={
         "ration_texte": "Ration pour 50 poulets. Maïs 74kg. Soja 9kg. Coût 13462 FCFA.",
-        "langue": "fr"
+        "langue": "fr",
     },
     attendu_code=200,
-    timeout=30
+    timeout=30,
 )
 
 # ============================================================
@@ -1174,11 +1204,11 @@ tester(
         "abonnement": "standard",
         "duree": "mensuel",
         "telephone": "+22961234567",
-        "prenom": "Kofi"
+        "prenom": "Kofi",
     },
     attendu_code=200,
     verifier_champs=["transaction_id", "montant"],
-    timeout=30
+    timeout=30,
 )
 
 tester(
@@ -1191,10 +1221,10 @@ tester(
         "abonnement": "premium",
         "duree": "trimestriel",
         "telephone": "+22961234567",
-        "prenom": "Kofi"
+        "prenom": "Kofi",
     },
     attendu_code=200,
-    timeout=30
+    timeout=30,
 )
 
 tester(
@@ -1203,7 +1233,7 @@ tester(
     methode="GET",
     url="/paiement/abonnement/test_user_001",
     attendu_code=200,
-    verifier_champs=["abonnement_actuel", "fonctionnalites_disponibles"]
+    verifier_champs=["abonnement_actuel", "fonctionnalites_disponibles"],
 )
 
 tester(
@@ -1211,7 +1241,7 @@ tester(
     description="Historique des paiements",
     methode="GET",
     url="/paiement/historique/test_user_001",
-    attendu_code=200
+    attendu_code=200,
 )
 
 # ============================================================
@@ -1225,7 +1255,7 @@ tester(
     description="Notification personnalisée du jour",
     methode="GET",
     url="/notifications/du-jour/test_user_001",
-    attendu_code=200
+    attendu_code=200,
 )
 
 tester(
@@ -1233,7 +1263,7 @@ tester(
     description="Tous les messages d Aya traduits",
     methode="GET",
     url="/notifications/messages-aya",
-    attendu_code=200
+    attendu_code=200,
 )
 
 # ============================================================
@@ -1247,7 +1277,7 @@ SEUILS_PERFORMANCE = {
     "/marche/prix": 2.0,
     "/academy/formations": 5.0,
     "/community/posts": 3.0,
-    "/gamification/defis-du-jour": 3.0
+    "/gamification/defis-du-jour": 3.0,
 }
 
 for url, seuil in SEUILS_PERFORMANCE.items():
@@ -1262,12 +1292,14 @@ for url, seuil in SEUILS_PERFORMANCE.items():
         else:
             log(f"⚠️ Performance {url}: {temps}s > seuil {seuil}s", "WARNING")
         TOTAL_TESTS += 1
-        RAPPORT.append({
-            "nom": f"Performance {url}",
-            "statut": "SUCCES" if temps <= seuil else "LENT",
-            "temps_reponse": temps,
-            "seuil": seuil
-        })
+        RAPPORT.append(
+            {
+                "nom": f"Performance {url}",
+                "statut": "SUCCES" if temps <= seuil else "LENT",
+                "temps_reponse": temps,
+                "seuil": seuil,
+            }
+        )
     except Exception as e:
         log(f"❌ Performance {url}: {e}", "ERROR")
 
@@ -1277,28 +1309,20 @@ for url, seuil in SEUILS_PERFORMANCE.items():
 
 section("16. CHARGE — REQUÊTES SIMULTANÉES")
 
-import threading
-
 resultats_charge = []
+
 
 def requete_charge(numero):
     try:
         debut = time.time()
-        response = requests.get(
-            f"{BASE_URL}/sante",
-            timeout=10
-        )
+        response = requests.get(f"{BASE_URL}/sante", timeout=10)
         temps = round(time.time() - debut, 2)
-        resultats_charge.append({
-            "numero": numero,
-            "code": response.status_code,
-            "temps": temps
-        })
+        resultats_charge.append(
+            {"numero": numero, "code": response.status_code, "temps": temps}
+        )
     except Exception as e:
-        resultats_charge.append({
-            "numero": numero,
-            "erreur": str(e)
-        })
+        resultats_charge.append({"numero": numero, "erreur": str(e)})
+
 
 threads = []
 for i in range(10):
@@ -1310,10 +1334,14 @@ for t in threads:
     t.join()
 
 reussites_charge = sum(1 for r in resultats_charge if r.get("code") == 200)
-temps_moyen_charge = sum(r.get("temps", 0) for r in resultats_charge) / len(resultats_charge)
+temps_moyen_charge = sum(r.get("temps", 0) for r in resultats_charge) / len(
+    resultats_charge
+)
 
-log(f"Charge: {reussites_charge}/10 requêtes réussies, temps moyen: {round(temps_moyen_charge, 2)}s",
-    "SUCCESS" if reussites_charge >= 8 else "WARNING")
+log(
+    f"Charge: {reussites_charge}/10 requêtes réussies, temps moyen: {round(temps_moyen_charge, 2)}s",
+    "SUCCESS" if reussites_charge >= 8 else "WARNING",
+)
 TOTAL_TESTS += 1
 if reussites_charge >= 8:
     TESTS_PASSES += 1
@@ -1341,7 +1369,7 @@ PAGES_FRONTEND = [
     "pasturemap.html",
     "farmmanager.html",
     "investisseurs.html",
-    "offline.html"
+    "offline.html",
 ]
 
 for page in PAGES_FRONTEND:
@@ -1376,7 +1404,7 @@ FICHIERS_BACKEND = [
     "backend/scraper_prix.py",
     "backend/langue_detector.py",
     "backend/config.py",
-    "backend/requirements.txt"
+    "backend/requirements.txt",
 ]
 
 for fichier in FICHIERS_BACKEND:
@@ -1397,7 +1425,7 @@ FICHIERS_DATA = [
     "prompts/system_prompt_vetscan.txt",
     "gamification/points_engine.py",
     "gamification/aya_engine.py",
-    "gamification/defis_generator.py"
+    "gamification/defis_generator.py",
 ]
 
 for fichier in FICHIERS_DATA:
@@ -1420,7 +1448,7 @@ FICHIERS_JSON = [
     "data/matieres_premieres.json",
     "data/besoins_animaux.json",
     "data/langues_supportees.json",
-    "gamification/aya_states.json"
+    "gamification/aya_states.json",
 ]
 
 for fichier in FICHIERS_JSON:
@@ -1439,14 +1467,13 @@ for fichier in FICHIERS_JSON:
         TESTS_ECHOUES += 1
         log(f"❌ {fichier} MANQUANT", "ERROR")
 
-import ast
 FICHIERS_PYTHON = [
     "backend/main.py",
     "backend/database.py",
     "backend/auth.py",
     "backend/nutrition_engine.py",
     "backend/config.py",
-    "gamification/points_engine.py"
+    "gamification/points_engine.py",
 ]
 
 for fichier in FICHIERS_PYTHON:
@@ -1474,19 +1501,22 @@ section("RAPPORT FINAL")
 duree_totale = round((datetime.now() - DEBUT).total_seconds(), 1)
 taux_reussite = round((TESTS_PASSES / TOTAL_TESTS * 100), 1) if TOTAL_TESTS > 0 else 0
 
-log(f"\n{'='*60}", "SECTION")
-log(f"  RÉSULTATS TESTS AUTOMATIQUES FEEDFORMULA AI", "SECTION")
-log(f"{'='*60}", "SECTION")
+log(f"\n{'=' * 60}", "SECTION")
+log("  RÉSULTATS TESTS AUTOMATIQUES FEEDFORMULA AI", "SECTION")
+log(f"{'=' * 60}", "SECTION")
 log(f"  Total tests      : {TOTAL_TESTS}", "INFO")
 log(f"  Tests passés     : {TESTS_PASSES}", "SUCCESS")
 log(f"  Tests échoués    : {TESTS_ECHOUES}", "ERROR" if TESTS_ECHOUES > 0 else "INFO")
-log(f"  Taux de réussite : {taux_reussite}%", "SUCCESS" if taux_reussite >= 80 else "WARNING")
+log(
+    f"  Taux de réussite : {taux_reussite}%",
+    "SUCCESS" if taux_reussite >= 80 else "WARNING",
+)
 log(f"  Durée totale     : {duree_totale}s", "INFO")
-log(f"{'='*60}", "SECTION")
+log(f"{'=' * 60}", "SECTION")
 
 rapport_md = f"""# 🌾 RAPPORT TESTS AUTOMATIQUES COMPLET — FeedFormula AI
 
-**Date :** {datetime.now().strftime('%d/%m/%Y à %H:%M')}
+**Date :** {datetime.now().strftime("%d/%m/%Y à %H:%M")}
 **Durée totale :** {duree_totale} secondes
 
 ## 📊 RÉSULTATS GLOBAUX
@@ -1525,7 +1555,9 @@ rapport_md = f"""# 🌾 RAPPORT TESTS AUTOMATIQUES COMPLET — FeedFormula AI
 
 """
 
-tests_echoues_liste = [r for r in RAPPORT if r.get("statut") in ["ECHEC", "TIMEOUT", "ERREUR"]]
+tests_echoues_liste = [
+    r for r in RAPPORT if r.get("statut") in ["ECHEC", "TIMEOUT", "ERREUR"]
+]
 
 if tests_echoues_liste:
     for test in tests_echoues_liste:
@@ -1533,7 +1565,7 @@ if tests_echoues_liste:
 else:
     rapport_md += "✅ Aucun test échoué !\n"
 
-rapport_md += f"""
+rapport_md += """
 
 ## 🚀 RECOMMANDATIONS
 
@@ -1544,9 +1576,11 @@ if taux_reussite >= 95:
 elif taux_reussite >= 80:
     rapport_md += "⚠️ Quelques corrections mineures à apporter avant la présentation.\n"
 else:
-    rapport_md += "❌ Des corrections importantes sont nécessaires avant la présentation.\n"
+    rapport_md += (
+        "❌ Des corrections importantes sont nécessaires avant la présentation.\n"
+    )
 
-rapport_md += f"""
+rapport_md += """
 ## 📱 STATUT DÉPLOIEMENT
 
 - Local : http://127.0.0.1:8000 ✅
@@ -1560,10 +1594,16 @@ rapport_md += f"""
 with open("docs/RAPPORT_TESTS_AUTOMATIQUES_COMPLET.md", "w", encoding="utf-8") as f:
     f.write(rapport_md)
 
-log(f"\n✅ Rapport sauvegardé dans docs/RAPPORT_TESTS_AUTOMATIQUES_COMPLET.md", "SUCCESS")
+log(
+    "\n✅ Rapport sauvegardé dans docs/RAPPORT_TESTS_AUTOMATIQUES_COMPLET.md",
+    "SUCCESS",
+)
 
 if TESTS_ECHOUES > 0:
-    log(f"\n⚠️ {TESTS_ECHOUES} tests ont échoué. Correction automatique en cours...", "WARNING")
+    log(
+        f"\n⚠️ {TESTS_ECHOUES} tests ont échoué. Correction automatique en cours...",
+        "WARNING",
+    )
     print("\n[CORRECTION AUTOMATIQUE]")
     print("Pour chaque test échoué, analyse l erreur et corrige")
     print("le fichier backend concerné immédiatement.")
