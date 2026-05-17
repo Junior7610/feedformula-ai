@@ -1,24 +1,28 @@
 # FeedFormula AI — Script de présentation orale (7 minutes)
 
-Porteur du projet : **Leonel TOGBE**  
-Jury : **Build With Afri**
-
-> **Objectif** : délivrer un pitch clair, fort et mémorable en 7 minutes, avec une démonstration d’impact, de produit et de business.
+Porteur : **Leonel TOGBE**  
+Contexte : **Finale Build With Afri**  
+Objectif : convaincre le jury que FeedFormula AI est une application africaine utile, déployable et économiquement viable.
 
 ---
 
-## MINUTE 1 — L’ACCROCHE
+## MINUTE 1 — L’ACCROCHE IMPACTANTE
 
 **Script oral :**
 
-Et si je vous disais que, dans l’élevage africain, une mauvaise ration peut faire perdre une part importante de marge en quelques semaines ?  
-Et si je vous disais qu’un nutritionniste coûte souvent trop cher pour la majorité des petits éleveurs, alors que l’Afrique a besoin d’une solution simple, rapide et accessible ?
+Mesdames et Messieurs les membres du jury, laissez-moi commencer par une question simple :
 
-C’est exactement ce que résout **FeedFormula AI** : une intelligence agricole capable de formuler une ration en **30 secondes**, dans la langue de l’éleveur, directement sur smartphone.
+**Combien coûte une mauvaise ration à un éleveur africain ?**
 
-Le problème n’est pas seulement technique. Le vrai problème, c’est que des milliers d’éleveurs prennent encore des décisions nutritionnelles à l’aveugle. Nous, nous apportons la précision, la vitesse et la langue locale.
+Au Bénin, un petit éleveur peut perdre jusqu’à **30 % de sa marge** parce que ses animaux mangent trop cher, trop peu équilibré, ou pas au bon moment. Un nutritionniste spécialisé peut coûter jusqu’à **200 000 FCFA** pour un accompagnement sérieux. Pourtant, le Bénin compte environ **180 000 éleveurs**, et la majorité n’a ni nutritionniste, ni vétérinaire disponible chaque semaine, ni outil simple dans sa langue.
 
-**Transition :** le problème est massif, structuré, et très concret au Bénin.
+C’est ce problème que nous résolvons avec **FeedFormula AI**.
+
+FeedFormula AI permet à un éleveur de parler à son téléphone, en français, en fon, en yoruba ou dans une autre langue africaine, et de recevoir en **30 secondes** une ration optimisée : les ingrédients, les quantités, le coût, les recommandations et même une lecture vocale.
+
+Ce n’est pas seulement une application. C’est une intelligence agricole africaine, construite pour les réalités de nos fermes, de nos langues et de nos revenus.
+
+**Transition :** Pour comprendre pourquoi c’est important, regardons le problème de fond.
 
 ---
 
@@ -26,20 +30,22 @@ Le problème n’est pas seulement technique. Le vrai problème, c’est que des
 
 **Script oral :**
 
-L’élevage africain souffre de **trois problèmes structurels**.
+L’élevage africain fait face à trois problèmes structurels.
 
-**Premièrement : le coût du conseil technique.**  
-Dans beaucoup de zones rurales, un éleveur n’a pas accès à un nutritionniste ou à un vétérinaire à chaque décision. Le conseil existe, mais il est rare, cher, et souvent urbain.
+**Premier problème : la ration est souvent approximative.**  
+Beaucoup d’éleveurs mélangent le maïs, le son, le soja ou les restes disponibles sans connaître précisément les besoins de leurs animaux. Exemple concret : un éleveur de 50 poulets à Abomey-Calavi peut donner trop de maïs, pas assez de protéines, puis constater une croissance lente, plus de mortalité et un coût alimentaire trop élevé.
 
-**Deuxièmement : la barrière de la langue et du niveau d’alphabétisation.**  
-Beaucoup d’éleveurs comprennent mieux le fon, le yoruba, le dendi, l’adja ou le baatonum que le français administratif. Une app qui ne parle pas leur langue perd immédiatement son impact.
+**Deuxième problème : le conseil technique est difficile d’accès.**  
+Un nutritionniste ou un vétérinaire qualifié n’est pas toujours disponible dans les communes rurales. Quand il est disponible, le prix reste élevé pour un petit producteur. Résultat : l’éleveur prend des décisions critiques seul, souvent avec des informations reçues sur WhatsApp ou par bouche-à-oreille.
 
-**Troisièmement : le manque d’outils simples et intégrés.**  
-Aujourd’hui, l’éleveur jongle entre notes papier, calculs approximatifs, conseils WhatsApp, et informations non fiables. Résultat : des erreurs de ration, des pertes de performance, et une rentabilité fragile.
+**Troisième problème : la barrière de langue et d’alphabétisation.**  
+Une grande partie des outils agricoles sont en français technique. Mais beaucoup d’éleveurs comprennent mieux le fon, le yoruba, le dendi, l’adja, le gen ou le baatonum. Si la technologie ne parle pas la langue de l’éleveur, elle reste loin de lui.
 
-Au Bénin, cela touche directement un marché réel d’environ **180 000 éleveurs**. Quand on a autant d’acteurs, l’enjeu n’est plus de créer une belle app. L’enjeu est de créer un outil adopté, compris et utilisé tous les jours.
+Ces trois problèmes créent une conséquence directe : baisse de productivité, hausse des coûts, mortalité évitable et revenus instables.
 
-**Transition :** c’est là que FeedFormula AI change le jeu.
+FeedFormula AI répond à ces problèmes avec une approche simple : **une IA utile, vocale, multilingue et pensée pour le terrain africain.**
+
+**Transition :** Voici notre solution.
 
 ---
 
@@ -47,41 +53,66 @@ Au Bénin, cela touche directement un marché réel d’environ **180 000 éleve
 
 **Script oral :**
 
-**FeedFormula AI**, c’est une plateforme d’intelligence agricole pensée pour l’Afrique, avec **trois piliers**.
+FeedFormula AI repose sur trois piliers.
 
-**1. Une solution multilingue**  
-Grâce à l’intégration API Afri, nous pouvons aller jusqu’à **50 langues africaines**. L’éleveur parle en fon, en français ou dans sa langue locale, et l’IA répond de manière claire et utile.
+**Premier pilier : le multilingue africain.**  
+Grâce à l’API Afri, FeedFormula AI peut fonctionner avec jusqu’à **50 langues africaines**. L’éleveur n’est plus obligé de s’adapter à la technologie. C’est la technologie qui s’adapte à lui. Il peut parler en fon, en yoruba, en français, en anglais ou dans d’autres langues locales.
 
-**2. Huit modules complets**  
-Notre produit n’est pas limité à la ration. Il couvre **NutriCore**, **VetScan**, **ReproTrack**, **PastureMap**, **FarmManager**, **FarmAcademy**, **FarmCast** et **FarmCommunity**. Cela veut dire nutrition, santé, reproduction, pâturage, gestion, apprentissage, contenu et communauté dans un seul écosystème.
+**Deuxième pilier : un écosystème complet de 8 modules.**  
+FeedFormula AI ne s’arrête pas à la ration. L’application contient :
 
-**3. Une gamification inspirée de Duolingo**  
-Nous savons qu’un outil agricole doit rester vivant. C’est pourquoi FeedFormula AI intègre des points, des niveaux, des trophées, des ligues et la mascotte **Aya**. L’objectif est simple : faire revenir l’éleveur, l’engager et le faire progresser.
+1. **NutriCore** pour générer les rations animales ;
+2. **VetScan** pour aider à analyser les symptômes ;
+3. **ReproTrack** pour suivre la reproduction ;
+4. **PastureMap** pour gérer le pâturage ;
+5. **FarmManager** pour enregistrer les événements de ferme ;
+6. **FarmAcademy** pour former les éleveurs ;
+7. **FarmCast** pour créer du contenu audio, vidéo et fiche ;
+8. **FarmCommunity** pour connecter les éleveurs et le marché.
 
-**Transition :** maintenant, je vais vous montrer la démonstration en direct.
+**Troisième pilier : la gamification inspirée de Duolingo.**  
+L’éleveur gagne des points, monte de niveau, débloque des trophées, garde une série quotidienne et voit son classement. Pourquoi ? Parce qu’une application utile doit aussi créer une habitude. La mascotte **Aya** accompagne l’éleveur comme un coach agricole.
+
+En résumé : FeedFormula AI est à la fois un nutritionniste de poche, un assistant vétérinaire prudent, un carnet de ferme intelligent et une académie agricole mobile.
+
+**Transition :** Je vais maintenant vous montrer comment cela fonctionne en direct.
 
 ---
 
 ## MINUTE 4 — LA DÉMO LIVE
 
-**Script oral :**
+**Script oral pendant la démo :**
 
-Je vais ouvrir l’application sur mon smartphone.
+Je vais ouvrir FeedFormula AI sur smartphone.
 
-1. D’abord, j’affiche l’écran d’accueil.  
-2. Je sélectionne **« Poulet de chair »**.  
-3. J’appuie sur le micro et je parle en français ou en fon :  
-   **« J’ai du maïs et du tourteau de soja. J’ai 50 poulets de chair de 3 semaines. »**
-4. En quelques secondes, l’application génère la ration.  
-5. Je clique sur **Écouter** pour montrer la lecture vocale.  
-6. Je montre les **points gagnés** et la progression gamifiée.  
-7. J’ouvre le **profil** avec les niveaux et les trophées.  
-8. Je change la langue en **fon** et je relance la même démonstration.  
-9. Enfin, je montre le **classement national** pour prouver la dimension communautaire.
+**Étape 1 : accueil.**  
+Vous voyez la page d’accueil, la progression de niveau, le défi du jour, Aya, et le menu mobile en bas.
 
-Ce que vous voyez ici, ce n’est pas une maquette vide. C’est un produit pensé pour fonctionner dans la vraie vie, avec le smartphone de l’éleveur comme principal point d’accès.
+**Étape 2 : choix animal.**  
+Je sélectionne **Poulet de chair**.
 
-**Transition :** au-delà de la démonstration, regardons l’impact.
+**Étape 3 : interaction vocale.**  
+J’appuie sur le micro et je dis :  
+**« J’ai du maïs et du tourteau de soja. J’ai 50 poulets de chair de 3 semaines. »**
+
+**Étape 4 : génération.**  
+FeedFormula AI génère la ration : les ingrédients, les proportions, le coût au kilo, le coût sur 7 jours et les conseils pratiques.
+
+**Étape 5 : audio.**  
+Je clique sur **Écouter** pour montrer que l’éleveur peut entendre la ration, même s’il lit difficilement.
+
+**Étape 6 : gamification.**  
+Vous voyez que l’éleveur gagne **+10 points**, progresse dans son niveau et reste motivé.
+
+**Étape 7 : profil et classement.**  
+J’ouvre le profil pour montrer les niveaux, les trophées et le classement national.
+
+**Étape 8 : langue fon.**  
+Maintenant, je change la langue en **fon** et je répète la démonstration. L’objectif est clair : l’éleveur n’a pas besoin de parler français technique pour bénéficier d’un conseil intelligent.
+
+Ce que vous voyez ici est une application réelle, mobile-first, pensée pour l’usage quotidien.
+
+**Transition :** Maintenant, parlons impact et chiffres.
 
 ---
 
@@ -89,24 +120,31 @@ Ce que vous voyez ici, ce n’est pas une maquette vide. C’est un produit pens
 
 **Script oral :**
 
-FeedFormula AI est une réponse à un problème de marché énorme.
+FeedFormula AI vise un marché large et très concret.
 
-Au **Bénin**, nous adressons d’abord environ **180 000 éleveurs**. Ensuite, la logique est régionale : Togo, Niger, Burkina Faso, Nigeria francophone, puis l’Afrique de l’Ouest élargie.
+Au Bénin, nous partons d’environ **180 000 éleveurs**. Ensuite, notre expansion naturelle se fait vers l’Afrique de l’Ouest : Togo, Burkina Faso, Niger, Côte d’Ivoire, Sénégal, Nigeria et autres marchés où les langues locales, l’élevage familial et le besoin de conseil sont très forts.
 
-Notre impact se mesure sur quatre axes :
-- **économique** : meilleure ration, moins de gaspillage, meilleure marge ;
-- **social** : accès à un conseil en langue locale ;
-- **technologique** : IA utile, simple, mobile et basse consommation ;
-- **environnemental** : moins de surconsommation d’aliments et meilleure efficacité alimentaire.
+Notre impact se mesure sur quatre niveaux.
 
-En termes d’alignement ODD, nous contribuons surtout à :
-- **ODD 1** : réduction de la pauvreté,
-- **ODD 2** : faim zéro,
-- **ODD 8** : travail décent et croissance,
-- **ODD 9** : innovation et infrastructure,
+**Impact économique :** meilleure ration, moins de gaspillage, meilleure croissance animale, donc meilleure marge.
+
+**Impact social :** accès au conseil pour les petits éleveurs qui ne peuvent pas payer un expert à chaque décision.
+
+**Impact linguistique :** valorisation des langues africaines dans un outil technologique moderne.
+
+**Impact environnemental :** une ration mieux formulée réduit le gaspillage alimentaire et améliore l’efficacité de production.
+
+FeedFormula AI s’aligne directement avec plusieurs Objectifs de Développement Durable :
+
+- **ODD 1** : lutte contre la pauvreté ;
+- **ODD 2** : sécurité alimentaire ;
+- **ODD 8** : croissance économique locale ;
+- **ODD 9** : innovation ;
 - **ODD 12** : consommation responsable.
 
-Notre vision est claire : devenir l’outil de référence de l’élevage africain intelligent.
+À terme, notre vision est de faire de FeedFormula AI un outil de référence pour l’élevage intelligent en Afrique.
+
+**Transition :** Pour que l’impact dure, il faut un modèle économique solide.
 
 ---
 
@@ -114,22 +152,31 @@ Notre vision est claire : devenir l’outil de référence de l’élevage afric
 
 **Script oral :**
 
-FeedFormula AI repose sur **5 offres commerciales** :
+FeedFormula AI propose 5 offres adaptées aux différents profils d’éleveurs.
 
-- **FREE** : accès découverte ;
-- **STANDARD — 2 000 FCFA/mois** : pour l’éleveur régulier ;
-- **PREMIUM — 8 000 FCFA/mois** : pour les exploitations actives ;
-- **VIP — 25 000 FCFA/mois** : pour les fermes plus structurées ;
-- **GOLD — 75 000 FCFA/mois** : pour les acteurs intensifs et les structures professionnelles.
+1. **FREE — 0 FCFA** : découverte, accès limité, idéal pour l’acquisition.
+2. **STANDARD — 2 000 FCFA/mois** : accès utile pour les petits éleveurs réguliers.
+3. **PREMIUM — 8 000 FCFA/mois** : fonctionnalités avancées pour fermes actives.
+4. **VIP — 25 000 FCFA/mois** : suivi renforcé pour exploitations structurées.
+5. **GOLD — 75 000 FCFA/mois** : offre professionnelle pour grandes fermes, coopératives et organisations.
 
-Notre logique de revenus est progressive.
-- **Année 1** : validation au Bénin, montée en traction, premiers abonnés payants.
-- **Année 2** : extension à **5 pays**.
-- **Année 3** : déploiement à **15 pays**.
+Notre modèle combine :
 
-Scénario de travail : nous visons une montée en revenus cohérente avec l’adoption terrain, en combinant abonnements, partenariats, contenus premium et services spécialisés.
+- abonnements mensuels ;
+- services premium ;
+- partenariats avec coopératives ;
+- formation et contenu agricole ;
+- licences pour ONG, projets agricoles et institutions.
 
-Autrement dit, le business model ne repose pas sur un seul flux. Il repose sur un écosystème qui peut se renforcer avec la taille du réseau.
+**Projection simple :**
+
+- **Année 1 :** validation marché au Bénin, objectif de premiers milliers d’utilisateurs et conversion payante progressive.
+- **Année 2 :** extension à **5 pays** d’Afrique de l’Ouest.
+- **Année 3 :** expansion vers **15 pays**, avec partenariats régionaux.
+
+Avec seulement 5 000 abonnés Standard à 2 000 FCFA/mois, FeedFormula AI peut générer **10 millions FCFA de revenu mensuel récurrent**. Et ce scénario ne compte pas encore les offres Premium, VIP, Gold ni les partenariats institutionnels.
+
+**Transition :** Voilà pourquoi nous sommes ici aujourd’hui.
 
 ---
 
@@ -137,15 +184,20 @@ Autrement dit, le business model ne repose pas sur un seul flux. Il repose sur u
 
 **Script oral :**
 
-Aujourd’hui, nous demandons au jury **Build With Afri** trois choses :
+Aujourd’hui, ce que nous demandons au jury Build With Afri est clair.
 
-1. **Reconnaissance du potentiel** de FeedFormula AI comme solution agritech africaine de référence ;
-2. **Accompagnement stratégique** pour accélérer le passage du prototype à l’adoption massive ;
-3. **Soutien au déploiement** pour tester, mesurer et industrialiser la solution au Bénin puis en Afrique de l’Ouest.
+Nous demandons d’abord une reconnaissance : FeedFormula AI peut devenir une solution agritech africaine de référence.
 
-Notre vision est ambitieuse mais réaliste : faire du **Bénin un leader de l’agritech africaine**, avec une intelligence construite pour nos langues, nos fermes et nos réalités.
+Nous demandons ensuite un accompagnement pour passer du prototype fonctionnel au pilote terrain avec de vrais éleveurs, des mesures d’impact et des retours utilisateurs.
 
-Je termine avec cette idée :  
-**FeedFormula AI n’est pas seulement une application. C’est une nouvelle façon de nourrir l’Afrique avec l’intelligence africaine.**
+Enfin, nous demandons un soutien pour accélérer le déploiement : améliorer l’IA, produire des contenus en langues locales, renforcer l’application mobile, et construire les premiers partenariats avec coopératives, techniciens agricoles, ONG et institutions.
+
+Ma vision est simple : faire du **Bénin un leader de l’agritech africaine**. Pas en important des solutions déconnectées de nos réalités, mais en construisant des outils qui parlent nos langues, comprennent nos animaux et servent nos producteurs.
+
+Je suis Leonel TOGBE, technicien agricole béninois, et je crois que l’intelligence artificielle ne doit pas rester dans les grandes villes ou les grands bureaux. Elle doit arriver dans les fermes, dans les marchés, dans les poulaillers, dans les bergeries, dans les étables.
+
+**Phrase de clôture :**
+
+**FeedFormula AI : l’intelligence africaine au service de vos animaux, pour nourrir l’Afrique avec précision, dignité et innovation.**
 
 Merci.

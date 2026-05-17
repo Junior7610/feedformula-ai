@@ -1,39 +1,39 @@
 # FeedFormula AI — Checklist démo live
 
-Porteur du projet : **Leonel TOGBE**  
-Objectif : sécuriser une démo fluide, crédible et sans stress pour le jury Build With Afri.
+Porteur : **Leonel TOGBE**  
+Contexte : **Présentation finale Build With Afri**
 
 ---
 
 ## AVANT LA PRÉSENTATION (la veille)
 
-- [ ] Tester l’URL Vercel depuis un smartphone Android
-- [ ] Vérifier que le serveur répond en moins de 5 secondes
-- [ ] Préparer 3 scénarios de démo pré-testés
-- [ ] Charger le téléphone à 100 %
-- [ ] Désactiver les notifications du téléphone
-- [ ] Activer le mode ne pas déranger
-- [ ] Mettre la luminosité au maximum
-- [ ] Brancher le téléphone à un écran si possible
-- [ ] Préparer une connexion internet de secours
-- [ ] Vérifier que les fichiers visuels s’ouvrent correctement
-- [ ] Vérifier que les voix générées sont lisibles et audibles
+□ Tester l’URL Vercel depuis smartphone Android  
+□ Vérifier que le serveur répond en < 5s  
+□ Préparer 3 scénarios de démo pré-testés  
+□ Charger le téléphone à 100%  
+□ Désactiver les notifications du téléphone  
+□ Activer le mode ne pas déranger  
+□ Mettre la luminosité au maximum  
+□ Brancher le téléphone à un écran si possible  
+□ Préparer une connexion internet de secours  
+□ Vérifier que la démo vidéo pré-enregistrée est accessible  
+□ Vérifier que les captures d’écran de secours sont disponibles  
+□ Vérifier que l’audio et le volume du téléphone fonctionnent  
 
 ---
 
 ## LE JOUR J — 30 MINUTES AVANT
 
-- [ ] Ouvrir l’URL Vercel sur le téléphone
-- [ ] Faire un test de génération de ration complet
-- [ ] Vérifier que l’audio fonctionne
-- [ ] Vérifier que le microphone fonctionne
-- [ ] Tester le passage de langue en fon
-- [ ] Vérifier le classement et les points gamification
-- [ ] Avoir le script de présentation imprimé
-- [ ] Prévoir une batterie externe si nécessaire
-- [ ] Prévoir un câble de recharge
-- [ ] Vérifier que le volume du téléphone est suffisant
-- [ ] Fermer les applications inutiles
+□ Ouvrir l’URL Vercel sur le téléphone  
+□ Faire un test de génération de ration complet  
+□ Vérifier que l’audio fonctionne  
+□ Vérifier que le microphone fonctionne  
+□ Avoir le script de présentation imprimé  
+□ Ouvrir en avance les pages clés : Accueil, NutriCore, Profil, Classement  
+□ Vérifier que la langue FON est sélectionnable  
+□ Vérifier que le téléphone est encore au-dessus de 80% de batterie  
+□ Activer le mode ne pas déranger  
+□ Fermer les applications inutiles  
 
 ---
 
@@ -44,7 +44,7 @@ Objectif : sécuriser une démo fluide, crédible et sans stress pour le jury Bu
 3. Appuyer sur le micro et parler en français :  
    **« J’ai du maïs et du tourteau de soja. J’ai 50 poulets de chair de 3 semaines. »**
 4. Montrer la ration générée en 30 secondes
-5. Cliquer sur **« Écouter »** pour entendre la ration vocalement
+5. Cliquer sur **« Écouter »** → ration lue vocalement
 6. Montrer les **+10 points** gagnés
 7. Montrer la page profil avec niveaux et trophées
 8. Changer la langue en **FON**
@@ -55,23 +55,35 @@ Objectif : sécuriser une démo fluide, crédible et sans stress pour le jury Bu
 
 ## SI QUELQUE CHOSE NE MARCHE PAS
 
-- [ ] Plan B 1 : utiliser la démo vidéo pré-enregistrée
-- [ ] Plan B 2 : utiliser les captures d’écran
-- [ ] Plan B 3 : utiliser la démo locale (`127.0.0.1:8000`)
-- [ ] Rester calme et continuer
-- [ ] Expliquer simplement ce qui se passe si un point technique bloque
-- [ ] Reprendre la main sans perdre le rythme du pitch
+□ Plan B 1 : Utiliser la démo vidéo pré-enregistrée  
+□ Plan B 2 : Utiliser les captures d’écran  
+□ Plan B 3 : Utiliser la démo locale (`127.0.0.1:8000`)  
+□ Rester calme et continuer  
+□ Dire simplement : « Je vous montre le scénario de secours pour respecter le temps. »  
+□ Revenir immédiatement au message principal : impact, langues locales, 8 modules, modèle économique  
 
 ---
 
-## MINI CHECK FINAL
+## SCÉNARIOS DE DÉMO PRÉ-TESTÉS
 
-- [ ] Téléphone chargé
-- [ ] Réseau disponible
-- [ ] Son actif
-- [ ] Micro actif
-- [ ] Écran lisible
-- [ ] Démo prête
-- [ ] Jury capté
+### Scénario 1 — Français, ration poulet
+Phrase : **« J’ai du maïs et du tourteau de soja. J’ai 50 poulets de chair de 3 semaines. »**  
+Objectif : montrer la génération rapide de ration.
 
-**Rappel :** la règle numéro 1 est de garder le contrôle du rythme et du message.
+### Scénario 2 — FON, inclusion linguistique
+Phrase courte préparée en fon ou entrée texte en fon.  
+Objectif : montrer que FeedFormula AI respecte les langues locales.
+
+### Scénario 3 — Gamification
+Action : générer une ration, puis ouvrir Profil et Classement.  
+Objectif : montrer les points, niveaux, trophées et classement.
+
+---
+
+## RAPPEL POUR LE PITCH
+
+- Parler lentement pendant la démo.
+- Ne pas commenter chaque détail technique.
+- Montrer seulement ce qui sert l’histoire : problème → solution → impact.
+- Garder la phrase finale en tête :  
+  **FeedFormula AI : l’intelligence africaine au service de vos animaux.**

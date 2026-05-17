@@ -81,8 +81,8 @@ SCENES: List[Scene] = [
         ),
         duration=15.0,
         image_candidates=(
-            "presentation_investisseurs.png",
             "branding/presentation_investisseurs.png",
+            "presentation_investisseurs.png",
         ),
     ),
     Scene(
@@ -94,9 +94,9 @@ SCENES: List[Scene] = [
         ),
         duration=15.0,
         image_candidates=(
-            "hero_poulets.png",
             "hero_poulets_premium.png",
             "branding/hero_poulets_premium.png",
+            "hero_poulets.png",
         ),
     ),
     Scene(
@@ -108,10 +108,11 @@ SCENES: List[Scene] = [
         ),
         duration=30.0,
         image_candidates=(
+            "hero_image_accueil.png",
+            "branding/hero_image_accueil.png",
             "fond_ecran_accueil.png",
             "illustration_accueil.png",
             "splash_screen.png",
-            "branding/splash_screen_premium.png",
         ),
     ),
     Scene(
@@ -124,8 +125,8 @@ SCENES: List[Scene] = [
         duration=30.0,
         image_candidates=(
             "icones_8_modules_premium.png",
-            "icones_modules.png",
             "branding/icones_8_modules_premium.png",
+            "icones_modules.png",
         ),
     ),
     Scene(
@@ -150,8 +151,9 @@ SCENES: List[Scene] = [
         ),
         duration=15.0,
         image_candidates=(
-            "splash_screen.png",
+            "splash_screen_premium.png",
             "branding/splash_screen_premium.png",
+            "splash_screen.png",
         ),
     ),
 ]

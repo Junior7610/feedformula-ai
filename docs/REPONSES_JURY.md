@@ -1,266 +1,266 @@
-# FeedFormula AI — Réponses préparées aux questions du jury
+# FeedFormula AI — Réponses préparées aux questions du jury Build With Afri
 
-Porteur du projet : **Leonel TOGBE**  
-Objectif : répondre de façon claire, courte et confiante aux questions les plus probables du jury.
+Porteur : **Leonel TOGBE**  
+Objectif : répondre vite, clairement et avec confiance pendant les questions-réponses.
 
-> Format conseillé à l’oral : **réponse directe → chiffre ou exemple → conclusion forte**.
+> Format recommandé à l’oral : **réponse directe → chiffre concret → conclusion forte**.
 
 ---
 
 ## Q1 — « Avez-vous des vrais utilisateurs ? »
 
-**Réponse directe :**
-À ce stade, nous avons surtout un **prototype fonctionnel** et des retours de validation terrain, plutôt qu’une base massive d’utilisateurs payants. L’objectif du pitch est justement de montrer que le produit est prêt à être testé et déployé.
+**Réponse directe et confiante :**  
+Nous avons aujourd’hui un prototype fonctionnel prêt pour un pilote terrain, avec une validation produit orientée éleveurs plutôt qu’une base massive déjà commercialisée. L’objectif après Build With Afri est de passer à une phase structurée avec des coopératives et techniciens agricoles.
 
-**Chiffre ou exemple à citer :**
-Le projet couvre déjà **50 langues africaines** via l’intégration Afri, ce qui montre une base sérieuse de déploiement multi-marché.
+**Chiffre ou exemple concret :**  
+Le marché initial visé est d’environ **180 000 éleveurs au Bénin**, avec une première cible pilote sur les aviculteurs et petits ruminants.
 
-**Phrase de conclusion :**
-Nous ne vendons pas une promesse abstraite : nous venons avec un produit prêt à être validé par les éleveurs.
+**Conclusion forte :**  
+Nous ne venons pas avec une idée abstraite : nous venons avec un produit testable immédiatement.
 
 ---
 
 ## Q2 — « Comment vous différenciez-vous de la concurrence ? »
 
-**Réponse directe :**
-Nous ne sommes pas seulement une app de ration, ni seulement une app de santé animale. FeedFormula AI est un **écosystème complet** : nutrition, santé, reproduction, pâturage, gestion, formation, contenu et communauté.
+**Réponse directe et confiante :**  
+FeedFormula AI n’est pas une simple application de ration ; c’est un écosystème complet pour l’éleveur africain. Notre différence est l’intégration : nutrition, santé, reproduction, pâturage, gestion, formation, contenu et communauté dans un seul outil.
 
-**Chiffre ou exemple à citer :**
-Nous avons **8 modules** dans un seul produit, là où la plupart des solutions concurrentes restent mono-fonction.
+**Chiffre ou exemple concret :**  
+Nous avons **8 modules** : NutriCore, VetScan, ReproTrack, PastureMap, FarmManager, FarmAcademy, FarmCast et FarmCommunity.
 
-**Phrase de conclusion :**
-Notre différence, c’est l’intégration : un seul outil pour toute la vie de l’éleveur.
+**Conclusion forte :**  
+Une fonctionnalité se copie ; un écosystème d’usage quotidien est beaucoup plus difficile à copier.
 
 ---
 
 ## Q3 — « L’IA peut-elle vraiment remplacer un nutritionniste ? »
 
-**Réponse directe :**
-Non, et ce n’est pas notre promesse. L’IA **assiste**, accélère et standardise les calculs, mais elle ne remplace pas le jugement d’un expert dans les cas complexes.
+**Réponse directe et confiante :**  
+Non, et ce n’est pas notre promesse. FeedFormula AI assiste l’éleveur pour les décisions courantes et démocratise l’accès au conseil de base, tandis que les cas complexes restent orientés vers des experts.
 
-**Chiffre ou exemple à citer :**
-Notre promesse opérationnelle est la génération d’une ration en **30 secondes**, ce qui permet déjà de démocratiser l’accès au conseil de base.
+**Chiffre ou exemple concret :**  
+Une ration de base peut être générée en **30 secondes**, alors qu’un conseil expert peut être coûteux et difficile à obtenir en zone rurale.
 
-**Phrase de conclusion :**
-L’IA remplace l’attente, pas l’expertise.
+**Conclusion forte :**  
+L’IA ne remplace pas l’expertise ; elle remplace l’absence totale de conseil.
 
 ---
 
 ## Q4 — « Comment gérez-vous la fiabilité des diagnostics VetScan ? »
 
-**Réponse directe :**
-VetScan doit être présenté comme un **outil d’aide à la décision**, pas comme un diagnostic vétérinaire définitif. On sécurise le système avec des garde-fous, des niveaux de confiance et des recommandations prudentes.
+**Réponse directe et confiante :**  
+VetScan est conçu comme un outil d’aide à la décision, pas comme un diagnostic vétérinaire définitif. Il donne des hypothèses, des probabilités, des signaux d’urgence et recommande de contacter un vétérinaire quand le risque est élevé.
 
-**Chiffre ou exemple à citer :**
-Le backend peut renvoyer un format standardisé avec `safety_flags`, ce qui permet d’alerter quand le niveau de confiance est faible.
+**Chiffre ou exemple concret :**  
+L’interface prévoit **3 diagnostics probables** avec des pourcentages et une décision claire : autonome, surveillance ou urgence.
 
-**Phrase de conclusion :**
-Nous réduisons le risque d’erreur en orientant vite vers la bonne action, pas en prétendant tout savoir.
+**Conclusion forte :**  
+Notre rôle est de réduire le délai de réaction, pas de remplacer le vétérinaire.
 
 ---
 
 ## Q5 — « Pourquoi les éleveurs paieraient-ils 2 000 FCFA/mois ? »
 
-**Réponse directe :**
-Parce que le coût d’une mauvaise ration, d’une erreur sanitaire ou d’un mauvais timing de reproduction peut être bien supérieur à 2 000 FCFA. Le prix est pensé pour rester accessible tout en créant une vraie valeur économique.
+**Réponse directe et confiante :**  
+Parce qu’une seule erreur de ration, une mortalité évitable ou un mauvais suivi peut coûter bien plus que 2 000 FCFA. Le prix Standard est volontairement bas pour être accessible aux petits éleveurs.
 
-**Chiffre ou exemple à citer :**
-L’offre **STANDARD est à 2 000 FCFA/mois**, soit un ticket d’entrée très bas pour un outil qui aide sur la ration, la voix et le suivi.
+**Chiffre ou exemple concret :**  
+L’offre **Standard à 2 000 FCFA/mois** représente environ le prix d’une petite dépense de téléphone, mais peut aider sur la ration, la voix, l’historique et les modules essentiels.
 
-**Phrase de conclusion :**
-Si l’outil fait gagner du temps, évite une erreur et améliore la marge, l’abonnement se justifie vite.
+**Conclusion forte :**  
+Si l’application évite une seule erreur importante, elle est déjà rentabilisée.
 
 ---
 
 ## Q6 — « Comment atteindre 5 000 abonnés en 12 mois ? »
 
-**Réponse directe :**
-Par une stratégie en trois temps : démonstration terrain, distribution communautaire et partenariats locaux. Nous misons sur les éleveurs leaders, les coopératives et les relais agricoles.
+**Réponse directe et confiante :**  
+Nous allons combiner démonstrations terrain, ambassadeurs locaux, coopératives, techniciens agricoles et acquisition digitale WhatsApp/Facebook. La stratégie repose sur la confiance locale avant l’expansion massive.
 
-**Chiffre ou exemple à citer :**
-Le marché initial au Bénin est d’environ **180 000 éleveurs**, ce qui laisse une marge de croissance très importante pour atteindre 5 000 abonnés.
+**Chiffre ou exemple concret :**  
+Sur un marché de **180 000 éleveurs au Bénin**, convertir 5 000 abonnés représente environ **2,8 %** de la base initiale.
 
-**Phrase de conclusion :**
-L’objectif est ambitieux, mais le marché est suffisamment grand pour le rendre réaliste.
+**Conclusion forte :**  
+Le défi n’est pas la taille du marché ; le défi est l’exécution terrain, et c’est précisément notre force.
 
 ---
 
 ## Q7 — « Quelle est votre stratégie pour les analphabètes ? »
 
-**Réponse directe :**
-La stratégie est simple : **voix, langues locales et interface guidée**. L’utilisateur n’a pas besoin de lire longuement pour interagir avec l’application.
+**Réponse directe et confiante :**  
+Notre stratégie est vocale : l’éleveur parle, l’application répond, et la ration peut être lue à voix haute. L’interface est mobile-first, guidée par icônes, couleurs et la mascotte Aya.
 
-**Chiffre ou exemple à citer :**
-Nous visons jusqu’à **50 langues africaines**, dont plusieurs langues béninoises comme le fon, l’adja, le yoruba, le dendi et le baatonum.
+**Chiffre ou exemple concret :**  
+FeedFormula AI vise jusqu’à **50 langues africaines**, avec des langues béninoises prioritaires comme le fon, l’adja, le gen, le yoruba, le dendi et le baatonum.
 
-**Phrase de conclusion :**
-Si l’éleveur comprend sa langue, il comprend déjà l’outil.
+**Conclusion forte :**  
+Si l’éleveur peut parler sa langue, il peut utiliser l’application.
 
 ---
 
 ## Q8 — « Comment l’API Afri gère-t-elle vraiment le fon ? »
 
-**Réponse directe :**
-Nous l’utilisons comme couche multilingue pour détecter, transcrire ou générer des réponses dans les langues ciblées. Dans notre architecture, le fon fait partie des langues prioritaires.
+**Réponse directe et confiante :**  
+L’API Afri sert de couche linguistique pour comprendre, générer et restituer des réponses dans les langues africaines. Dans FeedFormula AI, le fon est traité comme une langue prioritaire, pas comme une option décorative.
 
-**Chiffre ou exemple à citer :**
-Le projet revendique **7 langues béninoises** dans la base de communication : Fon, Adja, Gen, Yoruba, Yom, Baatonum et Dendi.
+**Chiffre ou exemple concret :**  
+Nos tests multilingues ciblent notamment **fon, yoruba, dendi, adja, gen, anglais et français**.
 
-**Phrase de conclusion :**
-Le fon n’est pas un ajout décoratif : c’est une langue d’usage prioritaire dans le produit.
+**Conclusion forte :**  
+Le fon est au cœur de l’accessibilité du produit au Bénin.
 
 ---
 
 ## Q9 — « Quel est votre avantage concurrentiel défendable ? »
 
-**Réponse directe :**
-Notre avantage, c’est la combinaison de la **langue locale**, des **données terrain**, de la **gamification** et d’un **écosystème de modules**. Plus nous serons utilisés, plus le produit apprendra et s’ancrera dans les usages.
+**Réponse directe et confiante :**  
+Notre avantage défendable vient de la combinaison langue locale, données terrain, expérience mobile, gamification et modules intégrés. Plus les éleveurs utilisent l’application, plus notre compréhension des usages devient forte.
 
-**Chiffre ou exemple à citer :**
-Nous avons un système avec **10 niveaux**, **30 trophées** et **8 ligues**, ce qui favorise la rétention.
+**Chiffre ou exemple concret :**  
+Le produit combine **8 modules**, des points, des niveaux, des trophées, des ligues et un classement.
 
-**Phrase de conclusion :**
-La copie d’une fonctionnalité est facile; la copie d’un écosystème vivant est beaucoup plus difficile.
+**Conclusion forte :**  
+Notre défense, c’est l’écosystème et l’adoption terrain.
 
 ---
 
 ## Q10 — « Comment vous financez-vous pour scaler ? »
 
-**Réponse directe :**
-Le plan repose sur un mix : abonnements, partenariats, sponsors sectoriels et financement d’impact. Le but est de ne pas dépendre d’une seule source.
+**Réponse directe et confiante :**  
+Nous combinons abonnements, partenariats avec coopératives, licences institutionnelles, services premium et financement d’impact. Le modèle ne dépend donc pas d’une seule source de revenus.
 
-**Chiffre ou exemple à citer :**
-Les offres vont de **FREE** à **GOLD**, avec des paliers allant de **0 FCFA** à **75 000 FCFA/mois**.
+**Chiffre ou exemple concret :**  
+Les offres vont de **Free à Gold**, avec un palier professionnel à **75 000 FCFA/mois**.
 
-**Phrase de conclusion :**
-Nous construisons un modèle diversifié, capable de grandir avec le marché.
+**Conclusion forte :**  
+Nous construisons un modèle récurrent, diversifié et scalable.
 
 ---
 
 ## Q11 — « Quels sont vos 3 plus grands risques ? »
 
-**Réponse directe :**
-Les trois principaux risques sont : l’adoption terrain, la qualité des réponses IA et la dépendance à des services externes. Nous les gérons par des tests, des garde-fous et des fallbacks.
+**Réponse directe et confiante :**  
+Les trois risques sont l’adoption terrain, la qualité des réponses IA et la dépendance aux fournisseurs technologiques. Nous les traitons par des pilotes, des garde-fous, des validations métier et des fallbacks locaux.
 
-**Chiffre ou exemple à citer :**
-Le projet est pensé pour fonctionner avec **50 langues** et plusieurs modules, donc nous devons surveiller la cohérence sur plusieurs usages.
+**Chiffre ou exemple concret :**  
+VetScan affiche plusieurs hypothèses et une décision d’urgence au lieu de prétendre donner une certitude absolue.
 
-**Phrase de conclusion :**
-Le risque n’est pas caché : il est identifié, cadré et traité.
+**Conclusion forte :**  
+Nous ne cachons pas les risques : nous les encadrons dès la conception.
 
 ---
 
 ## Q12 — « Pourquoi vous et pas une grande entreprise ? »
 
-**Réponse directe :**
-Parce que nous construisons pour une réalité très précise : l’éleveur béninois et ouest-africain, avec ses langues, ses pratiques et ses contraintes. Une grande entreprise peut voir le marché, mais pas forcément la nuance terrain.
+**Réponse directe et confiante :**  
+Parce que je pars d’une réalité terrain précise : l’éleveur béninois, ses contraintes, ses langues et son budget. Une grande entreprise peut avoir les moyens, mais elle n’a pas forcément cette proximité quotidienne avec les producteurs.
 
-**Chiffre ou exemple à citer :**
-Notre base cible initiale est le Bénin avec **180 000 éleveurs** et une approche localisée en langues africaines.
+**Chiffre ou exemple concret :**  
+Le produit commence au Bénin avec un marché ciblé d’environ **180 000 éleveurs** avant l’expansion régionale.
 
-**Phrase de conclusion :**
-Notre proximité terrain est une force, pas une faiblesse.
+**Conclusion forte :**  
+Notre proximité locale est notre accélérateur.
 
 ---
 
 ## Q13 — « Comment gérez-vous la qualité des données ? »
 
-**Réponse directe :**
-Nous devons gérer la qualité par la normalisation, la validation et le contrôle des entrées. L’IA ne doit jamais travailler sur des données floues sans signaler le niveau d’incertitude.
+**Réponse directe et confiante :**  
+Nous normalisons les entrées, limitons les champs critiques et retournons des réponses structurées. L’idée est de guider l’utilisateur pour éviter que l’IA travaille sur des informations trop vagues.
 
-**Chiffre ou exemple à citer :**
-Le backend peut structurer les réponses avec `status`, `data`, `actions` et `safety_flags`, ce qui aide à garder un cadre propre.
+**Chiffre ou exemple concret :**  
+Pour une ration, nous demandons au minimum l’espèce, le stade, les ingrédients, le nombre d’animaux, la langue et l’objectif.
 
-**Phrase de conclusion :**
-Une bonne IA agricole commence par une donnée bien cadrée.
+**Conclusion forte :**  
+Une IA agricole fiable commence par une donnée simple, propre et vérifiable.
 
 ---
 
 ## Q14 — « Quel est votre plan si l’API Afri disparaît ? »
 
-**Réponse directe :**
-Nous prévoyons une architecture de substitution. L’idée est de conserver une couche d’abstraction pour pouvoir changer de fournisseur sans casser le produit.
+**Réponse directe et confiante :**  
+L’architecture prévoit des fallbacks locaux et une couche d’abstraction permettant de changer de fournisseur IA sans reconstruire toute l’application. Les fonctions essentielles peuvent continuer en mode dégradé.
 
-**Chiffre ou exemple à citer :**
-Nous ne dépendons pas d’un seul usage : l’app a **8 modules**, donc l’architecture doit rester résiliente.
+**Chiffre ou exemple concret :**  
+Le backend possède déjà un fallback local pour générer une ration si l’API IA n’est pas disponible.
 
-**Phrase de conclusion :**
-La résilience fournisseur fait partie de la stratégie, pas du bricolage.
+**Conclusion forte :**  
+Nous utilisons l’API Afri comme accélérateur, pas comme point unique de rupture.
 
 ---
 
 ## Q15 — « Comment mesurez-vous l’impact réel sur les éleveurs ? »
 
-**Réponse directe :**
-Par des indicateurs simples : coût de ration, temps gagné, rétention, usage des modules, progression des abonnements et retours terrain. On mesure ce qui change réellement dans la ferme.
+**Réponse directe et confiante :**  
+Nous mesurerons le coût de ration, le temps gagné, la fréquence d’usage, la réduction des erreurs, la progression des animaux et la satisfaction des éleveurs. L’impact doit être prouvé par des données terrain, pas seulement par des promesses.
 
-**Chiffre ou exemple à citer :**
-Une génération de ration en **30 secondes** est un indicateur opérationnel clair, facile à relier au gain de temps.
+**Chiffre ou exemple concret :**  
+Un indicateur simple est le coût alimentaire sur 7 jours avant/après recommandation.
 
-**Phrase de conclusion :**
-L’impact doit se voir dans la ferme, pas seulement dans une présentation.
+**Conclusion forte :**  
+Notre impact sera mesuré dans la ferme, pas uniquement dans l’application.
 
 ---
 
 ## Q16 — « Votre modèle fonctionne-t-il hors Bénin ? »
 
-**Réponse directe :**
-Oui, parce que le besoin est régional : langue, nutrition, santé et gestion d’élevage existent dans toute l’Afrique de l’Ouest. Le Bénin est notre point d’entrée, pas notre plafond.
+**Réponse directe et confiante :**  
+Oui, car les problèmes sont régionaux : coût de l’aliment, accès au conseil, langues locales et suivi sanitaire. Le Bénin est notre laboratoire de départ, pas notre limite.
 
-**Chiffre ou exemple à citer :**
-Le plan de déploiement vise **Bénin → 5 pays → 15 pays**.
+**Chiffre ou exemple concret :**  
+La feuille de route prévoit **Bénin en année 1, 5 pays en année 2, 15 pays en année 3**.
 
-**Phrase de conclusion :**
-Si la logique est locale, l’ambition peut être continentale.
+**Conclusion forte :**  
+Nous commençons local pour devenir régional.
 
 ---
 
 ## Q17 — « Pourquoi la gamification dans une app agricole ? »
 
-**Réponse directe :**
-Parce que l’usage quotidien est la clé de la valeur. La gamification aide à revenir dans l’app, à apprendre et à progresser sans rendre l’expérience lourde.
+**Réponse directe et confiante :**  
+Parce que la valeur vient de l’usage régulier. Les points, niveaux, trophées et classements transforment un outil technique en habitude quotidienne.
 
-**Chiffre ou exemple à citer :**
-Nous avons prévu **10 niveaux**, **30 trophées** et **8 ligues**, ce qui donne une dynamique de progression claire.
+**Chiffre ou exemple concret :**  
+Chaque ration générée peut rapporter **+10 points**, ce qui encourage l’éleveur à revenir et apprendre.
 
-**Phrase de conclusion :**
-La gamification transforme un outil en habitude.
+**Conclusion forte :**  
+La gamification transforme le conseil agricole en progression visible.
 
 ---
 
 ## Q18 — « Quelle est la marge brute de l’abonnement Standard ? »
 
-**Réponse directe :**
-La marge brute est censée rester élevée, car le produit est logiciel et les coûts variables sont principalement liés à l’IA, à l’hébergement et au support. L’objectif est de garder une marge confortable sur le palier Standard.
+**Réponse directe et confiante :**  
+La marge brute doit rester élevée car le produit est logiciel ; les coûts variables sont principalement l’IA, l’hébergement et le support. Nous optimiserons les prompts, le cache et les forfaits pour garder un coût par utilisateur inférieur au prix d’abonnement.
 
-**Chiffre ou exemple à citer :**
-L’abonnement Standard est à **2 000 FCFA/mois** ; la logique est de maîtriser le coût variable par requête pour protéger la marge.
+**Chiffre ou exemple concret :**  
+À **2 000 FCFA/mois**, 5 000 abonnés Standard représentent **10 millions FCFA de revenu mensuel récurrent** avant offres supérieures.
 
-**Phrase de conclusion :**
-Si le coût unitaire reste bas, le modèle devient scalable.
+**Conclusion forte :**  
+Le Standard est accessible pour l’éleveur et scalable pour l’entreprise.
 
 ---
 
 ## Q19 — « Comment vous protégez-vous contre la copie ? »
 
-**Réponse directe :**
-On se protège par la vitesse d’exécution, les données d’usage, l’intégration locale et l’écosystème complet. La vraie défense, c’est l’adoption et la qualité du produit.
+**Réponse directe et confiante :**  
+Nous nous protégeons par la vitesse d’exécution, la marque, les partenariats locaux, les données d’usage et l’intégration des modules. Une copie d’écran se reproduit vite ; une communauté active et un réseau terrain se reproduisent difficilement.
 
-**Chiffre ou exemple à citer :**
-Un concurrent qui n’a qu’un seul module copie une fonctionnalité ; nous, nous construisons un ensemble de **8 modules** reliés.
+**Chiffre ou exemple concret :**  
+FeedFormula AI réunit **8 modules** et une logique communautaire, pas seulement un formulaire de ration.
 
-**Phrase de conclusion :**
-La meilleure protection, c’est de devenir indispensable.
+**Conclusion forte :**  
+La meilleure protection, c’est de devenir l’outil indispensable des éleveurs.
 
 ---
 
 ## Q20 — « Que ferez-vous avec l’investissement demandé ? »
 
-**Réponse directe :**
-L’investissement servira à stabiliser le produit, renforcer la qualité, lancer le pilote terrain, accélérer l’acquisition et préparer l’expansion régionale. Nous voulons transformer un prototype prometteur en produit adopté.
+**Réponse directe et confiante :**  
+Nous utiliserons l’investissement pour stabiliser le produit, lancer le pilote terrain, améliorer les langues locales, renforcer la qualité IA, produire du contenu et acquérir les premiers abonnés. L’objectif est de transformer le prototype en adoption mesurable.
 
-**Chiffre ou exemple à citer :**
-La feuille de route vise une montée de **1 pays à 5 pays puis 15 pays**, donc chaque franc investi doit soutenir la preuve de traction.
+**Chiffre ou exemple concret :**  
+La priorité est un pilote au Bénin, puis une expansion de **1 pays à 5 pays, puis 15 pays**.
 
-**Phrase de conclusion :**
-Chaque investissement doit nous rapprocher de l’adoption réelle, pas seulement d’un beau prototype.
+**Conclusion forte :**  
+Chaque franc investi doit nous rapprocher d’un éleveur réellement servi.
