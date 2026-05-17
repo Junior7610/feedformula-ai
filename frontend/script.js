@@ -1823,6 +1823,145 @@
     return { current, next };
   }
 
+  function playTamTamCelebration() {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      const ctx = new AudioContext();
+      const beats = [0, 0.28, 0.56, 1.05, 1.34, 1.68, 2.22, 2.52];
+      beats.forEach((delay, index) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(
+          index % 2 ? 120 : 82,
+          ctx.currentTime + delay,
+        );
+        osc.frequency.exponentialRampToValueAtTime(
+          42,
+          ctx.currentTime + delay + 0.18,
+        );
+        gain.gain.setValueAtTime(0.0001, ctx.currentTime + delay);
+        gain.gain.exponentialRampToValueAtTime(
+          0.45,
+          ctx.currentTime + delay + 0.015,
+        );
+        gain.gain.exponentialRampToValueAtTime(
+          0.0001,
+          ctx.currentTime + delay + 0.32,
+        );
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(ctx.currentTime + delay);
+        osc.stop(ctx.currentTime + delay + 0.36);
+      });
+      window.setTimeout(() => ctx.close && ctx.close(), 3300);
+    } catch (error) {
+      // Le son reste optionnel : certains navigateurs bloquent l'audio sans geste utilisateur.
+    }
+  }
+
+  function createBeninConfetti(container, count = 72) {
+    if (!container) return;
+    const colors = ["#008751", "#fcd116", "#e8112d"];
+    for (let i = 0; i < count; i += 1) {
+      const piece = document.createElement("span");
+      piece.className = "benin-confetti";
+      piece.style.left = `${Math.random() * 100}%`;
+      piece.style.background = colors[i % colors.length];
+      piece.style.animationDelay = `${Math.random() * 0.8}s`;
+      piece.style.animationDuration = `${2.4 + Math.random() * 1.4}s`;
+      piece.style.transform = `rotate(${Math.random() * 180}deg)`;
+      container.appendChild(piece);
+    }
+  }
+
+  function showLevelUpCelebration(levelInfo) {
+    const level = levelInfo?.level || APP.level || 1;
+    const label = safeString(levelInfo?.label || "Niveau supérieur");
+    const overlay = document.createElement("div");
+    overlay.className = "level-up-overlay";
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-modal", "true");
+    overlay.setAttribute("aria-live", "assertive");
+    overlay.innerHTML = `
+      <div class="level-up-card animate-scaleIn">
+        <div class="level-up-logo" aria-hidden="true">🌾</div>
+        <p class="level-up-kicker">NIVEAU ${level} ATTEINT !</p>
+        <h2>${escapeHtml(label)}</h2>
+        <p>Aya célèbre ta progression. Continue, champion de l'élevage intelligent.</p>
+        <button type="button" class="btn btn-gold level-up-close">Continuer</button>
+      </div>
+    `;
+    createBeninConfetti(overlay, 90);
+    document.body.appendChild(overlay);
+    setAyaMood("celebration", `Niveau ${level} atteint !`);
+    playTamTamCelebration();
+    const close = () => overlay.remove();
+    overlay.querySelector(".level-up-close")?.addEventListener("click", close);
+    window.setTimeout(() => {
+      if (document.body.contains(overlay)) close();
+    }, 4200);
+  }
+
+  function showRankOvertakeToast(name = "Ibrahim M.") {
+    const el = showToast(
+      `🏆 Tu as dépassé ${name} dans la ligue !`,
+      "success",
+      3600,
+    );
+    if (el) el.classList.add("toast-rank-overtake");
+    return el;
+  }
+
+  function showStreakCelebration(days) {
+    const streak = Number(days) || 0;
+    if (streak <= 0) return;
+    if (streak >= 30) {
+      const overlay = document.createElement("div");
+      overlay.className = "streak-modal-overlay";
+      overlay.setAttribute("role", "dialog");
+      overlay.setAttribute("aria-modal", "true");
+      overlay.innerHTML = `
+        <div class="streak-modal animate-scaleIn">
+          <div class="streak-flame" aria-hidden="true">🔥</div>
+          <h2>30 jours d'affilée !</h2>
+          <p>Aya est fière de toi. Tu construis une vraie discipline d'éleveur moderne.</p>
+          <button type="button" class="btn btn-primary streak-close">Continuer</button>
+        </div>
+      `;
+      createBeninConfetti(overlay, 60);
+      document.body.appendChild(overlay);
+      overlay
+        .querySelector(".streak-close")
+        ?.addEventListener("click", () => overlay.remove());
+      window.setTimeout(() => overlay.remove(), 5200);
+      return;
+    }
+    if (streak % 7 === 0) {
+      const el = showToast(
+        `🔥 ${streak} jours d'affilée ! Continue !`,
+        "warning",
+        4200,
+      );
+      if (el) el.classList.add("toast-streak");
+    }
+  }
+
+  function showChallengeCompleted(card = null, points = 30) {
+    const target =
+      typeof card === "string" ? document.querySelector(card) : card;
+    if (target) {
+      target.classList.add("challenge-completed");
+      const check = document.createElement("span");
+      check.className = "challenge-checkmark";
+      check.textContent = "✓";
+      target.appendChild(check);
+      window.setTimeout(() => check.remove(), 2200);
+    }
+    showAyaPointsBubble(`+${points} 🌟`);
+    showToast(`Défi complété ! +${points} 🌟`, "success", 3200);
+  }
+
   function updateXpUI() {
     const progressEls = allByData("level-fill").concat(
       $all(".xp-fill, .level-fill, .progress-fill"),
@@ -1864,7 +2003,9 @@
   function awardPoints(points, reason) {
     const gain = Number(points) || 0;
     if (gain <= 0) return;
+    const previousLevel = getNiveauFromPoints(APP.points).current;
     APP.points += gain;
+    const nextLevel = getNiveauFromPoints(APP.points).current;
     showAyaPointsBubble(`+${gain} 🌟`);
     celebrate();
     setAyaMood("celebration", reason || "Bravo ! Tu gagnes des points.");
@@ -1875,6 +2016,19 @@
       "success",
       2200,
     );
+    if (nextLevel.level > previousLevel.level) {
+      showLevelUpCelebration(nextLevel);
+    }
+    if (safeString(reason).toLowerCase().includes("défi")) {
+      showChallengeCompleted(
+        $("[data-challenge-card]") || $(".challenge-card"),
+        gain,
+      );
+    }
+    if (gain >= 10 && !sessionStorage.getItem("feedformula_rank_toast_seen")) {
+      sessionStorage.setItem("feedformula_rank_toast_seen", "1");
+      window.setTimeout(() => showRankOvertakeToast(), 900);
+    }
   }
 
   /* ---------------------------------------------------------
@@ -4033,6 +4187,12 @@
       streakCurrent.textContent = `🔥 ${profile.stats.streak} jours d'affilée !`;
     if (streakBest)
       streakBest.textContent = `Meilleure série : ${profile.bestStreak} jours`;
+
+    const streakKey = `feedformula_streak_celebrated_${profile.stats.streak}`;
+    if (profile.stats.streak >= 7 && !sessionStorage.getItem(streakKey)) {
+      sessionStorage.setItem(streakKey, "1");
+      window.setTimeout(() => showStreakCelebration(profile.stats.streak), 700);
+    }
     if (rescueSeeds)
       rescueSeeds.textContent = `Graines de Secours disponibles : ${profile.rescueSeeds}`;
 
@@ -4564,6 +4724,11 @@
     copierTexte,
     setupPullToRefresh,
     toggleDarkMode,
+    showLevelUpCelebration,
+    showRankOvertakeToast,
+    showStreakCelebration,
+    showChallengeCompleted,
+    genererRationAvecFallback,
   };
 
   // Exposition globale des fonctions demandées
@@ -4580,4 +4745,9 @@
   window.copierTexte = copierTexte;
   window.setupPullToRefresh = setupPullToRefresh;
   window.toggleDarkMode = toggleDarkMode;
+  window.genererRationAvecFallback = genererRationAvecFallback;
+  window.showLevelUpCelebration = showLevelUpCelebration;
+  window.showRankOvertakeToast = showRankOvertakeToast;
+  window.showStreakCelebration = showStreakCelebration;
+  window.showChallengeCompleted = showChallengeCompleted;
 })();
