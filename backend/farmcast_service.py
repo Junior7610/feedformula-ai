@@ -32,6 +32,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.pdfgen import canvas
 from sqlalchemy.orm import Session
+from starlette.responses import FileResponse
 
 try:
     from audio_service import AudioService as SharedAudioService  # type: ignore
@@ -43,7 +44,11 @@ _shared_audio_service = SharedAudioService() if SharedAudioService is not None e
 router = APIRouter(prefix="/farmcast", tags=["FarmCast"])
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
-APP_ENV = (os.getenv("APP_ENV", "development") or "development").strip().lower()
+APP_ENV = (
+    ("production" if os.getenv("VERCEL") else (os.getenv("APP_ENV") or "development"))
+    .strip()
+    .lower()
+)
 
 # En production, on évite d'écrire dans l'arborescence du déploiement Vercel,
 # car elle est en lecture seule au runtime.
@@ -73,6 +78,31 @@ WHITE_PNG = base64.b64decode(
 )
 
 
+def _farmcast_asset_url(kind: str, filename: str) -> str:
+    """Retourne une URL publique compatible local + Vercel.
+
+    En local, les fichiers sont servis par le mount /static. En production
+    Vercel, ils sont générés dans /tmp, donc on les expose via une route API.
+    """
+    safe_kind = kind.strip().lower()
+    safe_filename = Path(filename).name
+    if APP_ENV == "production":
+        return f"/farmcast/fichier/{safe_kind}/{safe_filename}"
+    return f"/static/farmcast/{safe_kind}/{safe_filename}"
+
+
+def _farmcast_asset_path(kind: str, filename: str) -> Path:
+    safe_filename = Path(filename).name
+    kind_norm = kind.strip().lower()
+    if kind_norm == "audio":
+        return AUDIO_DIR / safe_filename
+    if kind_norm == "images":
+        return IMAGE_DIR / safe_filename
+    if kind_norm == "pdf":
+        return PDF_DIR / safe_filename
+    raise HTTPException(status_code=404, detail="Type de fichier FarmCast invalide.")
+
+
 class FarmCastCreateRequest(BaseModel):
     theme: str = Field(..., min_length=3)
     langue: str = Field(default="fr", min_length=2)
@@ -94,17 +124,27 @@ class FarmCastCreateRequest(BaseModel):
 
 class FarmCastService:
     def _build_system_prompt(self, langue: str) -> str:
-        return (
-            "Tu es FarmCast AI, expert en communication agricole africaine. Tu crées des scripts de vulgarisation courts, percutants et accessibles pour les éleveurs d'Afrique de l'Ouest. "
-            f"Réponds toujours dans la langue demandée: {langue}. Style simple, direct, mémorable, profondément africain."
-        )
+        prompt_path = ROOT_DIR / "prompts" / "system_prompt_farmcast.txt"
+        try:
+            base_prompt = prompt_path.read_text(encoding="utf-8").strip()
+        except Exception:
+            base_prompt = (
+                "Tu es FarmCast AI, producteur de contenu agricole professionnel. "
+                "Chaque script doit contenir accroche, problème, solution FeedFormula AI, preuve sociale et appel à l'action."
+            )
+        return base_prompt + f"\n\nLangue obligatoire de réponse: {langue}."
 
     def _build_script_prompt(
         self, theme: str, langue: str, format_type: str, public_cible: str
     ) -> str:
         return (
-            f"Crée un script de vulgarisation agricole sur le thème {theme} pour des {public_cible} au Bénin. "
-            f"Format {format_type}. Langue {langue}. Structure obligatoire de 60-90 secondes: accroche choc (10 secondes), problème concret (15 secondes), solution FeedFormula AI (30 secondes), appel à l'action (15 secondes)."
+            f"Crée un contenu FarmCast professionnel sur le thème {theme} pour des {public_cible} au Bénin. "
+            f"Format demandé: {format_type}. Langue: {langue}. "
+            "Si c'est un script vidéo/audio, il doit durer 60-90 secondes et contenir exactement: "
+            "1. ACCROCHE (0-10 secondes), 2. PROBLÈME (10-25 secondes), "
+            "3. SOLUTION FEEDFORMULA AI (25-55 secondes), 4. PREUVE SOCIALE (55-70 secondes), "
+            "5. APPEL À L'ACTION (70-90 secondes). Ajoute durée estimée, textes écran, visuels et adaptation réseau social. "
+            "Si c'est une fiche technique, fournis les 5 blocs visuels obligatoires."
         )
 
     async def _generate_script(
@@ -129,8 +169,11 @@ class FarmCastService:
                             ),
                         },
                     ],
-                    temperature=0.5,
-                    max_tokens=500,
+                    temperature=0.3,
+                    max_tokens=3000,
+                    top_p=0.9,
+                    frequency_penalty=0.1,
+                    presence_penalty=0.1,
                 )
                 content = getattr(response.choices[0].message, "content", "")
                 if isinstance(content, str) and content.strip():
@@ -138,40 +181,25 @@ class FarmCastService:
             except Exception:
                 pass
 
-        # Fallback local structuré avec vraie valeur de vulgarisation terrain.
-        if langue.lower().startswith("fr"):
-            return (
-                f"ACCROCHE — {theme}\n"
-                "Une seule mauvaise pratique peut réduire la marge d'un éleveur pendant toute une saison.\n\n"
-                f"PROBLÈME TERRAIN\n"
-                f"Chez les {public_cible}, le problème n'est pas seulement le manque d'information. "
-                "C'est surtout le manque d'information simple, vérifiable et adaptée aux prix locaux, aux animaux disponibles et au climat du moment.\n\n"
-                "GESTE À FAIRE AUJOURD'HUI\n"
-                "1. Observez un indicateur mesurable : poids, ponte, lait, mortalité, consommation ou coût.\n"
-                "2. Notez la valeur dans votre carnet ou dans FarmManager.\n"
-                "3. Appliquez une seule correction pendant 7 jours.\n"
-                "4. Comparez le résultat avant de changer toute la conduite.\n\n"
-                "CE QUE FEEDFORMULA AI APPORTE\n"
-                "FeedFormula AI transforme vos observations en ration, alerte, formation ou conseil pratique. "
-                "Vous gardez la décision finale, mais vous décidez avec des chiffres et non au hasard.\n\n"
-                "ERREURS À ÉVITER\n"
-                "- Copier une recette sans vérifier le prix local des ingrédients.\n"
-                "- Augmenter la quantité d'aliment sans mesurer la performance.\n"
-                "- Attendre plusieurs jours avant d'isoler un animal malade.\n\n"
-                "APPEL À L'ACTION\n"
-                "Aujourd'hui, choisissez une action simple, mesurez-la, puis partagez le résultat avec votre groupe d'éleveurs."
-            )
+        # Fallback local conforme au standard qualité FarmCast.
         return (
-            f"HOOK — {theme}\n"
-            "One poor farm practice can reduce profit for a whole season.\n\n"
-            "FIELD PROBLEM\n"
-            f"For {public_cible}, the challenge is not only access to information; it is practical, measurable advice adapted to local prices and animals.\n\n"
-            "ACTION TODAY\n"
-            "Observe one metric, write it down, apply one correction for 7 days, then compare the result.\n\n"
-            "FEEDFORMULA AI VALUE\n"
-            "FeedFormula AI turns observations into ration advice, alerts, learning content and practical farm decisions.\n\n"
-            "CALL TO ACTION\n"
-            "Try one measurable improvement today and keep learning with FeedFormula AI."
+            f"FARMCAST — {theme}\n"
+            "Durée estimée : 75 à 85 secondes\n"
+            "Format : script vidéo/audio professionnel pour TikTok, Reels, WhatsApp et Facebook\n\n"
+            "1. ACCROCHE (0-10 secondes) — L'hameçon\n"
+            f"Savez-vous que chez les {public_cible} au Bénin, une petite erreur sur {theme} peut coûter 10 000 à 50 000 FCFA sur un lot ? Restez avec moi, je vous montre comment l'éviter aujourd'hui.\n\n"
+            "2. PROBLÈME (10-25 secondes) — La douleur\n"
+            "Beaucoup d'éleveurs travaillent dur, mais ils décident encore à l'œil. Ils achètent l'aliment, traitent les animaux ou changent la conduite sans mesurer le poids, la ponte, la mortalité ou le coût réel. Résultat : l'argent sort, mais la marge ne suit pas. Ce n'est pas un manque de courage ; c'est un manque d'outil simple adapté au terrain.\n\n"
+            "3. SOLUTION FEEDFORMULA AI (25-55 secondes)\n"
+            "Avec FeedFormula AI, vous entrez votre espèce, le stade, les ingrédients disponibles et les prix en FCFA. NutriCore calcule une ration complète. VetScan aide à analyser les symptômes. ReproTrack calcule les dates de mise-bas. FarmManager enregistre vos dépenses par voix. En moins d'une minute, vous passez d'une décision au hasard à une décision avec chiffres. Exemple : si votre aliment coûte 330 FCFA/kg et que 100 poulets consomment 13 kg/jour, FarmManager affiche immédiatement 4 290 FCFA par jour.\n\n"
+            "4. PREUVE SOCIALE (55-70 secondes)\n"
+            "Exemple type : un éleveur de Bohicon a commencé à noter consommation et mortalité pendant 7 jours. Il a découvert que son problème venait surtout de l'eau sale et d'un mélange irrégulier. Après correction, les refus d'aliment ont baissé et il a économisé environ 18 000 FCFA sur le lot.\n\n"
+            "5. APPEL À L'ACTION (70-90 secondes)\n"
+            "Téléchargez FeedFormula AI maintenant. Votre première ration est gratuite. Le lien est dans la description : testez aujourd'hui, mesurez pendant 7 jours, puis comparez vos résultats.\n\n"
+            "Textes à l'écran : 1 erreur = 50 000 FCFA perdus | Mesurez avant de corriger | Première ration gratuite\n"
+            "Visuels suggérés : éleveur au poulailler, sac de maïs pesé, écran FeedFormula AI, carnet de dépenses, avant/après du lot.\n"
+            "Adaptation TikTok/Reels : cuts rapides, musique afro légère, sous-titres grands. WhatsApp Audio : ton conversationnel. Facebook : ajouter infographie 5 étapes.\n"
+            "Fiche technique 5 blocs : 📌 Titre + icône, problème en 3 points, solution en 5 étapes, résultats attendus chiffrés, QR code FeedFormula AI."
         )
 
     async def _generate_audio(self, script: str, langue: str) -> str:
@@ -187,7 +215,7 @@ class FarmCastService:
                 )
                 if audio_bytes:
                     path.write_bytes(audio_bytes)
-                    return f"/static/farmcast/audio/{filename}"
+                    return _farmcast_asset_url("audio", filename)
             except Exception:
                 pass
 
@@ -209,7 +237,7 @@ class FarmCastService:
                 )
                 if response.ok and response.content:
                     path.write_bytes(response.content)
-                    return f"/static/farmcast/audio/{filename}"
+                    return _farmcast_asset_url("audio", filename)
             except Exception:
                 pass
 
@@ -222,13 +250,13 @@ class FarmCastService:
             filename = f"img_{uuid.uuid4().hex}_{index}.png"
             path = IMAGE_DIR / filename
             path.write_bytes(WHITE_PNG)
-            urls.append(f"/static/farmcast/images/{filename}")
+            urls.append(_farmcast_asset_url("images", filename))
         while len(urls) < 3:
             index = len(urls) + 1
             filename = f"img_{uuid.uuid4().hex}_{index}.png"
             path = IMAGE_DIR / filename
             path.write_bytes(WHITE_PNG)
-            urls.append(f"/static/farmcast/images/{filename}")
+            urls.append(_farmcast_asset_url("images", filename))
         return urls
 
     def _generate_pdf(
@@ -269,7 +297,7 @@ class FarmCastService:
         )
         pdf.save()
         path.write_bytes(buffer.getvalue())
-        return f"/static/farmcast/pdf/{filename}"
+        return _farmcast_asset_url("pdf", filename)
 
     def _build_whatsapp_link(self, theme: str, fiche_url: str) -> str:
         message = f"FeedFormula AI FarmCast: {theme}. Télécharger la fiche: {fiche_url}"
@@ -403,6 +431,25 @@ def contenus(user_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
             }
         )
     return {"user_id": user_id, "total": len(contenus), "contenus": contenus}
+
+
+@router.get("/fichier/{kind}/{filename}")
+def fichier_farmcast(kind: str, filename: str) -> FileResponse:
+    """Sert les fichiers FarmCast générés, y compris depuis /tmp sur Vercel."""
+    path = _farmcast_asset_path(kind, filename)
+    if not path.exists() or not path.is_file():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Fichier FarmCast introuvable.",
+        )
+    media_type = "application/octet-stream"
+    if kind == "audio":
+        media_type = "audio/mpeg"
+    elif kind == "images":
+        media_type = "image/png"
+    elif kind == "pdf":
+        media_type = "application/pdf"
+    return FileResponse(path=path, media_type=media_type, filename=path.name)
 
 
 @router.get("/partager/{contenu_id}")

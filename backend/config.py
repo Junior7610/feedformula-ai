@@ -115,9 +115,9 @@ AFRI_API_BASE_URL = _env_str("AFRI_API_BASE_URL", "https://build.lewisnote.com/v
 AFRI_API_KEY = _env_str("AFRI_API_KEY", "")
 
 # Modèles IA (surcharge possible via .env)
-AFRI_MODEL_DEFAULT = _env_str("AFRI_MODEL_DEFAULT", "gpt-5.4")
-AFRI_MODEL_AFRICAN = _env_str("AFRI_MODEL_AFRICAN", "gpt-5.4")
-AFRI_MODEL_FALLBACK = _env_str("AFRI_MODEL_FALLBACK", "gpt-5.3-codex")
+AFRI_MODEL_DEFAULT = _env_str("AFRI_MODEL_DEFAULT", "gpt-5.5")
+AFRI_MODEL_AFRICAN = _env_str("AFRI_MODEL_AFRICAN", "gpt-5.5")
+AFRI_MODEL_FALLBACK = _env_str("AFRI_MODEL_FALLBACK", "gpt-5.5")
 
 # Paramètres de sécurité/réseau
 HTTP_TIMEOUT_SECONDS = _env_int("HTTP_TIMEOUT_SECONDS", 60)

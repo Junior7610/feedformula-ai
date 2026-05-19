@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import os
+import tempfile
 import uuid
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -47,18 +48,34 @@ from sqlalchemy.orm import Session, declarative_base, relationship, sessionmaker
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
 # On lit l'environnement une seule fois pour décider du moteur SQLAlchemy.
-APP_ENV: str = (os.getenv("APP_ENV", "development") or "development").strip().lower()
+APP_ENV: str = (
+    ("production" if os.getenv("VERCEL") else (os.getenv("APP_ENV") or "development"))
+    .strip()
+    .lower()
+)
 
 
 def _resolve_database_url() -> str:
-    """Retourne l'URL de base de données selon l'environnement."""
+    """Retourne l'URL de base de données selon l'environnement.
+
+    Sur Vercel, le système de fichiers du déploiement est en lecture seule.
+    Pour éviter un crash pendant une démo si DATABASE_URL n'est pas encore
+    configurée, on bascule vers SQLite éphémère dans /tmp. En production réelle,
+    définissez REQUIRE_DATABASE_URL=1 pour rendre PostgreSQL obligatoire.
+    """
     if APP_ENV == "production":
         database_url = (os.getenv("DATABASE_URL") or "").strip()
-        if not database_url:
+        if database_url:
+            return database_url
+        if (os.getenv("REQUIRE_DATABASE_URL") or "0").strip() == "1":
             raise RuntimeError(
                 "La variable d'environnement DATABASE_URL est requise en production."
             )
-        return database_url
+        tmp_db = Path(tempfile.gettempdir()) / "feedformula_vercel_demo.db"
+        print(
+            "[database] DATABASE_URL absente: utilisation SQLite éphémère /tmp pour la démo."
+        )
+        return f"sqlite:///{tmp_db.as_posix()}"
     return "sqlite:///./feedformula.db"
 
 
@@ -70,7 +87,12 @@ if DATABASE_URL.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
 
 # SQLAlchemy reçoit des options SQLite seulement lorsque le moteur est SQLite.
-engine = create_engine(DATABASE_URL, future=True, connect_args=connect_args)
+engine = create_engine(
+    DATABASE_URL,
+    future=True,
+    connect_args=connect_args,
+    pool_pre_ping=True,
+)
 
 SessionLocal = sessionmaker(
     bind=engine, autoflush=False, autocommit=False, expire_on_commit=False, future=True
@@ -792,13 +814,16 @@ def get_user_by_id(db: Session, user_id: str) -> Optional[User]:
     if user is not None:
         return user
 
-    if uid.startswith("test_user_"):
+    if uid.startswith("test_user_") or uid in {"demo-user", "demo_user", "demo"}:
         try:
             suffix = uid.replace("test_user_", "") or "001"
+            phone_suffix = str(abs(hash(uid)) % 10**6).rjust(6, "0")
             auto = User(
                 id=uid,
-                telephone=f"+229900{suffix[-6:].rjust(6, '0')}",
-                prenom="Utilisateur Test",
+                telephone=f"+229900{phone_suffix}",
+                prenom="Utilisateur Démo"
+                if uid.startswith("demo")
+                else "Utilisateur Test",
                 langue_preferee="fr",
                 espece_principale="poulet_chair",
                 departement="Atlantique",

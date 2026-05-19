@@ -155,6 +155,115 @@ def _repro_expert_notes(espece: str, type_evenement: str) -> List[str]:
     return notes[:5]
 
 
+def _fmt_date(dt: Any) -> str:
+    """Formate une date/datetime en JJ/MM/AAAA sans casser si valeur absente."""
+    if isinstance(dt, datetime):
+        return dt.strftime("%d/%m/%Y")
+    if isinstance(dt, date):
+        return dt.strftime("%d/%m/%Y")
+    try:
+        return _parse_datetime(dt).strftime("%d/%m/%Y")
+    except Exception:
+        return "date à préciser"
+
+
+def _build_reprotrack_expert_response(evenement: Any) -> Dict[str, Any]:
+    """Génère les 7 blocs experts demandés après enregistrement d'un événement."""
+    espece = str(getattr(evenement, "espece", "") or "animal")
+    animal_id = str(getattr(evenement, "animal_id", "") or "animal non identifié")
+    type_evt = str(getattr(evenement, "type_evenement", "") or "événement")
+    dt_evt = getattr(evenement, "date_evenement", None) or datetime.now()
+    dt_next = getattr(evenement, "date_prevue_prochain", None)
+    type_norm = _clean_text(type_evt).lower()
+    espece_norm = _species_key(espece)
+    gestations = {"vache": 283, "chevre": 150, "mouton": 147, "porc": 114, "lapin": 31}
+    cycles = {"vache": 21, "chevre": 21, "mouton": 21, "porc": 21, "lapin": 16}
+    cycle = cycles.get(espece_norm, 21)
+    gestation = gestations.get(espece_norm, 150)
+    if dt_next is None and type_norm in {"saillie", "insemination", "insémination"}:
+        dt_next = dt_evt + timedelta(days=gestation)
+
+    prochaines_chaleurs = dt_evt + timedelta(days=cycle)
+    fenetre_ia_debut = dt_evt + timedelta(hours=12)
+    fenetre_ia_fin = dt_evt + timedelta(hours=18)
+    alertes = []
+    if isinstance(dt_next, datetime):
+        alertes = [
+            {
+                "type": "ALERTE J-48h",
+                "date": (dt_next - timedelta(days=2)).date().isoformat(),
+                "message": "Mise-bas dans 2 jours",
+                "action": "Préparer case propre, litière sèche, eau, désinfectant nombril et surveillance matin/soir.",
+            },
+            {
+                "type": "ALERTE J-7",
+                "date": (dt_next - timedelta(days=7)).date().isoformat(),
+                "message": "Surveillance rapprochée",
+                "action": "Observer mamelle, vulve, appétit, isolement et signes de travail.",
+            },
+            {
+                "type": "ALERTE J+21",
+                "date": (dt_evt + timedelta(days=21)).date().isoformat(),
+                "message": "Retour chaleurs possible",
+                "action": "Observer agitation, chevauchement, mucus et acceptation du mâle.",
+            },
+            {
+                "type": "ALERTE J+30",
+                "date": (dt_evt + timedelta(days=30)).date().isoformat(),
+                "message": "Diagnostic gestation recommandé",
+                "action": "Contacter technicien IA/vétérinaire pour confirmation si possible.",
+            },
+        ]
+    else:
+        alertes = [
+            {
+                "type": "ALERTE J+21",
+                "date": (dt_evt + timedelta(days=21)).date().isoformat(),
+                "message": "Retour chaleurs possible",
+                "action": "Observer les signes de chaleur au prochain cycle.",
+            },
+            {
+                "type": "ALERTE J+30",
+                "date": (dt_evt + timedelta(days=30)).date().isoformat(),
+                "message": "Diagnostic gestation recommandé si saillie/IA",
+                "action": "Prévoir contrôle avec technicien si une saillie est confirmée.",
+            },
+        ]
+
+    rapport = f"""━━━ FEEDFORMULA AI — REPROTRACK EXPERT ━━━
+
+1. CONFIRMATION ET ANALYSE DE L'ÉVÉNEMENT
+Événement enregistré pour {animal_id}: {type_evt}, espèce {espece}, date {_fmt_date(dt_evt)}. Cette donnée est essentielle car elle fixe le calendrier reproductif. Pour {espece}, un cycle de chaleur d'environ {cycle} jours et une gestation d'environ {gestation} jours sont utilisés comme repères. L'événement paraît exploitable si la date est correcte; il manque encore la race, l'âge, la parité et l'état corporel pour une analyse plus fine.
+
+2. CALCULS AUTOMATIQUES PRÉCIS
+Si l'événement correspond à une chaleur, la prochaine chaleur probable est prévue autour du {_fmt_date(prochaines_chaleurs)}. La fenêtre optimale d'insémination se situe environ entre {fenetre_ia_debut.strftime("%d/%m/%Y %H:%M")} et {fenetre_ia_fin.strftime("%d/%m/%Y %H:%M")}, avec une probabilité de conception estimée à 55–70% si l'animal est en bon état corporel. Si l'événement correspond à une saillie/insémination, la date de mise-bas prévue est {_fmt_date(dt_next)} avec marge ±7 jours. Diagnostic gestation recommandé à J+30, transition alimentaire J-21, surveillance rapprochée J-7.
+
+3. ALERTES PROGRAMMÉES
+"""
+    for alerte in alertes:
+        rapport += f"- {alerte['type']} ({alerte['date']}) : {alerte['message']} — {alerte['action']}\n"
+    rapport += """
+4. CONSEILS NUTRITIONNELS PAR STADE
+Gestation précoce: fourrage propre à volonté, eau permanente, complément minéral 30–50 g/jour pour petits ruminants ou 80–120 g/jour bovin selon format. Gestation avancée: augmenter progressivement l'énergie avec son de riz, maïs concassé ou tourteau disponible, sans engraissement excessif. Transition 3 semaines avant mise-bas: ration stable, sel/minéraux, éviter changement brutal. Post-partum: eau tiède/propre, fourrage de qualité, complément protéique local et surveillance appétit/fièvre.
+
+5. INDICATEURS DE FERTILITÉ DU TROUPEAU
+À suivre: taux de conception, intervalle vêlage-vêlage, taux de mise-bas, nombre de saillies par conception. Normes indicatives: viser moins de 2 saillies par conception, intervalle vêlage-vêlage proche de 12–14 mois chez bovin bien conduit, taux de mise-bas >80% dans un troupeau bien suivi. Les données actuelles sont insuffisantes pour calculer un taux fiable: enregistrez toutes les chaleurs, saillies, diagnostics et mises-bas.
+
+6. DÉTECTION DES PROBLÈMES REPRODUCTIFS
+Retour en chaleur à 21 jours après saillie: suspicion non-gestation, stress, mauvais timing ou infertilité mâle. Avortement: urgence vétérinaire, isoler et conserver informations. Rétention placentaire >12 h, fièvre ou écoulement malodorant: consultation rapide. Métrite post-partum: baisse appétit, fièvre, mauvaise odeur; traitement vétérinaire. Kyste/anœstrus: absence de chaleurs prolongée, besoin diagnostic.
+
+7. PROGRAMME D'AMÉLIORATION GÉNÉTIQUE
+Pour viande: privilégier rusticité Borgou, Azawak ou croisements adaptés. Pour lait: améliorer progressivement avec semence laitière adaptée sans perdre la résistance locale. Coût IA estimatif au Bénin: 5 000 à 20 000 FCFA selon zone, semence et technicien. L'amélioration génétique attendue porte sur croissance, lait ou conformation, mais dépend d'abord de l'alimentation, santé et suivi des chaleurs.
+━━━ Aya t'accompagne pas à pas 🐄 ━━━"""
+    return {
+        "rapport_expert": rapport,
+        "alertes_programmees": alertes,
+        "date_mise_bas_calculee": dt_next.isoformat()
+        if isinstance(dt_next, datetime)
+        else None,
+    }
+
+
 # -----------------------------------------------------------------------------
 # Service métier
 # -----------------------------------------------------------------------------
@@ -569,6 +678,7 @@ def enregistrer_evenement(
         date_evenement = evenement.date_evenement
         date_prevue_prochain = evenement.date_prevue_prochain
         date_creation = evenement.date_creation
+        expert_response = _build_reprotrack_expert_response(evenement)
 
         return {
             "message": "Événement enregistré avec succès.",
@@ -581,6 +691,9 @@ def enregistrer_evenement(
                 in {"saillie", "insemination", "insémination"}
                 else "Mettre à jour l'état de l'animal après observation."
             ),
+            "rapport_expert": expert_response.get("rapport_expert"),
+            "alertes_programmees": expert_response.get("alertes_programmees", []),
+            "date_mise_bas_calculee": expert_response.get("date_mise_bas_calculee"),
             "evenement": {
                 "id": evenement.id,
                 "user_id": evenement.user_id,

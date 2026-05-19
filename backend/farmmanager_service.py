@@ -468,6 +468,7 @@ def _build_report_text(summary: Dict[str, Any], events: List[UserActionLog]) -> 
     """
     Construit un texte de synthèse pour l'IA ou le fallback PDF.
     """
+    dashboard = summary.get("dashboard_financier", {}) or {}
     lines = [
         "Rapport mensuel FarmManager",
         f"Utilisateur: {summary['user_id']}",
@@ -479,9 +480,9 @@ def _build_report_text(summary: Dict[str, Any], events: List[UserActionLog]) -> 
         f"Ventes: {summary['ventes']}",
         f"Événements reproduction: {summary['reproduction']}",
         "",
-        f"Coût total alimentation: {summary['cout_total_alimentation_mois']:.2f} FCFA",
-        f"Revenus ventes animaux: {summary['revenus_ventes_animaux']:.2f} FCFA",
-        f"Marge nette estimée: {summary['marge_nette_estimee']:.2f} FCFA",
+        f"Coût total alimentation: {float(dashboard.get('cout_total_alimentation_mois', 0.0)):.2f} FCFA",
+        f"Revenus ventes animaux: {float(dashboard.get('revenus_ventes_animaux', 0.0)):.2f} FCFA",
+        f"Marge nette estimée: {float(dashboard.get('marge_nette_estimee', 0.0)):.2f} FCFA",
         "",
         "Derniers événements:",
     ]
@@ -622,8 +623,8 @@ async def traiter_evenement_vocal(
                     {
                         "role": "system",
                         "content": (
-                            "Tu es un assistant de saisie agricole. "
-                            "Réponds exclusivement en JSON strict, sans texte autour."
+                            "Tu es FarmManager AI, expert-comptable agricole en Afrique de l'Ouest. "
+                            "Structure l'événement vocal en JSON strict, avec confirmation, impact financier, conseil et rappels."
                         ),
                     },
                     {
@@ -631,8 +632,11 @@ async def traiter_evenement_vocal(
                         "content": _build_openai_prompt_for_event(texte),
                     },
                 ],
-                temperature=0.1,
-                max_tokens=500,
+                temperature=0.3,
+                max_tokens=3000,
+                top_p=0.9,
+                frequency_penalty=0.1,
+                presence_penalty=0.1,
             )
 
             content = ""
@@ -743,8 +747,8 @@ async def generer_rapport_mensuel(user_id: str, mois: str, db: Session) -> Path:
                     {
                         "role": "system",
                         "content": (
-                            "Tu es un consultant professionnel d'élevage. "
-                            "Rédige un rapport mensuel clair, structuré et professionnel en français."
+                            "Tu es FarmManager AI, expert-comptable agricole et gestionnaire de ferme. "
+                            "Rédige un rapport mensuel professionnel complet: résumé exécutif, tableau de bord financier, analyse par espèce/lot, événements marquants, comparaison, 5 recommandations, projection et KPIs."
                         ),
                     },
                     {
@@ -752,8 +756,11 @@ async def generer_rapport_mensuel(user_id: str, mois: str, db: Session) -> Path:
                         "content": _build_openai_prompt_for_report(summary, selected),
                     },
                 ],
-                temperature=0.2,
-                max_tokens=900,
+                temperature=0.3,
+                max_tokens=4000,
+                top_p=0.9,
+                frequency_penalty=0.1,
+                presence_penalty=0.1,
             )
             content = ""
             try:

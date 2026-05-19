@@ -357,7 +357,7 @@ def _fallback_diagnostic(espece: str, symptomes: str, langue: str) -> Dict[str, 
         "Ne pas mélanger les animaux suspects avec le lot sain.",
     ]
 
-    return {
+    fallback_payload = {
         "diagnostic_1": {
             "nom": diagnostics[0][0],
             "probabilite": diagnostics[0][1],
@@ -395,8 +395,31 @@ def _fallback_diagnostic(espece: str, symptomes: str, langue: str) -> Dict[str, 
         "limites": "Analyse indicative : seul un vétérinaire peut confirmer le diagnostic et prescrire un traitement.",
         "langue": langue,
         "espece": espece,
+        "evaluation_urgence": "🔴 URGENCE VITALE"
+        if urgent
+        else "🟡 SITUATION SÉRIEUSE",
+        "analyse_clinique": "Symptômes analysés selon les informations fournies; température, âge, vaccination et effectif atteint restent à préciser.",
+        "facteurs_risque": "Risque favorisé par stress, hygiène, eau/aliment, densité, météo et statut vaccinal.",
+        "medicaments_benin": [
+            "Électrolytes + vitamines: 1000 à 3500 FCFA, pharmacie vétérinaire ou boutique d'intrants.",
+            "Antibiotique/anticoccidien/vaccin uniquement selon diagnostic vétérinaire: prix variable en FCFA.",
+        ],
+        "signes_amelioration": "Jour 1-2: reprise eau/appétit; Jour 3-4: baisse abattement/diarrhée; Jour 5-7: récupération progressive.",
+        "signes_aggravation": "Alarme: mortalité, fièvre >40,5°C, respiration difficile, paralysie, sang, convulsions, refus total d'eau.",
+        "contagion": "Isoler immédiatement les animaux malades, désinfecter abreuvoirs/mangeoires et limiter les mouvements.",
+        "impact_economique": "Coût traitement estimé 2000 à 15000 FCFA; mortalité et baisse de production peuvent dépasser largement ce coût.",
+        "abonnement": "FREE: gestes de base + urgence; STANDARD: protocole; PREMIUM: suivi; VIP: contact expert.",
+        "decision_claire": "🚨 URGENCE VÉTÉRINAIRE IMMÉDIATE"
+        if urgent
+        else "⚠️ CONSULTATION VÉTÉRINAIRE SOUS 48H",
+        "veterinaire_proche": "Précisez commune/département pour orientation DIRAE, ATDA/CARDer ou vétérinaire privé proche.",
+        "message_aya": "Aya comprend votre inquiétude. Isolez vite l'animal et surveillez; une action rapide augmente les chances.",
         "mode": "fallback_local",
     }
+    fallback_payload["rapport_expert"] = _build_vetscan_expert_report(
+        fallback_payload, espece, langue, decision
+    )
+    return fallback_payload
 
 
 def _system_prompt_vetscan() -> str:
@@ -454,6 +477,10 @@ def _normalize_ai_payload(
     if decision not in {"autonome", "urgence"}:
         decision = "autonome"
 
+    rapport_expert = str(payload.get("rapport_expert") or payload.get("rapport") or "")
+    if not rapport_expert:
+        rapport_expert = _build_vetscan_expert_report(payload, espece, langue, decision)
+
     return {
         "diagnostic_1": _clean_diag(
             payload.get("diagnostic_1"), "Diagnostic principal", 0.87
@@ -464,14 +491,139 @@ def _normalize_ai_payload(
         "diagnostic_3": _clean_diag(
             payload.get("diagnostic_3"), "Diagnostic complémentaire", 0.45
         ),
-        "protocole_soins": [str(x).strip() for x in protocol if str(x).strip()],
+        "evaluation_urgence": payload.get("evaluation_urgence")
+        or ("🔴 URGENCE VITALE" if decision == "urgence" else "🟡 SITUATION SÉRIEUSE"),
+        "analyse_clinique": payload.get("analyse_clinique")
+        or "Analyse clinique basée sur les symptômes déclarés.",
+        "facteurs_risque": payload.get("facteurs_risque")
+        or "Hygiène, stress, densité, qualité d'eau/aliment et statut vaccinal à vérifier.",
+        "protocole_soins": [str(x).strip() for x in protocol if str(x).strip()]
+        or _default_protocol_for_species(espece),
+        "medicaments_benin": payload.get("medicaments_benin")
+        or [
+            "Électrolytes + vitamines volailles/bétail: 1000 à 3500 FCFA selon sachet, pharmacie vétérinaire."
+        ],
+        "signes_amelioration": payload.get("signes_amelioration")
+        or "Jour 1-2: appétit et eau; Jour 3-4: baisse abattement; Jour 5-7: récupération progressive.",
+        "signes_aggravation": payload.get("signes_aggravation")
+        or "Fièvre >40,5°C, détresse respiratoire, sang, convulsions, mortalité ou refus total d'eau.",
+        "contagion": payload.get("contagion")
+        or "Isoler les sujets malades et désinfecter matériel/logement jusqu'à clarification.",
+        "impact_economique": payload.get("impact_economique")
+        or "Traitement estimé 2000 à 15000 FCFA selon espèce; pertes élevées si propagation.",
+        "prevention": str(
+            payload.get("prevention")
+            or "Vaccination, quarantaine, hygiène, eau propre et surveillance quotidienne."
+        ),
+        "abonnement": payload.get("abonnement")
+        or "FREE: urgence; STANDARD: protocole; PREMIUM: suivi; VIP: contact expert.",
         "decision": decision,
+        "decision_claire": payload.get("decision_claire")
+        or (
+            "🚨 URGENCE VÉTÉRINAIRE IMMÉDIATE"
+            if decision == "urgence"
+            else "⚠️ CONSULTATION VÉTÉRINAIRE SOUS 48H"
+        ),
+        "veterinaire_proche": payload.get("veterinaire_proche")
+        or "Indiquez commune et département pour orienter vers DIRAE/ATDA/CARDer ou vétérinaire privé proche.",
         "message_urgence": str(payload.get("message_urgence") or ""),
-        "prevention": str(payload.get("prevention") or ""),
+        "message_aya": payload.get("message_aya")
+        or "Aya comprend votre inquiétude. Isolez, observez et agissez vite; un suivi rapide améliore les chances.",
+        "rapport_expert": rapport_expert,
         "langue": langue,
         "espece": espece,
         "mode": "ia",
     }
+
+
+def _build_vetscan_expert_report(
+    payload: Dict[str, Any], espece: str, langue: str, decision: str
+) -> str:
+    """Construit un rapport VetScan complet quand l'IA retourne surtout des champs JSON."""
+    return "\n".join(
+        [
+            "1. ÉVALUATION D'URGENCE — "
+            + (
+                "🔴 URGENCE VITALE"
+                if decision == "urgence"
+                else "🟡 SITUATION SÉRIEUSE"
+            )
+            + " : agir dans les 24 à 48 h selon évolution.",
+            "2. ANALYSE CLINIQUE COMPLÈTE — symptômes analysés, signes manquants à compléter: âge, effectif atteint, température, vaccination, durée.",
+            "3. DIAGNOSTIC DIFFÉRENTIEL — Diagnostic 1, Diagnostic 2 et Diagnostic 3 sont classés avec probabilité dans les champs structurés.",
+            "4. CAUSE PROFONDE ET FACTEURS DE RISQUE — hygiène, stress thermique, densité, eau/aliment et vaccination sont à vérifier.",
+            "5. PROTOCOLE DE SOINS ÉTAPE PAR ÉTAPE — isoler, hydrater, traiter selon prescription, désinfecter, surveiller matin/soir.",
+            "6. MÉDICAMENTS DISPONIBLES AU BÉNIN — électrolytes/vitamines 1000-3500 FCFA; antibiotique/anticoccidien uniquement selon diagnostic vétérinaire.",
+            "7. SIGNES D'AMÉLIORATION À SURVEILLER — Jour 1-2 appétit/eau; Jour 3-4 abattement; Jour 5-7 récupération.",
+            "8. SIGNES D'AGGRAVATION — ALARME — mortalité, détresse respiratoire, sang, convulsions, fièvre élevée, refus d'eau.",
+            "9. RISQUE DE CONTAGION ET PROPAGATION — isoler les malades, pédiluve, nettoyage mangeoires/abreuvoirs.",
+            "10. IMPACT ÉCONOMIQUE ESTIMÉ — coût traitement 2000 à 15000 FCFA; perte plus forte si mortalité ou baisse production.",
+            "11. PRÉVENTION FUTURE — vaccination, quarantaine, hygiène, baisse densité, contrôle eau/aliment.",
+            "12. CONDUITE SELON ABONNEMENT — FREE base; STANDARD protocole; PREMIUM suivi; VIP contact expert.",
+            "13. DÉCISION CLAIRE ET MOTIVÉE — "
+            + (
+                "🚨 URGENCE VÉTÉRINAIRE IMMÉDIATE"
+                if decision == "urgence"
+                else "⚠️ CONSULTATION VÉTÉRINAIRE SOUS 48H"
+            ),
+            "14. VÉTÉRINAIRE LE PLUS PROCHE — préciser commune/département pour DIRAE, ATDA/CARDer ou cabinet privé.",
+            "15. MESSAGE D'AYA — je comprends votre inquiétude; isolez vite et suivez l'évolution, chaque heure compte.",
+        ]
+    )
+
+
+def _vetscan_missing_sections(payload: Dict[str, Any]) -> List[str]:
+    text = json.dumps(payload, ensure_ascii=False).upper()
+    required = [
+        "ÉVALUATION",
+        "ANALYSE",
+        "DIAGNOSTIC",
+        "FACTEURS",
+        "PROTOCOLE",
+        "MÉDICAMENT",
+        "AMÉLIORATION",
+        "AGGRAVATION",
+        "CONTAGION",
+        "ÉCONOMIQUE",
+        "PRÉVENTION",
+        "ABONNEMENT",
+        "DÉCISION",
+        "VÉTÉRINAIRE",
+        "AYA",
+    ]
+    return [item for item in required if item.upper() not in text]
+
+
+def _regenerate_vetscan_if_incomplete(
+    client: Any, espece: str, symptomes: str, langue: str, first_payload: Dict[str, Any]
+) -> Optional[Dict[str, Any]]:
+    """Validation/régénération: demande à GPT de compléter les 15 sections manquantes."""
+    try:
+        missing = _vetscan_missing_sections(first_payload)
+        if not missing:
+            return first_payload
+        response = client.chat.completions.create(
+            model=AFRI_VETSCAN_MODEL,
+            messages=[
+                {"role": "system", "content": _system_prompt_vetscan()},
+                {
+                    "role": "user",
+                    "content": "Le diagnostic précédent est incomplet. Éléments manquants: "
+                    + ", ".join(missing)
+                    + f"\nEspèce: {espece}\nSymptômes: {symptomes}\nLangue: {langue}\nRégénère un JSON strict complet avec les 15 éléments VetScan.",
+                },
+            ],
+            temperature=0.3,
+            max_tokens=4000,
+            top_p=0.9,
+            frequency_penalty=0.1,
+            presence_penalty=0.1,
+        )
+        content = response.choices[0].message.content or ""
+        payload = _json_or_none(content)
+        return _normalize_ai_payload(payload, espece, langue) if payload else None
+    except Exception:
+        return None
 
 
 def _award_user_points(
@@ -585,8 +737,11 @@ class VetScanService:
             response = client.chat.completions.create(
                 model=AFRI_VETSCAN_MODEL,
                 messages=messages,
-                temperature=0.2,
-                max_tokens=900,
+                temperature=0.3,
+                max_tokens=4000,
+                top_p=0.9,
+                frequency_penalty=0.1,
+                presence_penalty=0.1,
             )
 
             content = ""
@@ -599,7 +754,18 @@ class VetScanService:
             if payload is None:
                 return _fallback_diagnostic(espece, symptomes, langue)
 
-            return _normalize_ai_payload(payload, espece, langue)
+            normalized = _normalize_ai_payload(payload, espece, langue)
+            if _vetscan_missing_sections(normalized):
+                regenerated = _regenerate_vetscan_if_incomplete(
+                    client=client,
+                    espece=espece,
+                    symptomes=symptomes,
+                    langue=langue,
+                    first_payload=normalized,
+                )
+                if regenerated is not None:
+                    normalized = regenerated
+            return normalized
 
         except AuthenticationError:
             return _fallback_diagnostic(espece, symptomes, langue)
@@ -666,8 +832,11 @@ class VetScanService:
             response = client.chat.completions.create(
                 model=AFRI_VETSCAN_VISION_MODEL,
                 messages=messages,
-                temperature=0.2,
-                max_tokens=900,
+                temperature=0.3,
+                max_tokens=4000,
+                top_p=0.9,
+                frequency_penalty=0.1,
+                presence_penalty=0.1,
             )
 
             content = ""

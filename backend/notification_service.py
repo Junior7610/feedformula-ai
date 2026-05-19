@@ -199,10 +199,16 @@ def _load_messages() -> Dict[str, Dict[str, str]]:
         except Exception:
             pass
 
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    MESSAGES_PATH.write_text(
-        json.dumps(AYA_MESSAGES, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
+    try:
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        MESSAGES_PATH.write_text(
+            json.dumps(AYA_MESSAGES, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+    except Exception:
+        # En production serverless (Vercel), le système de fichiers du
+        # déploiement peut être en lecture seule. Les messages intégrés
+        # restent suffisants pour servir l'API sans planter.
+        pass
     _MESSAGES_CACHE = AYA_MESSAGES
     return AYA_MESSAGES
 

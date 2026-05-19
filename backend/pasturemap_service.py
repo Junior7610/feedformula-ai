@@ -400,8 +400,11 @@ def analyser(payload: AnalysePastureMapRequest) -> Dict[str, Any]:
                 },
                 {"role": "user", "content": prompt},
             ],
-            temperature=0.2,
-            max_tokens=700,
+            temperature=0.3,
+            max_tokens=4000,
+            top_p=0.9,
+            frequency_penalty=0.1,
+            presence_penalty=0.1,
         )
 
         content = ""

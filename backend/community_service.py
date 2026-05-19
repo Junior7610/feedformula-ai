@@ -208,8 +208,11 @@ class CommunityService:
                     },
                     {"role": "user", "content": f"Vérifie ce contenu: {texte}"},
                 ],
-                temperature=0,
-                max_tokens=20,
+                temperature=0.3,
+                max_tokens=4000,
+                top_p=0.9,
+                frequency_penalty=0.1,
+                presence_penalty=0.1,
             )
             content = getattr(response.choices[0].message, "content", "")
             return isinstance(content, str) and "OK" in content.upper()

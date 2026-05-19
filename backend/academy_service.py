@@ -40,7 +40,11 @@ from sqlalchemy.orm import Session
 router = APIRouter(prefix="/academy", tags=["FarmAcademy"])
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
-APP_ENV = (os.getenv("APP_ENV", "development") or "development").strip().lower()
+APP_ENV = (
+    ("production" if os.getenv("VERCEL") else (os.getenv("APP_ENV") or "development"))
+    .strip()
+    .lower()
+)
 DATA_DIR = ROOT_DIR / "data"
 
 # En production sur Vercel, le code est déployé sur un système de fichiers en lecture seule.
@@ -316,10 +320,15 @@ def _ensure_lesson(formation_code: str, numero: int) -> Dict[str, Any]:
 
 
 def _build_system_prompt(langue: str) -> str:
-    return (
-        "Tu es un pédagogue agricole africain. Tu expliques simplement, sans jargon inutile, "
-        f"dans la langue demandée ({langue}). Tu donnes des exemples concrets pour un éleveur du Bénin."
-    )
+    prompt_path = ROOT_DIR / "prompts" / "system_prompt_farmacademy.txt"
+    try:
+        base_prompt = prompt_path.read_text(encoding="utf-8").strip()
+    except Exception:
+        base_prompt = (
+            "Tu es FarmAcademy AI, professeur de zootechnie en Afrique de l'Ouest. "
+            "Chaque leçon fait minimum 800 mots avec 8 sections, quiz de 5 questions et exemples béninois."
+        )
+    return base_prompt + f"\n\nLangue obligatoire de réponse: {langue}."
 
 
 async def _generate_gpt_content(
@@ -333,10 +342,13 @@ async def _generate_gpt_content(
         return None
 
     prompt = (
-        f"Crée un contenu pédagogique complet en {langue} pour la formation '{formation['titre']}'. "
+        f"Crée une leçon FarmAcademy complète en {langue} pour la formation '{formation['titre']}'. "
         f"Leçon: {lecon['titre']}. Objectif: {lecon['objectif']}. "
-        "Structure: introduction, explication simple, exemple béninois, erreurs à éviter, mini résumé. "
-        "Ton: clair, encourageant, concret."
+        "La leçon doit faire minimum 800 mots et contenir exactement les 8 sections obligatoires: "
+        "1. INTRODUCTION ENGAGEANTE, 2. CONCEPTS CLÉS EXPLIQUÉS SIMPLEMENT, "
+        "3. DÉMONSTRATION PRATIQUE, 4. ERREURS FRÉQUENTES, 5. APPLICATION IMMÉDIATE, "
+        "6. QUIZ INTELLIGENT avec 5 questions QCM et explications, 7. RÉSUMÉ MÉMORABLE, "
+        "8. POUR ALLER PLUS LOIN. Utilise des exemples béninois et des coûts en FCFA."
     )
     try:
         client = OpenAI(api_key=AFRI_API_KEY, base_url=AFRI_BASE_URL)
@@ -347,7 +359,10 @@ async def _generate_gpt_content(
                 {"role": "user", "content": prompt},
             ],
             temperature=0.3,
-            max_tokens=1200,
+            max_tokens=4000,
+            top_p=0.9,
+            frequency_penalty=0.1,
+            presence_penalty=0.1,
         )
         content = getattr(response.choices[0].message, "content", "")
         return content.strip() if isinstance(content, str) and content.strip() else None
@@ -358,43 +373,54 @@ async def _generate_gpt_content(
 def _fallback_content(
     formation: Dict[str, Any], lecon: Dict[str, Any], langue: str
 ) -> str:
-    actions_terrain = [
-        "Observer la situation réelle de la ferme avant d'agir.",
-        "Noter une donnée simple aujourd'hui : quantité, coût, poids, ponte, lait ou mortalité.",
-        "Comparer cette donnée dans 7 jours pour voir si la pratique améliore réellement le résultat.",
-        "Demander l'avis d'un technicien si la santé ou la reproduction est en jeu.",
-    ]
-    erreurs = [
-        "Copier une pratique d'une autre ferme sans adapter aux prix, races et bâtiments locaux.",
-        "Changer toute la conduite d'un coup sans période d'observation.",
-        "Oublier de mesurer le coût réel : aliment, médicaments, pertes et main-d'œuvre.",
-    ]
-    mini_plan = [
-        "Jour 1 : appliquer une seule action prioritaire.",
-        "Jour 3 : vérifier les premiers signes d'amélioration ou d'alerte.",
-        "Jour 7 : décider de maintenir, corriger ou demander un appui technique.",
-    ]
-    base = (
-        f"{lecon['titre']} — {formation['titre']}\n\n"
-        f"Objectif de la leçon : {lecon['objectif']}\n\n"
-        "Pourquoi c'est important : une bonne décision d'élevage doit être simple, mesurable et adaptée au terrain. "
-        "Aya vous guide pour transformer l'observation quotidienne en action rentable.\n\n"
-        "Exemple béninois : un éleveur compare le prix du maïs, l'état de ses animaux et les résultats de la semaine "
-        "avant de modifier sa ration, son calendrier sanitaire ou son plan de reproduction.\n\n"
-        "Actions terrain immédiates :\n- " + "\n- ".join(actions_terrain) + "\n\n"
-        "Erreurs à éviter :\n- " + "\n- ".join(erreurs) + "\n\n"
-        "Mini-plan 7 jours :\n- " + "\n- ".join(mini_plan) + "\n\n"
-        f"Rappel important : {lecon['objectif']}."
-    )
-    if langue.lower().startswith("fr"):
+    titre = str(lecon["titre"])
+    formation_titre = str(formation["titre"])
+    objectif = str(lecon["objectif"])
+    base = f"""{titre} — {formation_titre}
+
+1. INTRODUCTION ENGAGEANTE
+À Abomey-Calavi, un éleveur de poulets nommé Koffi achetait son maïs au marché sans noter le prix, mélangeait son aliment à l'œil et se plaignait que les poulets grandissaient moins vite que chez son voisin. Après une semaine d'observation, il a compris que le vrai problème n'était pas seulement le prix du maïs, mais l'absence de mesure: pas de pesée, pas de suivi d'eau, pas de calcul du coût par kg d'aliment. Cette leçon résout exactement ce problème. À la fin, l'éleveur saura appliquer {objectif.lower()} avec une méthode simple, mesurable et adaptée aux réalités béninoises. C'est important parce qu'une petite erreur répétée chaque jour peut coûter des dizaines de milliers de FCFA sur un lot.
+
+2. CONCEPTS CLÉS EXPLIQUÉS SIMPLEMENT
+Premier concept: observer avant de corriger. Observer veut dire regarder les animaux, mesurer ce qui entre, mesurer ce qui sort et noter les changements. C'est comme une vendeuse de gari au marché de Dantokpa: si elle ne connaît pas son prix d'achat, son prix de vente et ses pertes, elle ne peut pas savoir si elle gagne vraiment. Dans une ferme, c'est pareil. Exemple: si 50 poulets consomment 5 kg d'aliment par jour à 320 FCFA/kg, la dépense quotidienne est 1 600 FCFA. Si la croissance ne suit pas, il faut chercher la cause avant d'augmenter l'aliment.
+
+Deuxième concept: relier une pratique à un résultat. Une bonne pratique n'est pas bonne parce qu'un voisin l'utilise; elle est bonne si elle améliore la croissance, la ponte, la santé ou la marge. Par exemple, ajouter une source de calcium chez des pondeuses peut améliorer les coquilles, mais chez des poulets de chair trop jeunes, l'excès peut déséquilibrer la ration. Ce que cela change pour l'éleveur est simple: chaque décision doit avoir un objectif et un indicateur.
+
+Troisième concept: calculer en FCFA pour décider. Beaucoup d'éleveurs regardent seulement le montant dépensé, mais pas le coût par animal. Si un traitement coûte 6 000 FCFA pour 30 sujets, cela fait 200 FCFA par sujet. Si ce traitement évite la perte de 5 sujets vendus 3 500 FCFA chacun, il protège 17 500 FCFA de valeur. Le calcul transforme la peur en décision rationnelle.
+
+3. DÉMONSTRATION PRATIQUE
+Prenons le cas d'Awa, éleveuse à Bohicon avec 100 poulets de chair en croissance. Elle veut appliquer la leçon aujourd'hui. Étape 1: elle pèse le sac d'aliment avant distribution. Étape 2: elle donne 9 kg le matin et 4 kg en fin d'après-midi, soit 13 kg/jour. Étape 3: elle note le prix de son aliment: 330 FCFA/kg. Sa dépense du jour est donc 13 x 330 = 4 290 FCFA. Étape 4: elle observe les fientes, l'eau et l'activité. Étape 5: elle pèse 10 poulets témoins tous les 7 jours. Si le poids moyen augmente de 350 g en une semaine, le GMQ est environ 50 g/jour. Si le GMQ tombe à 25 g/jour, elle vérifie d'abord chaleur, eau, maladie, densité et qualité du maïs avant de changer toute la ration. Cette méthode demande peu d'argent, mais elle donne une base solide pour discuter avec NutriCore, VetScan ou un technicien.
+
+4. ERREURS FRÉQUENTES
+Erreur 1: changer toute la conduite en même temps. Conséquence: impossible de savoir ce qui a amélioré ou aggravé les résultats; sur un lot de 100 poulets, une semaine de retard peut représenter 10 000 à 25 000 FCFA de perte. Correction: modifier une seule pratique à la fois et observer 7 jours. Pour éviter cela, garder un petit carnet ou utiliser FarmManager.
+
+Erreur 2: copier la formule d'un voisin. Conséquence: les prix, les souches, l'âge et la qualité des matières premières ne sont pas identiques; une ration copiée peut ralentir la croissance et augmenter l'indice de consommation. Correction: recalculer avec les ingrédients réellement disponibles. Prévention: demander une ration personnalisée à NutriCore.
+
+Erreur 3: négliger les signes d'alerte. Conséquence: une maladie ou une carence prise trop tard coûte plus cher; 5 morts à 3 500 FCFA représentent déjà 17 500 FCFA perdus, sans compter le médicament. Correction: isoler vite, noter les signes et utiliser VetScan ou appeler un vétérinaire. Prévention: contrôle matin et soir.
+
+5. APPLICATION IMMÉDIATE
+Action 1: aujourd'hui, notez le prix de chaque ingrédient ou aliment acheté en FCFA/kg. Action 2: mesurez la consommation réelle d'un lot pendant 24 heures. Action 3: choisissez un indicateur à suivre pendant 7 jours: poids, ponte, lait, mortalité, diarrhée ou refus d'aliment. Ces actions ne demandent pas d'investissement lourd; elles demandent seulement discipline et régularité.
+
+6. QUIZ INTELLIGENT
+Q1. Quelle est la première chose à faire avant de corriger une ration ? A) Acheter plus cher B) Observer et mesurer C) Copier un voisin D) Attendre un mois. Bonne réponse: B. C'est correct parce qu'une correction sans mesure peut aggraver le problème. Les autres réponses ignorent la cause réelle.
+Q2. Pourquoi faut-il calculer en FCFA/kg ? A) Pour connaître le vrai coût B) Pour décorer le carnet C) Pour vendre moins cher D) Pour éviter l'eau. Bonne réponse: A. Le coût par kg permet de comparer deux aliments et leur rentabilité.
+Q3. Si 50 poulets mangent 5 kg/jour à 320 FCFA/kg, quelle est la dépense ? A) 320 FCFA B) 1 600 FCFA C) 5 000 FCFA D) 16 000 FCFA. Bonne réponse: B, car 5 x 320 = 1 600 FCFA.
+Q4. Un changement doit être suivi combien de temps au minimum ? A) 1 heure B) 1 jour seulement C) environ 7 jours D) jamais. Bonne réponse: C, car les performances demandent quelques jours pour se stabiliser.
+Q5. Si les animaux mangent bien mais ne grandissent pas, quelle analyse est la plus logique ? A) Vérifier santé, eau, chaleur et qualité de ration B) Augmenter sel fortement C) Supprimer l'eau D) Vendre tout immédiatement. Bonne réponse: A. La résolution de problème exige de vérifier plusieurs causes sans action dangereuse.
+
+7. RÉSUMÉ MÉMORABLE
+- L'œil voit le problème, mais le carnet prouve la cause.
+- Celui qui pèse son aliment pèse aussi son bénéfice.
+- Une ration copiée nourrit le hasard; une ration calculée nourrit le profit.
+- L'eau propre est le médicament silencieux de la ferme.
+- Le petit contrôle du matin évite la grande perte du soir.
+
+8. POUR ALLER PLUS LOIN
+Pour approfondir, utilisez NutriCore pour formuler une ration adaptée, VetScan si des symptômes apparaissent, ReproTrack pour suivre chaleurs et mise-bas, FarmManager pour enregistrer les coûts et FarmCast pour transformer votre apprentissage en message simple pour votre groupe. La prochaine leçon peut montrer comment comparer deux formules alimentaires en FCFA et en performance, afin de choisir non pas la moins chère, mais la plus rentable.
+"""
+    if not langue.lower().startswith("fr"):
         return base
-    return (
-        f"{lecon['titre']} - {formation['titre']}\n\n"
-        "Why it matters: a strong farm decision must be simple, measurable and adapted to local prices, animal stage and health status.\n\n"
-        "Field action: observe one problem, apply one practical action today, write down the result, then compare again in 7 days.\n\n"
-        "Avoid copying another farm blindly. Adapt to your feed prices, climate, breed, housing and veterinary reality.\n\n"
-        f"Key reminder: {lecon['objectif']}"
-    )
+    return base
 
 
 def _build_quiz(
@@ -473,7 +499,10 @@ def _build_lesson_payload(
     if not contenu:
         contenu = _fallback_content(formation, lecon, langue)
     quiz = _build_quiz(
-        formation["code"], int(lecon["numero"]), langue, int(lecon.get("questions", 3))
+        formation["code"],
+        int(lecon["numero"]),
+        langue,
+        max(5, int(lecon.get("questions", 3))),
     )
     score_max = len(quiz) * POINTS_PAR_BONNE_REPONSE
     return {

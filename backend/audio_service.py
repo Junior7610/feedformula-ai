@@ -38,7 +38,17 @@ from pydantic import BaseModel, Field
 # -----------------------------------------------------------------------------
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
-ASSETS_DIR = ROOT_DIR / "assets"
+APP_ENV = (
+    ("production" if os.getenv("VERCEL") else (os.getenv("APP_ENV") or "development"))
+    .strip()
+    .lower()
+)
+if APP_ENV == "production":
+    import tempfile
+
+    ASSETS_DIR = Path(tempfile.gettempdir()) / "feedformula_ai" / "assets"
+else:
+    ASSETS_DIR = ROOT_DIR / "assets"
 
 AFRI_BASE_URL = (
     os.getenv("AFRI_BASE_URL")

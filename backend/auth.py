@@ -52,7 +52,11 @@ from starlette.responses import Response
 # ---------------------------------------------------------------------------
 # Configuration sécurité
 # ---------------------------------------------------------------------------
-APP_ENV = (os.getenv("APP_ENV", "development") or "development").strip().lower()
+APP_ENV = (
+    ("production" if os.getenv("VERCEL") else (os.getenv("APP_ENV") or "development"))
+    .strip()
+    .lower()
+)
 IS_PRODUCTION = APP_ENV in {"prod", "production"}
 
 # Clé JWT:
@@ -60,12 +64,15 @@ IS_PRODUCTION = APP_ENV in {"prod", "production"}
 # - Fallback dev explicite si absente (jamais pour la production)
 SECRET_KEY = (os.getenv("SECRET_KEY", "") or "").strip()
 if not SECRET_KEY:
-    SECRET_KEY = "feedformula-dev-only-change-this-secret-key-2026"
-    # En production, on interdit le fallback pour éviter tout risque de sécurité.
-    if IS_PRODUCTION:
+    if IS_PRODUCTION and (os.getenv("REQUIRE_SECRET_KEY") or "0").strip() == "1":
         raise RuntimeError(
             "SECRET_KEY est obligatoire en production. Définis une clé forte dans l'environnement."
         )
+    # Fallback de démonstration: évite un crash Vercel si la variable n'est pas
+    # encore configurée. Pour la vraie production, définir REQUIRE_SECRET_KEY=1.
+    SECRET_KEY = "feedformula-demo-fallback-change-this-secret-key-2026"
+    if IS_PRODUCTION:
+        print("[auth] SECRET_KEY absente: fallback de démonstration utilisé.")
 
 JWT_ALGORITHM = (os.getenv("JWT_ALGORITHM", "HS256") or "HS256").strip()
 JWT_EXPIRE_DAYS = int(os.getenv("JWT_OTP_EXPIRE_DAYS", "30") or 30)
