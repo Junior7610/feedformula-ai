@@ -4,766 +4,566 @@
         <meta charset="UTF-8" />
         <meta
             name="viewport"
-            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
         />
-        <title>FeedFormula AI — Nutrition Animale IA | Bénin</title>
-        <meta
-            name="keywords"
-            content="élevage bénin, nutrition animale, IA agricole, fon, poulet, vache, ration animale"
-        />
-        <meta name="author" content="Leonel TOGBE" />
-        <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://feedformula-ai.vercel.app/app/" />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://feedformula-ai.vercel.app" />
-        <meta
-            property="og:title"
-            content="FeedFormula AI — L IA au service de l élevage africain"
-        />
-        <meta
-            property="og:description"
-            content="Formulez la ration parfaite de vos animaux en 30 secondes. En fon, yoruba, français et 47 autres langues africaines."
-        />
-        <meta
-            property="og:image"
-            content="https://feedformula-ai.vercel.app/assets/branding/hero_image_accueil.png"
-        />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:locale" content="fr_BJ" />
-        <meta property="og:site_name" content="FeedFormula AI" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta
-            name="twitter:title"
-            content="FeedFormula AI — Nutrition Animale IA"
-        />
-        <meta
-            name="twitter:description"
-            content="L intelligence africaine au service de vos animaux."
-        />
-        <meta
-            name="twitter:image"
-            content="https://feedformula-ai.vercel.app/assets/branding/hero_image_accueil.png"
-        />
+        <meta name="theme-color" content="#1B5E20" />
         <meta
             name="description"
-            content="FeedFormula AI génère la ration parfaite pour vos animaux en 30 secondes. 50 langues africaines. 8 modules IA. Gratuit pour les éleveurs béninois."
+            content="Abonnements FeedFormula AI — choisissez l'offre adaptée à votre élevage, paiement Mobile Money MTN Money et Moov Money."
         />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta
-            name="apple-mobile-web-app-status-bar-style"
-            content="black-translucent"
-        />
-        <meta name="apple-mobile-web-app-title" content="FeedFormula AI" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="application-name" content="FeedFormula AI" />
+        <title>FeedFormula AI — Abonnements et Mobile Money</title>
         <link rel="manifest" href="/app/manifest.json" />
-        <link
-            rel="apple-touch-icon"
-            href="/assets/branding/logo_principal_hd.png"
-        />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            rel="preload"
-            href="/assets/branding/logo_principal_hd.png"
-            as="image"
-        />
-        <link rel="preload" href="/app/style.css" as="style" />
-
         <link rel="stylesheet" href="style.css" />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-            rel="stylesheet"
-        />
         <style>
             :root {
-                --green: #198754;
-                --gold: #d4af37;
-                --bg: #f7f9fc;
-                --card: #fff;
-                --text: #15202b;
-                --muted: #607086;
+                --green: #1b5e20;
+                --green2: #2e7d32;
+                --gold: #f9a825;
+                --soft: #f6fbf5;
+                --ink: #143018;
+                --muted: #607064;
+                --line: #dce8d9;
+                --shadow: 0 18px 48px rgba(27, 94, 32, 0.12);
             }
             * {
                 box-sizing: border-box;
             }
             body {
                 margin: 0;
-                font-family: var(--font-primary);
-                background: var(--bg);
-                color: var(--text);
+                font-family: Inter, "Plus Jakarta Sans", system-ui, sans-serif;
+                background: linear-gradient(
+                    180deg,
+                    #eef8ec,
+                    #fff 38%,
+                    var(--soft)
+                );
+                color: var(--ink);
             }
-            header,
-            main {
-                max-width: 1300px;
-                margin: auto;
-                padding: 20px;
+            .app {
+                max-width: 1280px;
+                margin: 0 auto;
+                padding: 16px 16px 120px;
             }
-            .hero {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                gap: 16px;
-                flex-wrap: wrap;
-            }
-            .banner {
-                background: linear-gradient(135deg, #effbf3, #fff8e8);
-                border: 1px solid #d9eedf;
-                border-radius: 24px;
-                padding: 16px 18px;
-                display: flex;
-                align-items: center;
+            .grid {
+                display: grid;
                 gap: 14px;
             }
-            .aya {
-                width: 64px;
-                height: 64px;
-                border-radius: 50%;
+            .grid-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .grid-3 {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+            .grid-5 {
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+            }
+            .hero {
                 display: grid;
-                place-items: center;
-                font-size: 32px;
-                background: linear-gradient(135deg, #ffd166, #ff8fab);
-                box-shadow: 0 10px 26px rgba(0, 0, 0, 0.12);
+                grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+                gap: 16px;
+                margin-bottom: 16px;
+            }
+            .hero-main {
+                position: relative;
+                overflow: hidden;
+                border-radius: 34px;
+                padding: 28px;
+                color: #fff;
+                background:
+                    radial-gradient(
+                        circle at 86% 12%,
+                        rgba(255, 255, 255, 0.22),
+                        transparent 25%
+                    ),
+                    linear-gradient(135deg, #123f18, #1b5e20 58%, #43a047);
+                box-shadow: var(--shadow);
+            }
+            .hero-main:after {
+                content: "💳";
+                position: absolute;
+                right: 18px;
+                bottom: -18px;
+                font-size: 132px;
+                opacity: 0.14;
+            }
+            .hero h1 {
+                margin: 0 0 10px;
+                font-size: clamp(34px, 5vw, 62px);
+                line-height: 1;
+            }
+            .hero p {
+                font-size: 18px;
+                line-height: 1.55;
+                max-width: 780px;
+            }
+            .badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                width: max-content;
+                padding: 8px 13px;
+                border-radius: 999px;
+                background: rgba(255, 255, 255, 0.17);
+                font-weight: 900;
             }
             .card {
-                background: var(--card);
-                border-radius: 18px;
-                padding: 16px;
-                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+                background: rgba(255, 255, 255, 0.97);
+                border: 1px solid rgba(27, 94, 32, 0.12);
+                border-radius: 26px;
+                padding: 18px;
+                box-shadow: var(--shadow);
             }
             .muted {
                 color: var(--muted);
             }
-            .grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-                gap: 14px;
+            input,
+            select {
+                width: 100%;
+                border: 1px solid var(--line);
+                border-radius: 16px;
+                padding: 12px 13px;
+                font: inherit;
+                background: #fff;
             }
-            .table-wrap {
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
+            button,
+            .btn {
+                border: 0;
                 border-radius: 18px;
-            }
-            .table-wrap table {
-                min-width: 720px;
-            }
-            .offers-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-                gap: 14px;
-                margin-top: 12px;
-            }
-            .offer-card {
-                border: 1px solid #e6edf4;
-                border-radius: 18px;
-                padding: 16px;
-                background: linear-gradient(180deg, #ffffff, #f8fbff);
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-                box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
-            }
-            .offer-card.featured {
-                border: 2px solid var(--gold);
-                box-shadow: 0 14px 34px rgba(212, 175, 55, 0.2);
-                transform: translateY(-2px);
-            }
-            .offer-name {
-                font-size: 18px;
-                font-weight: 800;
-            }
-            .offer-price {
-                font-size: 30px;
-                line-height: 1;
+                padding: 12px 15px;
                 font-weight: 900;
+                cursor: pointer;
+                background: #e8f5e9;
+                color: var(--ink);
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+            }
+            button.primary,
+            .btn.primary {
+                background: var(--green);
+                color: #fff;
+            }
+            .btn.gold,
+            button.gold {
+                background: var(--gold);
+                color: #2b1a00;
+            }
+            .actions {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+            .plan-card {
+                position: relative;
+                overflow: hidden;
+                display: grid;
+                gap: 10px;
+                min-height: 360px;
+                border-top: 7px solid var(--green);
+            }
+            .plan-card.featured {
+                border-top-color: var(--gold);
+                transform: translateY(-3px);
+                box-shadow: 0 24px 60px rgba(249, 168, 37, 0.22);
+            }
+            .plan-card:after {
+                content: attr(data-icon);
+                position: absolute;
+                right: 12px;
+                bottom: 2px;
+                font-size: 90px;
+                opacity: 0.08;
+            }
+            .price {
+                font-size: 34px;
+                font-weight: 1000;
                 color: var(--green);
+                line-height: 1;
             }
-            .offer-subtitle {
-                color: var(--muted);
-                min-height: 40px;
+            .tag {
+                display: inline-flex;
+                padding: 5px 9px;
+                border-radius: 999px;
+                background: #edf8f1;
+                color: var(--green);
+                font-size: 12px;
+                font-weight: 900;
             }
-            .offer-list {
+            .tag.gold {
+                background: #fff4d8;
+                color: #8a5a00;
+            }
+            .feature-list {
                 margin: 0;
                 padding-left: 18px;
-                color: #304050;
             }
-            .offer-list li {
-                margin: 4px 0;
+            .feature-list li {
+                margin: 6px 0;
             }
-            .offer-tag {
-                align-self: flex-start;
-                font-size: 12px;
-                font-weight: 800;
-                letter-spacing: 0.04em;
-                text-transform: uppercase;
-                background: #eef8f1;
-                color: #16663d;
-                padding: 6px 10px;
-                border-radius: 999px;
+            .compare {
+                overflow-x: auto;
+                border-radius: 22px;
+                border: 1px solid var(--line);
             }
             table {
                 width: 100%;
+                min-width: 760px;
                 border-collapse: collapse;
                 background: #fff;
-                border-radius: 18px;
-                overflow: hidden;
             }
             th,
             td {
-                padding: 12px;
-                border-bottom: 1px solid #edf1f5;
+                padding: 14px;
+                border-bottom: 1px solid #edf2ea;
                 text-align: center;
             }
             th:first-child,
             td:first-child {
                 text-align: left;
-            }
-            th {
-                background: #f8fbff;
-            }
-            .premium {
-                border: 2px solid var(--gold);
-                box-shadow: 0 10px 30px rgba(212, 175, 55, 0.18);
-            }
-            .check {
-                color: #198754;
-                font-weight: 700;
-            }
-            .cross {
-                color: #c0392b;
-                font-weight: 700;
-            }
-            input,
-            select {
-                width: 100%;
-                padding: 11px;
-                border: 1px solid #d7dee8;
-                border-radius: 10px;
-                margin-top: 6px;
-            }
-            button {
-                border: none;
-                border-radius: 12px;
-                padding: 11px 16px;
-                background: var(--green);
-                color: #fff;
-                cursor: pointer;
-            }
-            button.secondary {
-                background: #e9f1ff;
-                color: #174da0;
-            }
-            .logos {
-                display: flex;
-                gap: 10px;
-                flex-wrap: wrap;
-                margin-top: 8px;
-            }
-            .logo {
-                padding: 8px 12px;
-                border-radius: 999px;
-                background: #f2f6fa;
-                border: 1px solid #dce5ef;
-                font-weight: 700;
-            }
-            .total {
-                font-size: 30px;
                 font-weight: 800;
-                color: var(--green);
+            }
+            .paybox {
+                border-left: 6px solid var(--green);
+                background: linear-gradient(135deg, #fff, #f3fbf1);
+            }
+            .operator {
+                padding: 14px;
+                border-radius: 20px;
+                background: #fff;
+                border: 1px solid var(--line);
+                display: grid;
+                gap: 6px;
+            }
+            .operator strong {
+                font-size: 20px;
             }
             .status {
                 display: none;
-                margin-top: 14px;
-                border-radius: 18px;
-                padding: 14px 16px;
-            }
-            .status.ok {
-                display: block;
-                background: #e8fff1;
+                padding: 12px;
+                border-radius: 16px;
+                background: #eef8ee;
                 color: #16663d;
             }
-            .status.err {
-                display: block;
-                background: #fff0f0;
-                color: #b03333;
+            .history-item {
+                padding: 12px;
+                border-radius: 16px;
+                border: 1px solid var(--line);
+                background: #fff;
+                margin-bottom: 8px;
             }
-            .confetti {
-                position: fixed;
-                inset: 0;
-                pointer-events: none;
-                overflow: hidden;
-                z-index: 9999;
-            }
-            .confetti span {
-                position: absolute;
-                width: 10px;
-                height: 18px;
-                opacity: 0.9;
-                animation: fall 1.8s linear forwards;
-            }
-            @keyframes fall {
-                from {
-                    transform: translateY(-10vh) rotate(0deg);
-                }
-                to {
-                    transform: translateY(110vh) rotate(540deg);
-                    opacity: 0;
-                }
-            }
-            .two-col {
-                display: grid;
-                grid-template-columns: 1.2fr 0.8fr;
-                gap: 16px;
-            }
-            @media (max-width: 980px) {
-                .two-col {
+            @media (max-width: 1000px) {
+                .hero,
+                .grid-2,
+                .grid-3,
+                .grid-5 {
                     grid-template-columns: 1fr;
                 }
-            }
-            .resultScreen {
-                display: none;
-            }
-            .resultScreen.show {
-                display: block;
+                .plan-card.featured {
+                    transform: none;
+                }
             }
         </style>
-        <script defer src="assets_manager.js"></script>
         <script defer src="i18n.js"></script>
-        <script defer src="script.js"></script>
-        <script defer src="api_bindings.js"></script>
-        <meta name="theme-color" content="#1B5E20" />
-            <script defer src="ux_enhancer.js"></script>
+        <script defer src="ux_enhancer.js"></script>
     </head>
     <body data-i18n-page="abonnement" data-page="abonnement">
-        <div id="confetti" class="confetti"></div>
-        <header>
-            <div class="hero">
-                <div>
-                    <h1>Abonnements FeedFormula AI</h1>
-                    <p class="muted">
-                        Comparez les offres, choisissez votre durée et activez
-                        Mobile Money.
+        <div class="app">
+            <section class="hero">
+                <div class="hero-main">
+                    <div class="badge">
+                        💳 Offres FeedFormula AI · Mobile Money
+                    </div>
+                    <h1>Choisissez l’offre qui fait grandir votre élevage</h1>
+                    <p>
+                        Commencez gratuitement, puis débloquez les modules
+                        avancés quand votre ferme en a besoin. Paiement simple
+                        par MTN Money, Moov Money ou simulation locale.
                     </p>
+                    <div class="actions">
+                        <a class="btn" href="modules.html"
+                            >📦 Voir les modules</a
+                        ><a class="btn gold" href="#plans"
+                            >Comparer les offres</a
+                        >
+                    </div>
                 </div>
-                <div class="banner">
-                    <div class="aya">💳</div>
-                    <div>
-                        <strong>Aya vous guide vers la bonne offre</strong>
-                        <div class="muted">
-                            Paiement rapide, confirmation et accès instantané.
+                <div class="card grid paybox">
+                    <h2>📱 Paiement Mobile Money</h2>
+                    <p class="muted">
+                        Paiement rapide et adapté au terrain africain.
+                    </p>
+                    <div class="grid grid-2">
+                        <div class="operator">
+                            <strong>MTN Money</strong
+                            ><span class="muted"
+                                >Bénin et Afrique de l’Ouest</span
+                            >
+                        </div>
+                        <div class="operator">
+                            <strong>Moov Money</strong
+                            ><span class="muted">Simple et accessible</span>
                         </div>
                     </div>
                 </div>
-            </div>
-        </header>
-        <main>
+            </section>
+
+            <section id="plans" class="grid grid-5"></section>
+
             <section class="card">
-                <h2>Offres disponibles</h2>
-                <p class="muted">
-                    Les prix sont affichés clairement sur chaque offre pour vous
-                    aider à comparer rapidement.
-                </p>
-                <div
-                    class="offers-grid"
-                    id="subscriptionOffers"
-                    aria-live="polite"
-                ></div>
-            </section>
-
-            <section class="card" style="margin-top: 16px">
                 <h2>Comparatif des 5 offres</h2>
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Fonctionnalité</th>
-                                <th>Free</th>
-                                <th>Standard</th>
-                                <th class="premium">Premium</th>
-                                <th>VIP</th>
-                                <th>Gold</th>
-                            </tr>
-                        </thead>
-                        <tbody id="compareRows"></tbody>
-                    </table>
-                </div>
                 <p class="muted">
-                    L’offre <strong>Premium</strong> est mise en avant pour les
-                    éleveurs qui veulent un excellent rapport valeur/prix.
+                    Les modules essentiels restent accessibles, les offres
+                    supérieures ajoutent puissance, volume, équipe et
+                    accompagnement.
                 </p>
+                <div class="compare"><table id="compareTable"></table></div>
             </section>
 
-            <section class="two-col" style="margin-top: 16px">
-                <section class="card">
-                    <h2>Formulaire de souscription</h2>
-                    <div class="grid">
-                        <label
-                            >Utilisateur ID<input
-                                id="userId"
-                                placeholder="ID utilisateur"
-                        /></label>
-                        <label
-                            >Prénom<input
-                                id="prenom"
-                                placeholder="Votre prénom"
-                        /></label>
-                        <label
-                            >Téléphone Mobile Money<input
-                                id="telephone"
-                                placeholder="229xxxxxxxx"
-                        /></label>
-                        <label
-                            >Offre<select id="abonnement">
-                                <option value="free" selected>Free</option>
-                                <option value="standard">Standard</option>
-                                <option value="premium">Premium</option>
-                                <option value="vip">VIP</option>
-                                <option value="gold">Gold</option>
-                            </select></label
-                        >
-                        <label
-                            >Durée<select id="duree">
-                                <option value="mensuel">Mensuel</option>
-                                <option value="trimestriel">Trimestriel</option>
-                                <option value="annuel">Annuel</option>
-                            </select></label
-                        >
-                    </div>
-                    <div class="logos">
-                        <span class="logo">MTN Money</span
-                        ><span class="logo">Moov Money</span>
-                    </div>
-                    <p class="muted">Montant total</p>
-                    <div class="total" id="totalAmount">0 FCFA</div>
-                    <button style="margin-top: 12px" onclick="createPayment()">
-                        Payer avec Mobile Money
-                    </button>
-                    <div id="payStatus" class="status"></div>
-                </section>
-
-                <section class="card resultScreen" id="successScreen">
-                    <h2>Succès</h2>
-                    <div class="banner">
-                        <div class="aya">🎉</div>
-                        <div>
-                            <strong id="successTitle">Paiement confirmé</strong>
-                            <div class="muted" id="successText">
-                                Votre abonnement est actif.
-                            </div>
-                        </div>
-                    </div>
-                    <p id="successSummary" aria-live="polite"></p>
-                    <button class="secondary" onclick="location.href = '/'">
-                        Retour accueil
-                    </button>
-                </section>
-
-                <section class="card resultScreen" id="errorScreen">
-                    <h2>Échec</h2>
-                    <div class="banner">
-                        <div class="aya">😔</div>
-                        <div>
-                            <strong>Paiement non confirmé</strong>
-                            <div class="muted">
-                                Aya vous propose de réessayer ou de choisir une
-                                autre offre.
-                            </div>
-                        </div>
-                    </div>
-                    <p id="errorText" aria-live="polite"></p>
-                    <button onclick="createPayment()">Réessayer</button>
-                    <button
-                        class="secondary"
-                        style="margin-left: 8px"
-                        onclick="document.getElementById('abonnement').focus()"
+            <section id="payment" class="card grid paybox">
+                <h2>Activer mon abonnement</h2>
+                <div class="grid grid-3">
+                    <label
+                        >ID utilisateur<input
+                            id="userId"
+                            placeholder="demo-user" /></label
+                    ><label
+                        >Téléphone Mobile Money<input
+                            id="phone"
+                            placeholder="+22961234567" /></label
+                    ><label
+                        >Prénom<input
+                            id="firstName"
+                            placeholder="Aminata" /></label
+                    ><label>Offre<select id="selectedPlan"></select></label
+                    ><label
+                        >Durée<select id="duration">
+                            <option value="mensuel">Mensuel</option>
+                            <option value="trimestriel">
+                                Trimestriel -10%
+                            </option>
+                            <option value="annuel">Annuel -20%</option>
+                        </select></label
                     >
-                        Choisir autre offre
-                    </button>
-                </section>
-            </section>
-        </main>
-
-        <footer class="site-footer" aria-label="Pied de page">
-            <div class="site-footer__inner">
-                <strong>FeedFormula AI</strong>
-                <span
-                    >Comparez les offres, choisissez la meilleure valeur et
-                    gardez les prix visibles.</span
-                >
-                <div class="site-footer__links">
-                    <a href="index.html">Accueil</a>
-                    <a href="modules.html">Modules</a>
-                    <a href="profil.html">Profil</a>
                 </div>
-            </div>
-        </footer>
+                <div class="actions">
+                    <button class="primary" onclick="payNow()">
+                        Payer avec Mobile Money</button
+                    ><button onclick="checkSubscription()">
+                        Vérifier mon abonnement
+                    </button>
+                </div>
+                <div id="paymentStatus" class="status"></div>
+            </section>
 
-        <nav class="bottom-nav" aria-label="Navigation principale">
-            <div class="bottom-nav-inner">
-                <a class="nav-item" href="index.html">
-                    <span class="nav-icon">🏠</span>
-                    <span class="nav-text">Accueil</span>
-                </a>
-                <a class="nav-item" href="modules.html">
-                    <span class="nav-icon">📦</span>
-                    <span class="nav-text">Modules</span>
-                </a>
-                <a
-                    class="nav-item active"
-                    href="abonnement.html"
-                    aria-current="page"
-                >
-                    <span class="nav-icon">💳</span>
-                    <span class="nav-text">Abonnement</span>
-                </a>
-                <a class="nav-item" href="classement.html">
-                    <span class="nav-icon">🏆</span>
-                    <span class="nav-text">Classement</span>
-                </a>
-                <a class="nav-item" href="profil.html">
-                    <span class="nav-icon">👤</span>
-                    <span class="nav-text">Profil</span>
-                </a>
-            </div>
-        </nav>
-
+            <section class="grid grid-2">
+                <div class="card">
+                    <h2>Mon abonnement</h2>
+                    <div id="subscriptionBox" class="muted">
+                        Entrez votre ID puis vérifiez votre abonnement.
+                    </div>
+                </div>
+                <div class="card">
+                    <h2>Historique transactions</h2>
+                    <div id="history"></div>
+                </div>
+            </section>
+        </div>
         <script>
-            const API_BASE = String(
-                window.FEEDFORMULA_API_BASE_URL ||
-                    window.__FEEDFORMULA_API_BASE_URL__ ||
-                    window.API_BASE ||
-                    (["localhost", "127.0.0.1", "0.0.0.0"].includes(
-                        window.location.hostname,
-                    )
-                        ? "http://127.0.0.1:8000"
-                        : "/"),
-            );
-            const api = API_BASE.replace(/\/$/, "");
-            const plans = {
+            const OFFERS = {
                 free: {
-                    label: "Free",
+                    name: "FREE",
                     price: 0,
-                    subtitle: "Découverte sans frais",
-                    benefits: ["3 langues", "3 diagnostics", "Accès de base"],
+                    icon: "🌱",
+                    tag: "Découverte",
+                    desc: "Pour tester FeedFormula AI sans risque.",
+                    features: [
+                        "5 rations/mois",
+                        "3 diagnostics",
+                        "3 langues",
+                        "Accès découverte",
+                    ],
                 },
                 standard: {
-                    label: "Standard",
+                    name: "STANDARD",
                     price: 2000,
-                    subtitle: "Pour démarrer sereinement",
-                    benefits: ["50 langues", "10 diagnostics", "VetScan"],
+                    icon: "🌾",
+                    tag: "Essentiel",
+                    desc: "Pour éleveur individuel régulier.",
+                    features: [
+                        "Rations illimitées",
+                        "VetScan activé",
+                        "ReproTrack activé",
+                        "50 langues",
+                    ],
                 },
                 premium: {
-                    label: "Premium",
+                    name: "PREMIUM",
                     price: 8000,
-                    subtitle: "Le meilleur équilibre",
-                    benefits: [
-                        "50 langues",
-                        "Diagnostics illimités",
+                    icon: "🥇",
+                    tag: "Recommandé",
+                    desc: "Pour exploitation active et apprentissage.",
+                    features: [
+                        "Tout Standard",
+                        "VetScan illimité",
                         "FarmAcademy",
+                        "PastureMap",
+                        "FloraVet",
                     ],
-                    featured: true,
                 },
                 vip: {
-                    label: "VIP",
+                    name: "VIP",
                     price: 25000,
-                    subtitle: "Pour les éleveurs actifs",
-                    benefits: [
-                        "Multi-users",
-                        "Suivi avancé",
-                        "Support prioritaire",
+                    icon: "🚜",
+                    tag: "Ferme structurée",
+                    desc: "Pour équipe et ferme multi-lots.",
+                    features: [
+                        "Tout Premium",
+                        "5 utilisateurs",
+                        "API access",
+                        "Expert mensuel",
+                        "FarmManager avancé",
                     ],
                 },
                 gold: {
-                    label: "Gold",
+                    name: "GOLD",
                     price: 75000,
-                    subtitle: "Accès maximal",
-                    benefits: [
-                        "Tout inclus",
+                    icon: "👑",
+                    tag: "Organisation",
+                    desc: "Pour coopératives, ONG et gros élevages.",
+                    features: [
+                        "Tout VIP",
+                        "Utilisateurs illimités",
+                        "White label",
                         "FarmCast illimité",
-                        "Priorité totale",
+                        "Accompagnement renforcé",
                     ],
                 },
             };
-            const selectedPlanFromUrl = new URLSearchParams(
-                window.location.search,
-            ).get("plan");
-            const features = [
-                [
-                    "Rations / mois",
-                    ["5", "illimité", "illimité", "illimité", "illimité"],
-                ],
-                [
-                    "Diagnostics",
-                    ["3", "10", "illimité", "illimité", "illimité"],
-                ],
-                ["Langues", ["3", "50", "50", "50", "illimité"]],
-                ["VetScan", ["❌", "✅", "✅", "✅", "✅"]],
-                ["ReproTrack", ["❌", "✅", "✅", "✅", "✅"]],
-                ["FarmAcademy", ["❌", "❌", "✅", "✅", "✅"]],
-                ["Multi-users", ["❌", "❌", "❌", "5", "illimité"]],
-                ["FarmCast illimité", ["❌", "❌", "❌", "❌", "✅"]],
-            ];
+            const $ = (s) => document.querySelector(s);
+            const money = (v) =>
+                Number(v || 0).toLocaleString("fr-FR") + " FCFA";
+            const userId = () =>
+                (
+                    $("#userId").value ||
+                    localStorage.getItem("feedformula_user_id") ||
+                    "demo-user"
+                ).trim();
             async function jget(url) {
-                const r = await fetch(api + url);
-                return await r.json();
+                const r = await fetch(url);
+                const d = await r.json();
+                if (!r.ok) throw new Error(d.detail || "Erreur");
+                return d;
             }
             async function jpost(url, data) {
-                const r = await fetch(api + url, {
+                const r = await fetch(url, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(data),
                 });
-                return await r.json();
+                const d = await r.json();
+                if (!r.ok) throw new Error(d.detail || "Erreur");
+                return d;
             }
-
-            function renderOffers() {
-                document.getElementById("subscriptionOffers").innerHTML =
-                    Object.entries(plans)
+            function renderPlans() {
+                $("#plans").innerHTML = Object.entries(OFFERS)
+                    .map(
+                        ([code, o]) =>
+                            `<article class="card plan-card ${code === "premium" ? "featured" : ""}" data-icon="${o.icon}"><div class="tag ${code === "premium" ? "gold" : ""}">${o.tag}</div><h2>${o.icon} ${o.name}</h2><div class="price">${o.price ? money(o.price) + "/mois" : "0 FCFA"}</div><p class="muted">${o.desc}</p><ul class="feature-list">${o.features.map((f) => `<li>${f}</li>`).join("")}</ul><button class="${code === "premium" ? "gold" : "primary"}" onclick="selectPlan('${code}')">Choisir ${o.name}</button></article>`,
+                    )
+                    .join("");
+                $("#selectedPlan").innerHTML = Object.entries(OFFERS)
+                    .map(([c, o]) => `<option value="${c}">${o.name}</option>`)
+                    .join("");
+            }
+            function renderCompare() {
+                const rows = [
+                    [
+                        "Prix mensuel",
+                        ...Object.values(OFFERS).map((o) =>
+                            o.price ? money(o.price) : "Gratuit",
+                        ),
+                    ],
+                    [
+                        "NutriCore",
+                        "5/mois",
+                        "Illimité",
+                        "Illimité",
+                        "Illimité",
+                        "Illimité",
+                    ],
+                    ["VetScan", "3", "10", "Illimité", "Illimité", "Illimité"],
+                    ["ReproTrack", "❌", "✅", "✅", "✅", "✅"],
+                    ["FarmAcademy", "❌", "❌", "✅", "✅", "✅"],
+                    ["FloraVet", "Découverte", "✅", "✅", "✅", "✅"],
+                    ["Multi-users", "❌", "❌", "❌", "5", "Illimité"],
+                    ["FarmCast", "❌", "❌", "Basique", "Avancé", "Illimité"],
+                ];
+                $("#compareTable").innerHTML =
+                    "<tr><th>Fonction</th>" +
+                    Object.values(OFFERS)
+                        .map((o) => `<th>${o.name}</th>`)
+                        .join("") +
+                    "</tr>" +
+                    rows
                         .map(
-                            ([key, plan]) => `
-                    <article class="offer-card ${plan.featured ? "featured" : ""}">
-                        ${plan.featured ? '<span class="offer-tag">Recommandé</span>' : '<span class="offer-tag">Plan</span>'}
-                        <div class="offer-name">${plan.label}</div>
-                        <div class="offer-price">${plan.price.toLocaleString("fr-FR")} FCFA</div>
-                        <div class="offer-subtitle">${plan.subtitle}</div>
-                        <ul class="offer-list">
-                            ${plan.benefits.map((item) => `<li>${item}</li>`).join("")}
-                        </ul>
-                        <button type="button" class="secondary" onclick="document.getElementById('abonnement').value='${key}'; calcAmount();">
-                            Choisir ${plan.label}
-                        </button>
-                    </article>`,
+                            (r) =>
+                                `<tr>${r.map((c, i) => `<td>${c}</td>`).join("")}</tr>`,
                         )
                         .join("");
             }
-
-            function renderCompare() {
-                document.getElementById("compareRows").innerHTML = features
-                    .map(
-                        ([label, vals]) => `
-                    <tr>
-                        <td>${label}</td>
-                        ${vals.map((v, i) => `<td class="${i === 2 ? "premium" : ""}">${v === "✅" ? '<span class="check">✅</span>' : v === "❌" ? '<span class="cross">❌</span>' : v}</td>`).join("")}
-                    </tr>`,
-                    )
-                    .join("");
-            }
-
-            function calcAmount() {
-                const code = document.getElementById("abonnement").value;
-                const duree = document.getElementById("duree").value;
-                const base = plans[code].price;
-                let amount = base;
-                if (duree === "trimestriel")
-                    amount = Math.round(base * 3 * 0.9);
-                if (duree === "annuel") amount = Math.round(base * 12 * 0.8);
-                document.getElementById("totalAmount").textContent =
-                    amount.toLocaleString("fr-FR") + " FCFA";
-                return amount;
-            }
-
-            function burst() {
-                const host = document.getElementById("confetti");
-                host.innerHTML = "";
-                const colors = [
-                    "#198754",
-                    "#d4af37",
-                    "#10b981",
-                    "#60a5fa",
-                    "#f472b6",
-                ];
-                for (let i = 0; i < 44; i++) {
-                    const s = document.createElement("span");
-                    s.style.left = Math.random() * 100 + "vw";
-                    s.style.background = colors[i % colors.length];
-                    s.style.animationDuration = 1.2 + Math.random() * 1.6 + "s";
-                    host.appendChild(s);
-                }
-                setTimeout(() => {
-                    host.innerHTML = "";
-                }, 2600);
-            }
-
-            async function createPayment() {
-                const payload = {
-                    user_id: document.getElementById("userId").value.trim(),
-                    abonnement: document.getElementById("abonnement").value,
-                    duree: document.getElementById("duree").value,
-                    telephone: document
-                        .getElementById("telephone")
-                        .value.trim(),
-                    prenom:
-                        document.getElementById("prenom").value.trim() ||
-                        "Client",
-                };
-                if (!payload.user_id || !payload.telephone)
-                    return alert("ID utilisateur et téléphone requis");
-                const data = await jpost("/paiement/creer", payload);
-                const paymentUrl =
-                    data.lien_paiement ||
-                    data.url_paiement ||
-                    data.payment_url ||
-                    data.url ||
-                    "";
-                document.getElementById("payStatus").className =
-                    "status " + (data.statut === "paid" ? "ok" : "err");
-                document.getElementById("payStatus").style.display = "block";
-                document.getElementById("payStatus").textContent =
-                    data.statut === "paid"
-                        ? "Paiement validé. Votre abonnement est actif."
-                        : paymentUrl
-                          ? "Transaction créée. Redirection vers le paiement..."
-                          : "Transaction créée. Ouvrez le lien de paiement pour finaliser.";
+            function selectPlan(code) {
+                $("#selectedPlan").value = code;
                 document
-                    .getElementById("successScreen")
-                    .classList.remove("show");
-                document.getElementById("errorScreen").classList.remove("show");
-                if (paymentUrl) {
-                    window.location.href = paymentUrl;
-                    return data;
-                }
-                if (data.statut === "paid") {
-                    burst();
-                    document.getElementById("successTitle").textContent =
-                        "Bravo " + (payload.prenom || "Client") + " !";
-                    document.getElementById("successText").textContent =
-                        "Votre abonnement " +
-                        payload.abonnement +
-                        " est maintenant actif.";
-                    document.getElementById("successSummary").textContent =
-                        "Transaction " +
-                        data.transaction_id +
-                        " • " +
-                        data.montant +
-                        " FCFA";
-                    document
-                        .getElementById("successScreen")
-                        .classList.add("show");
-                } else {
-                    document.getElementById("errorText").textContent =
-                        "Le paiement est en attente ou a échoué. Réessayez ou choisissez une autre formule.";
-                    document
-                        .getElementById("errorScreen")
-                        .classList.add("show");
-                }
-                return data;
+                    .getElementById("payment")
+                    .scrollIntoView({ behavior: "smooth" });
             }
-
-            document
-                .getElementById("abonnement")
-                .addEventListener("change", calcAmount);
-            document
-                .getElementById("duree")
-                .addEventListener("change", calcAmount);
-            renderOffers();
+            function showStatus(msg) {
+                const b = $("#paymentStatus");
+                b.textContent = msg;
+                b.style.display = "block";
+            }
+            async function payNow() {
+                const payload = {
+                    user_id: userId(),
+                    abonnement: $("#selectedPlan").value,
+                    duree: $("#duration").value,
+                    telephone: $("#phone").value || "+22900000000",
+                    prenom: $("#firstName").value || "Client",
+                };
+                const data = await jpost("/paiement/creer", payload);
+                showStatus(
+                    `Transaction ${data.statut} · ${money(data.montant)} · lien: ${data.lien_paiement}`,
+                );
+                await checkSubscription();
+                await loadHistory();
+            }
+            async function checkSubscription() {
+                const data = await jget(
+                    `/paiement/abonnement/${encodeURIComponent(userId())}`,
+                );
+                $("#subscriptionBox").innerHTML =
+                    `<strong>${data.abonnement_actuel.toUpperCase()}</strong><br>Jours restants : ${data.jours_restants}<br><pre style="white-space:pre-wrap">${JSON.stringify(data.fonctionnalites_disponibles, null, 2)}</pre>`;
+            }
+            async function loadHistory() {
+                const data = await jget(
+                    `/paiement/historique/${encodeURIComponent(userId())}`,
+                );
+                $("#history").innerHTML =
+                    (data.transactions || [])
+                        .map(
+                            (t) =>
+                                `<div class="history-item"><strong>${t.abonnement} · ${money(t.montant)}</strong><div class="muted">${t.statut} · ${t.duree} · ${t.date_creation || ""}</div></div>`,
+                        )
+                        .join("") || '<p class="muted">Aucune transaction.</p>';
+            }
+            $("#userId").value =
+                localStorage.getItem("feedformula_user_id") || "demo-user";
+            renderPlans();
             renderCompare();
-            calcAmount();
-            if (selectedPlanFromUrl && plans[selectedPlanFromUrl]) {
-                document.getElementById("abonnement").value =
-                    selectedPlanFromUrl;
-                calcAmount();
-            }
+            checkSubscription().catch(() => {});
+            loadHistory().catch(() => {});
         </script>
     </body>
 </html>
