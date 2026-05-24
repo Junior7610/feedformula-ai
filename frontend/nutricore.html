@@ -4,619 +4,614 @@
         <meta charset="UTF-8" />
         <meta
             name="viewport"
-            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
         />
         <meta name="theme-color" content="#1B5E20" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="FeedFormula AI" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="application-name" content="FeedFormula AI" />
+        <meta
+            name="description"
+            content="NutriCore — formulez une ration animale rentable, équilibrée et adaptée aux ingrédients locaux africains."
+        />
+        <title>NutriCore — Ration animale simple et rentable</title>
         <link rel="manifest" href="/app/manifest.json" />
-        <link rel="apple-touch-icon" href="/assets/branding/logo_principal_hd.png" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link rel="preload" href="/assets/branding/logo_principal_hd.png" as="image" />
-        <link rel="preload" href="/app/style.css" as="style" />
-        <meta name="description" content="FeedFormula AI génère la ration parfaite pour vos animaux en 30 secondes. 50 langues africaines. 8 modules IA. Gratuit pour les éleveurs béninois." />
-        <title>FeedFormula AI — Nutrition Animale IA | Bénin</title>
-        <meta name="keywords" content="élevage bénin, nutrition animale, IA agricole, fon, poulet, vache, ration animale" />
-        <meta name="author" content="Leonel TOGBE" />
-        <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://feedformula-ai.vercel.app/app/" />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://feedformula-ai.vercel.app" />
-        <meta property="og:title" content="FeedFormula AI — L IA au service de l élevage africain" />
-        <meta property="og:description" content="Formulez la ration parfaite de vos animaux en 30 secondes. En fon, yoruba, français et 47 autres langues africaines." />
-        <meta property="og:image" content="https://feedformula-ai.vercel.app/assets/branding/hero_image_accueil.png" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:locale" content="fr_BJ" />
-        <meta property="og:site_name" content="FeedFormula AI" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="FeedFormula AI — Nutrition Animale IA" />
-        <meta name="twitter:description" content="L intelligence africaine au service de vos animaux." />
-        <meta name="twitter:image" content="https://feedformula-ai.vercel.app/assets/branding/hero_image_accueil.png" />
-
-        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
         <link rel="stylesheet" href="style.css" />
-
-        <!-- Bibliothèques externes pour le PDF et les graphiques -->
-        <script
-            defer
-            src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
-        ></script>
-        <script
-            defer
-            src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"
-        ></script>
-
-        <script defer src="assets_manager.js"></script>
+        <style>
+            :root {
+                --green: #1b5e20;
+                --green2: #2e7d32;
+                --gold: #f9a825;
+                --soft: #f2faf1;
+                --ink: #143018;
+                --muted: #607064;
+                --line: #dce8d9;
+                --shadow: 0 18px 48px rgba(27, 94, 32, 0.12);
+            }
+            * {
+                box-sizing: border-box;
+            }
+            body {
+                margin: 0;
+                font-family: Inter, "Plus Jakarta Sans", system-ui, sans-serif;
+                background: linear-gradient(180deg, #edf8ec, #fff 38%, #f6fbf5);
+                color: var(--ink);
+            }
+            .app {
+                max-width: 1280px;
+                margin: 0 auto;
+                padding: 16px 16px 120px;
+            }
+            .grid {
+                display: grid;
+                gap: 14px;
+            }
+            .grid-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .grid-3 {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+            .grid-4 {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+            .hero {
+                display: grid;
+                grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+                gap: 16px;
+                margin-bottom: 16px;
+            }
+            .hero-main {
+                position: relative;
+                overflow: hidden;
+                border-radius: 34px;
+                padding: 28px;
+                color: #fff;
+                background:
+                    radial-gradient(
+                        circle at 86% 12%,
+                        rgba(255, 255, 255, 0.22),
+                        transparent 25%
+                    ),
+                    linear-gradient(135deg, #123f18, #1b5e20 58%, #43a047);
+                box-shadow: var(--shadow);
+            }
+            .hero-main:after {
+                content: "🌾";
+                position: absolute;
+                right: 18px;
+                bottom: -18px;
+                font-size: 132px;
+                opacity: 0.14;
+            }
+            .hero h1 {
+                margin: 0 0 10px;
+                font-size: clamp(34px, 5vw, 62px);
+                line-height: 1;
+            }
+            .hero p {
+                font-size: 18px;
+                line-height: 1.55;
+                max-width: 780px;
+            }
+            .badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                width: max-content;
+                padding: 8px 13px;
+                border-radius: 999px;
+                background: rgba(255, 255, 255, 0.17);
+                font-weight: 900;
+            }
+            .card {
+                background: rgba(255, 255, 255, 0.97);
+                border: 1px solid rgba(27, 94, 32, 0.12);
+                border-radius: 26px;
+                padding: 18px;
+                box-shadow: var(--shadow);
+            }
+            .muted {
+                color: var(--muted);
+            }
+            input,
+            select,
+            textarea {
+                width: 100%;
+                border: 1px solid var(--line);
+                border-radius: 16px;
+                padding: 12px 13px;
+                font: inherit;
+                background: #fff;
+            }
+            textarea {
+                min-height: 130px;
+            }
+            button,
+            .btn {
+                border: 0;
+                border-radius: 18px;
+                padding: 12px 15px;
+                font-weight: 900;
+                cursor: pointer;
+                background: #e8f5e9;
+                color: var(--ink);
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+            }
+            button.primary,
+            .btn.primary {
+                background: var(--green);
+                color: #fff;
+            }
+            .btn.gold,
+            button.gold {
+                background: var(--gold);
+                color: #2b1a00;
+            }
+            .actions {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+            .species-card {
+                min-height: 98px;
+                background: #fff;
+                border: 1px solid var(--line);
+                border-radius: 22px;
+                display: grid;
+                place-items: center;
+                gap: 4px;
+                color: var(--ink);
+            }
+            .species-card.active {
+                background: var(--green);
+                color: #fff;
+            }
+            .species-card span:first-child {
+                font-size: 32px;
+            }
+            .chip {
+                border: 1px solid #cfe4cf;
+                background: #f4fbf2;
+                border-radius: 999px;
+                padding: 8px 11px;
+                cursor: pointer;
+            }
+            .chip.active {
+                background: var(--green);
+                color: #fff;
+            }
+            .result-hero {
+                border-left: 7px solid var(--green);
+                background: linear-gradient(135deg, #fff, #f3fbf1);
+            }
+            .composition {
+                display: grid;
+                gap: 8px;
+            }
+            .comp-row {
+                display: grid;
+                grid-template-columns: 1fr 120px;
+                gap: 8px;
+                align-items: center;
+                padding: 10px;
+                border-radius: 14px;
+                background: #f7fbf5;
+            }
+            .bar {
+                height: 10px;
+                background: #e1eee0;
+                border-radius: 999px;
+                overflow: hidden;
+            }
+            .bar span {
+                display: block;
+                height: 100%;
+                background: linear-gradient(90deg, #8bc34a, #1b5e20);
+            }
+            .metric strong {
+                display: block;
+                font-size: 26px;
+                color: var(--green);
+            }
+            .history-item {
+                padding: 12px;
+                border-radius: 16px;
+                border: 1px solid var(--line);
+                background: #fff;
+                margin-bottom: 8px;
+            }
+            @media (max-width: 920px) {
+                .hero,
+                .grid-2,
+                .grid-3,
+                .grid-4 {
+                    grid-template-columns: 1fr;
+                }
+                .comp-row {
+                    grid-template-columns: 1fr;
+                }
+            }
+        </style>
         <script defer src="i18n.js"></script>
-        <script defer src="script.js"></script>
-            <script defer src="ux_enhancer.js"></script>
+        <script defer src="ux_enhancer.js"></script>
     </head>
-
-    <body data-i18n-page="nutricore" data-page="nutricore" class="nutricore-page">
-        <!-- En-tête dédié NutriCore -->
-        <header class="app-header nutricore-header" role="banner">
-            <div class="app-header-inner">
-                <a
-                    class="brand"
-                    href="index.html"
-                    aria-label="Retour à l'accueil"
-                >
-                    <img
-                        class="brand-mark"
-                        src="../assets/logo_principal.png"
-                        alt="Logo FeedFormula AI"
-                        loading="lazy"
-                        width="960"
-                        height="640"
-                    />
-                    <div>
-                        <div class="brand-title">🌾 NutriCore</div>
-                        <div class="brand-subtitle">
-                            Générateur de ration intelligent
+    <body data-i18n-page="nutricore" data-page="nutricore">
+        <div class="app">
+            <section class="hero">
+                <div class="hero-main">
+                    <div class="badge">🌾 NutriCore · +10 🌟 par ration</div>
+                    <h1>La ration claire, rentable et prête à utiliser</h1>
+                    <p>
+                        Choisissez l’espèce, indiquez vos ingrédients et obtenez
+                        une ration équilibrée avec coût, recommandations,
+                        historique, PDF et partage WhatsApp.
+                    </p>
+                    <div class="actions">
+                        <a class="btn" href="floravet.html"
+                            >🌿 Ajouter une plante locale</a
+                        ><a class="btn gold" href="farmmanager.html"
+                            >📊 Suivre le coût dans FarmManager</a
+                        >
+                    </div>
+                </div>
+                <div class="card grid">
+                    <h2>⚡ Génération rapide</h2>
+                    <p class="muted">
+                        Pensé pour mobile : 3 étapes, pas de jargon.
+                    </p>
+                    <div class="grid grid-2">
+                        <div class="metric">
+                            <strong id="rationCount">0</strong
+                            ><span>rations locales</span>
+                        </div>
+                        <div class="metric">
+                            <strong>30s</strong><span>objectif de réponse</span>
                         </div>
                     </div>
-                </a>
-
-                <div class="header-actions">
-                    <span class="badge badge-gold">+10 🌟 par ration</span>
-                    <a
-                        class="header-avatar"
-                        href="profil.html"
-                        aria-label="Ouvrir le profil"
-                    >
-                        <img
-                            src="../assets/aya_joie.png"
-                            alt="Avatar utilisateur"
-                            loading="lazy"
-                            width="960"
-                            height="640"
-                        />
-                    </a>
-                </div>
-            </div>
-        </header>
-
-        <main class="page-shell">
-            <!-- Introduction -->
-            <section class="card">
-                <h1 class="section-title">NutriCore</h1>
-                <p class="section-subtitle">
-                    Construisez une ration rentable, équilibrée et adaptée à
-                    vos animaux. L'historique des 5 dernières rations reste
-                    disponible en bas de page pour comparer plus vite.
-                </p>
-            </section>
-
-            <!-- Progression de niveau -->
-            <section class="xp-sticky" aria-label="Progression de niveau">
-                <div class="level-title">
-                    <span id="levelBadge" class="level-name"
-                        >Niveau 1 — Semence 🌱</span
-                    >
-                    <span id="xpValue" class="level-points"
-                        >0 / 100 pts → Niveau 2</span
-                    >
-                </div>
-                <div class="xp-track" aria-hidden="true">
-                    <div id="xpFill" class="xp-fill" style="width: 0%"></div>
-                </div>
-                <div class="level-meta">
-                    <span>+10 🌟 à chaque génération réussie</span>
-                    <span>Progressez en formulant vos rations</span>
                 </div>
             </section>
 
-            <!-- Zone hors ligne -->
-            <section
-                id="offlineBanner"
-                class="offline-banner hidden"
-                aria-live="polite"
-            >
-                Vous êtes hors ligne. Les dernières rations restent
-                accessibles grâce au cache local.
-            </section>
+            <main class="grid">
+                <section class="card">
+                    <h2>1. Choisissez l’espèce</h2>
+                    <div
+                        id="speciesGrid"
+                        class="grid grid-4"
+                        aria-label="Espèces animales"
+                    ></div>
+                </section>
 
-            <section
-                id="offlineCachePanel"
-                class="card card-offline-cache hidden"
-                aria-label="Rations mises en cache"
-            >
-                <h2 class="section-title">Rations récentes hors ligne</h2>
-                <p class="section-subtitle">
-                    Vous pouvez revoir vos dernières rations même sans
-                    connexion.
-                </p>
-                <div id="offlineRationsList" class="offline-rations-list"></div>
-            </section>
+                <section class="card grid">
+                    <h2>2. Précisez le stade et l’objectif</h2>
+                    <div class="grid grid-3">
+                        <label
+                            >Stade de production<select
+                                id="stageSelect"
+                            ></select
+                        ></label>
+                        <label
+                            >Nombre d’animaux<input
+                                id="animalCount"
+                                type="number"
+                                min="1"
+                                value="50"
+                        /></label>
+                        <label
+                            >Objectif<select id="goal">
+                                <option value="equilibre">Équilibre</option>
+                                <option value="economique">Économique</option>
+                                <option value="croissance">Croissance</option>
+                                <option value="ponte">
+                                    Ponte / production
+                                </option>
+                            </select></label
+                        >
+                    </div>
+                </section>
 
-            <!-- Sélection espèce -->
-            <section
-                class="card species-section"
-                aria-labelledby="speciesTitle"
-            >
-                <div>
-                    <h2 id="speciesTitle" class="section-title">
-                        Choisissez l'espèce
-                    </h2>
-                    <p class="section-subtitle">
-                        Appuyez sur une carte pour activer le stade adapté.
+                <section class="card grid">
+                    <h2>3. Ingrédients disponibles</h2>
+                    <p class="muted">
+                        Cliquez sur les suggestions ou écrivez vos ingrédients
+                        séparés par virgules.
                     </p>
-                </div>
-
-                <div
-                    id="speciesGrid"
-                    class="species-grid-cards"
-                    role="list"
-                    aria-label="Espèces animales"
-                >
-                    <button
-                        class="species-card"
-                        type="button"
-                        data-espece="poulet-chair"
-                        data-species="poulet-chair"
-                        data-label="Poulet chair"
-                        role="listitem"
-                    >
-                        <span class="species-emoji" aria-hidden="true">🐔</span>
-                        <span class="species-name">Poulet chair</span>
-                    </button>
-
-                    <button
-                        class="species-card"
-                        type="button"
-                        data-espece="poule-pondeuse"
-                        data-species="poule-pondeuse"
-                        data-label="P</head></title></div>oule pondeuse"
-                        role="listitem"
-                    >
-                        <span class="species-emoji" aria-hidden="true">🥚</span>
-                        <span class="species-name">Poule pondeuse</span>
-                    </button>
-
-                    <button
-                        class="species-card"
-                        type="button"
-                        data-espece="pintade"
-                        data-species="pintade"
-                        data-label="Pintade"
-                        role="listitem"
-                    >
-                        <span class="species-emoji" aria-hidden="true">🦜</span>
-                        <span class="species-name">Pintade</span>
-                    </button>
-
-                    <button
-                        class="species-card"
-                        type="button"
-                        data-espece="vache-laitiere"
-                        data-species="vache-laitiere"
-                        data-label="Vache laitière"
-                        role="listitem"
-                    >
-                        <span class="species</span></span>-emoji" aria-hidden="true">🐄</span>
-                        <span class="species-name">Vache laitière</span>
-                    </button>
-
-                    <button
-                        class="species-card"
-                        type="button"
-                        data-espece="mouton"
-                        data-species="mouton"
-                        data-label="Mouton"
-                        role="listitem"
-                    >
-                        <span class="species-emoji" aria-hidden="true">🐑</span>
-                        <span class="species-name">Mouton</span>
-                    </button>
-
-                    <button
-                        class="species-card"
-                        type="button"
-                        data-espece="chevre"
-                        data-species="chevre"
-                        data-label="Chèvre"
-                        role="listitem"
-                    >
-                        <span class="species-emoji" aria-hidden="true">🐐</span>
-                        <span class="species-name">Chèvre</span</div>>
-                    </button>
-
-                    <button
-                        class="species-card"
-                        type="button"
-                        data-espece="porc"
-                        data-species="porc"
-                        data-label="Porc"
-                        role="listitem"
-                    >
-                        <span class="species-emoji" aria-hidden="true">🐷</span>
-                        <span class="species-name">Porc</span>
-                    </button>
-
-                    <button
-                        class="species-card"
-                        type="button"
-                        data-espece="tilapia"
-                        data-species="tilapia"
-                        data-label="Tilapia"
-                        role="listitem"
-                    >
-                        <span class="species-emoji" aria-hidden="true">🐟</span>
-                        <span class="species-name">Tilapia</span>
-                    </button>
-                </div>
-
-                <!-- Select caché pour compatibilité logique -->
-                <select
-                    id="espece"
-                    class="hidden"
-                    aria-label="Espèce sélectionnée"
-                >
-                    <option value="">Sélectionner une espèce</option>
-                    <option value="poulet-chair">Poulet chair</option>
-                    <option value="poule-pondeuse">Poule pondeuse</option>
-                    <option value="pintade">Pintade</option>
-                    <option value="vache-laitiere">Vache laitière</option>
-                    <option value="mouton">Mouton</option>
-                    <option value="chevre">Chèvre</option>
-                    <option value="porc">Porc</option>
-                    <option value="tilapia">Tilapia</option>
-                </select>
-            </section>
-
-            <!-- Stade physiologique -->
-            <section
-                id="stageSection"
-                class="card stage-selector hidden"
-                data-stage-container
-                aria-labelledby="stageTitle"
-            >
-                <h2 id="stageTitle" class="section-title">
-                    Choisissez le stade
-                </h2>
-                <p class="section-subtitle">
-                    Le stade s'adapte automatiquement à l'espèce sélectionnée.
-                </p>
-
-                <div
-                    id="stageOptions"
-                    class="stage-pills"
-                    data-stage-pills
-                    aria-label="Options de stade"
-                ></div>
-
-                <select
-                    id="stade"
-                    class="field-group"
-                    aria-label="Stade de production"
-                >
-                    <option value="">Sélectionner un stade</option>
-                    <option value="Démarrage">Démarrage</option>
-                    <option value="Croissance">Croissance</option>
-                    <option value="Finition">Finition</option>
-                    <option value="Pré-ponte">Pré-ponte</option>
-                    <option value="Ponte active">Ponte active</option>
-                    <option value="Fin de ponte">Fin de ponte</option>
-                    <option value="Lactation">Lactation</option>
-                    <option value="Tarissement">Tarissement</option>
-                    <option value="Alevin">Alevin</option>
-                    <option value="Engraissement">Engraissement</option>
-                    <option value="Production">Production</option>
-                </select>
-            </section>
-
-            <!-- Ingrédients -->
-            <section
-                class="card ingredients-zone"
-                aria-labelledby="ingredientsTitle"
-            >
-                <h2 id="ingredientsTitle" class="section-title">Ingrédients</h2>
-                <p class="section-subtitle">
-                    Tapez un ingrédient pour voir les suggestions et créer vos
-                    tags.
-                </p>
-
-                <div class="ingredients-input-wrap">
-                    <label class="field-label" for="ingredientsInput"
-                        >Rechercher un ingrédient</label
-                    >
-                    <input
-                        id="ingredientsInput"
-                        data-ingredients-input
-                        type="text"
-                        inputmode="text"
-                        placeholder="Ex. maïs, son de blé, tourteau..."
-                        autocomplete="off"
-                    />
-                </div>
-
-                <div
-                    id="ingredientsSuggestions"
-                    data-ingredients-suggestions
-                    class="ingredients-suggestions"
-                    aria-label="Suggestions d'ingrédients"
-                ></div>
-
-                <div
-                    id="ingredientsTags"
-                    data-ingredients-tags
-                    class="tags-list"
-                    aria-label="Ingrédients ajoutés"
-                ></div>
-            </section>
-
-            <!-- Nombre d'animaux -->
-            <section class="card slider-group" aria-labelledby="animalsTitle">
-                <div class="slider-head">
-                    <h2 id="animalsTitle" class="section-title">
-                        Nombre d'animaux
-                    </h2>
-                    <span class="slider-value" id="nombreAnimauxValue"
-                        >50</span
-                    >
-                </div>
-
-                <label class="sr-only" for="nombreAnimaux"
-                    >Nombre d'animaux</label
-                >
-                <input
-                    id="nombreAnimaux"
-                    data-animals-slider
-                    data-role="animals"
-                    type="range"
-                    min="1"
-                    max="5000"
-                    step="1"
-                    value="50"
-                />
-                <p class="section-subtitle">
-                    Nombre d'animaux :
-                    <strong data-animals-number>50</strong>
-                </p>
-            </section>
-
-            <!-- Objectif -->
-            <section class="card objective-group" aria-labelledby="goalTitle">
-                <h2 id="goalTitle" class="section-title">
-                    Choisissez votre objectif
-                </h2>
-
-                <div
-                    class="radio-group"
-                    role="radiogroup"
-                    aria-label="Objectif de la ration"
-                >
-                    <label class="radio-card is-selected">
-                        <input
-                            type="radio"
-                            name="objectif"
-                            value="equilibre"
-                            checked
-                        />
-                        <span>⚖️ Équilibre</span>
-                    </label>
-
-                    <label class="radio-card">
-                        <input
-                            type="radio"
-                            name="objectif"
-                            value="economique"
-                        />
-                        <span>💰 Économique</span>
-                    </label>
-
-                    <label class="radio-card">
-                        <input type="radio" name="objectif" value="proteines" />
-                        <span>💪 Riche protéines</span>
-                    </label>
-                </div>
-            </section>
-
-            <!-- Bouton générer -->
-            <section class="card">
-                <button
-                    id="btnGenerer"
-                    class="btn btn-primary btn-generate"
-                    data-generate-ration
-                    type="button"
-                >
-                    🌾 Générer ma ration
-                </button>
-                <p class="text-center section-subtitle" style="margin-top: 10px">
-                    +10 🌟 à chaque génération réussie
-                </p>
-            </section>
-
-            <!-- Zone résultat -->
-            <section
-                id="resultatZone"
-                class="result-zone hidden"
-                data-result-zone
-                aria-live="polite"
-                aria-labelledby="resultTitle"
-            >
-                <h2 id="resultTitle" data-result-title class="result-title">
-                    Votre ration générée
-                </h2>
-
-                <div id="resultContent" data-result-content class="result-content">
-                    <div class="result-hero">
-                        <strong>━━━ Ration optimisée ━━━</strong>
-                        <p class="section-subtitle" style="margin-top: 8px">
-                            Les détails s'affichent ici après la génération.
-                        </p>
+                    <div id="ingredientChips" class="actions"></div>
+                    <textarea
+                        id="ingredients"
+                        placeholder="Exemple : maïs, tourteau soja, son de blé, huile, premix"
+                    ></textarea>
+                    <div class="actions">
+                        <button class="primary" id="generateBtn">
+                            🌾 Générer la ration</button
+                        ><button id="resetBtn">Réinitialiser</button>
                     </div>
-                </div>
+                </section>
 
-                <div class="chart-card" data-result-chart-box>
-                    <canvas
-                        id="chartComposition"
-                        data-ration-chart
-                        width="400"
-                        height="280"
-                        aria-label="Graphique camembert de la composition"
-                    ></canvas>
-                </div>
-
-                <div class="result-card">
-                    <div class="cout-big" id="coutBig" data-cout-big>
-                        0 FCFA/kg
+                <section id="resultatZone" class="card result-hero" hidden>
+                    <h2>Résultat de la ration</h2>
+                    <div class="grid grid-3">
+                        <div class="metric">
+                            <strong id="costKg">—</strong><span>FCFA/kg</span>
+                        </div>
+                        <div class="metric">
+                            <strong id="costWeek">—</strong
+                            ><span>Coût 7 jours</span>
+                        </div>
+                        <div class="metric">
+                            <strong id="points">+10</strong
+                            ><span>points gagnés</span>
+                        </div>
                     </div>
-                    <div id="coutDetails" data-cout-details class="section-subtitle">
-                        Coût estimé et observations complémentaires
+                    <h3>Composition</h3>
+                    <div id="composition" class="composition"></div>
+                    <h3>Conseils Aya</h3>
+                    <div id="rationText" class="muted"></div>
+                    <div class="actions" style="margin-top: 12px">
+                        <button onclick="window.print()">📄 PDF</button
+                        ><button onclick="shareWhatsApp()">📱 WhatsApp</button
+                        ><button onclick="saveHistory()">💾 Sauvegarder</button>
                     </div>
-                </div>
+                </section>
 
-                <div id="performancesContent" data-result-perf class="result-card">
-                    <h3 class="section-title">Performances attendues</h3>
-                    <p class="section-subtitle">
-                        Les indicateurs de performance apparaîtront ici.
-                    </p>
-                </div>
-
-                <div
-                    id="resultActions"
-                    data-result-actions
-                    class="result-actions"
-                    aria-label="Actions sur la ration"
-                >
-                    <button
-                        id="btnEcouterRation"
-                        class="btn btn-secondary"
-                        data-speak-ration
-                        data-speak
-                        type="button"
-                    >
-                        🔊 Écouter
-                    </button>
-                    <button
-                        id="btnTelechargerPDF"
-                        class="btn btn-gold btn-action-pdf"
-                        data-pdf-ration
-                        data-pdf
-                        type="button"
-                    >
-                        📄 PDF
-                    </button>
-                    <button
-                        id="btnPartagerWhatsApp"
-                        class="btn btn-secondary btn-action-wa"
-                        data-whatsapp-ration
-                        data-whatsapp
-                        type="button"
-                    >
-                        📱 WhatsApp
-                    </button>
-                </div>
-
-                <button
-                    id="btnSauvegarderHistorique"
-                    class="btn btn-outline btn-save-history"
-                    data-save-history
-                    type="button"
-                >
-                    Sauvegarder dans l'historique
-                </button>
-            </section>
-
-            <!-- Historique des rations -->
-            <section class="card" aria-labelledby="historyTitle">
-                <h2 id="historyTitle" class="section-title">
-                    Historique des 5 dernières rations
-                </h2>
-                <p class="section-subtitle">
-                    Retrouvez rapidement vos dernières formules enregistrées.
-                </p>
-
-                <div
-                    id="historiqueRations"
-                    data-ration-history
-                    class="history-list"
-                    style="margin-top: 14px"
-                ></div>
-            </section>
-
-            <!-- Section Aya -->
-            <aside class="aya-floating" aria-label="Mascotte Aya">
-                <div id="ayaPointsBubble" class="aya-points-bubble">+10 🌟</div>
-                <img
-                    id="ayaMascotte"
-                    class="aya-image"
-                    src="../assets/aya_joie.png"
-                    alt="Aya, mascotte de FeedFormula AI"
-                    loading="lazy"
-                    width="960"
-                    height="640"
-                />
-                <div id="ayaMessage" class="aya-bubble is-show">
-                    Je vous aide à créer une ration adaptée à vos animaux.
-                </div>
-            </aside>
-        </main>
-
-        <footer class="site-footer" aria-label="Pied de page">
-            <div class="site-footer__inner">
-                <strong>FeedFormula AI</strong>
-                <span>NutriCore · Rations, suivi et historique local</span>
-                <div class="site-footer__links">
-                    <a href="index.html">Accueil</a>
-                    <a href="abonnement.html">Offres</a>
-                    <a href="modules.html">Modules</a>
-                </div>
-            </div>
-        </footer>
-
-        <!-- Navigation du bas -->
-        <nav class="bottom-nav" aria-label="Navigation principale">
-            <div class="bottom-nav-inner">
-                <a class="nav-item" href="index.html">
-                    <span class="nav-icon" aria-hidden="true">🏠</span>
-                    <span class="nav-text">Accueil</span>
-                </a>
-
-                <a class="nav-item" href="modules.html">
-                    <span class="nav-icon" aria-hidden="true">📦</span>
-                    <span class="nav-text">Modules</span>
-                </a>
-                <a class="nav-item" href="abonnement.html">
-                    <span class="nav-icon" aria-hidden="true">💳</span>
-                    <span class="nav-text">Abonnement</span>
-                </a>
-                <a class="nav-item" href="classement.html">
-                    <span class="nav-icon" aria-hidden="true">🏆</span>
-                    <span class="nav-text">Classement</span>
-                </a>
-                <a class="nav-item" href="profil.html">
-                    <span class="nav-icon" aria-hidden="true">👤</span>
-                    <span class="nav-text">Profil</span>
-                </a>
-            </div>
-        </nav>
+                <section class="card">
+                    <h2>Historique récent</h2>
+                    <div id="history"></div>
+                </section>
+            </main>
+        </div>
+        <script>
+            const species = {
+                poulet_chair: {
+                    label: "Poulet chair",
+                    icon: "🐔",
+                    stages: ["demarrage", "croissance", "finition"],
+                    ingredients: [
+                        "maïs",
+                        "tourteau soja",
+                        "son de blé",
+                        "huile",
+                        "premix",
+                    ],
+                },
+                poule_pondeuse: {
+                    label: "Poule pondeuse",
+                    icon: "🥚",
+                    stages: ["pre_ponte", "ponte", "fin_ponte"],
+                    ingredients: [
+                        "maïs",
+                        "tourteau soja",
+                        "calcium",
+                        "son de riz",
+                        "premix",
+                    ],
+                },
+                pintade: {
+                    label: "Pintade",
+                    icon: "🦜",
+                    stages: ["demarrage", "croissance", "production"],
+                    ingredients: [
+                        "maïs",
+                        "tourteau arachide",
+                        "son de blé",
+                        "huile",
+                        "premix",
+                    ],
+                },
+                vache_laitiere: {
+                    label: "Vache laitière",
+                    icon: "🐄",
+                    stages: ["lactation", "tarissement", "reproduction"],
+                    ingredients: [
+                        "maïs",
+                        "tourteau coton",
+                        "son de blé",
+                        "foin",
+                        "minéral",
+                    ],
+                },
+                mouton: {
+                    label: "Mouton",
+                    icon: "🐑",
+                    stages: ["croissance", "finition", "reproduction"],
+                    ingredients: [
+                        "maïs",
+                        "son de riz",
+                        "tourteau soja",
+                        "foin",
+                        "sels minéraux",
+                    ],
+                },
+                chevre: {
+                    label: "Chèvre",
+                    icon: "🐐",
+                    stages: ["croissance", "lactation", "reproduction"],
+                    ingredients: [
+                        "maïs",
+                        "son de blé",
+                        "feuilles sèches",
+                        "tourteau soja",
+                        "minéral",
+                    ],
+                },
+                porc: {
+                    label: "Porc",
+                    icon: "🐷",
+                    stages: ["demarrage", "croissance", "finition"],
+                    ingredients: [
+                        "maïs",
+                        "tourteau soja",
+                        "son de blé",
+                        "premix",
+                        "lysine",
+                    ],
+                },
+                tilapia: {
+                    label: "Tilapia",
+                    icon: "🐟",
+                    stages: ["alevin", "croissance", "finition"],
+                    ingredients: [
+                        "farine poisson",
+                        "maïs",
+                        "son de riz",
+                        "huile",
+                        "vitamines",
+                    ],
+                },
+            };
+            let selected = "poulet_chair";
+            let lastResult = null;
+            const $ = (s) => document.querySelector(s);
+            function renderSpecies() {
+                $("#speciesGrid").innerHTML = Object.entries(species)
+                    .map(
+                        ([k, s]) =>
+                            `<button class="species-card ${k === selected ? "active" : ""}" onclick="selectSpecies('${k}')"><span>${s.icon}</span><strong>${s.label}</strong></button>`,
+                    )
+                    .join("");
+            }
+            function selectSpecies(k) {
+                selected = k;
+                $("#stageSelect").innerHTML = species[k].stages
+                    .map(
+                        (x) =>
+                            `<option value="${x}">${x.replaceAll("_", " ")}</option>`,
+                    )
+                    .join("");
+                $("#ingredientChips").innerHTML = species[k].ingredients
+                    .map(
+                        (x) =>
+                            `<button class="chip" onclick="addIngredient('${x}')">${x}</button>`,
+                    )
+                    .join("");
+                renderSpecies();
+            }
+            function addIngredient(x) {
+                const box = $("#ingredients");
+                const items = box.value
+                    .split(",")
+                    .map((v) => v.trim())
+                    .filter(Boolean);
+                if (!items.includes(x)) items.push(x);
+                box.value = items.join(", ");
+            }
+            async function generate() {
+                const ingredients = $("#ingredients")
+                    .value.split(",")
+                    .map((v) => v.trim())
+                    .filter(Boolean);
+                if (!ingredients.length) {
+                    alert("Ajoutez au moins un ingrédient.");
+                    return;
+                }
+                $("#generateBtn").disabled = true;
+                $("#generateBtn").textContent = "Génération...";
+                try {
+                    const res = await fetch("/generer-ration", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            espece: selected,
+                            stade: $("#stageSelect").value,
+                            ingredients_disponibles: ingredients,
+                            nombre_animaux: Number(
+                                $("#animalCount").value || 1,
+                            ),
+                            objectif: $("#goal").value,
+                            langue: document.documentElement.lang || "fr",
+                        }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.detail || "Erreur");
+                    lastResult = data;
+                    renderResult(data);
+                    saveHistory();
+                } catch (e) {
+                    alert(e.message || "Erreur génération");
+                } finally {
+                    $("#generateBtn").disabled = false;
+                    $("#generateBtn").textContent = "🌾 Générer la ration";
+                }
+            }
+            function renderResult(data) {
+                $("#resultatZone").hidden = false;
+                $("#costKg").textContent = Math.round(
+                    data.cout_fcfa_kg || 0,
+                ).toLocaleString("fr-FR");
+                $("#costWeek").textContent =
+                    Math.round(data.cout_7_jours || 0).toLocaleString("fr-FR") +
+                    " FCFA";
+                $("#points").textContent = "+" + (data.points_gagnes || 10);
+                const comp = data.composition || {};
+                const max = Math.max(...Object.values(comp).map(Number), 1);
+                $("#composition").innerHTML = Object.entries(comp)
+                    .map(
+                        ([k, v]) =>
+                            `<div class="comp-row"><div><strong>${k}</strong><div class="bar"><span style="width:${Math.max(5, (Number(v) / max) * 100)}%"></span></div></div><strong>${Number(v).toFixed(1)}%</strong></div>`,
+                    )
+                    .join("");
+                $("#rationText").innerHTML = String(data.ration || "").replace(
+                    /\n/g,
+                    "<br>",
+                );
+                document
+                    .getElementById("resultatZone")
+                    .scrollIntoView({ behavior: "smooth" });
+            }
+            function history() {
+                try {
+                    return JSON.parse(
+                        localStorage.getItem("nutricore_history_v2") || "[]",
+                    );
+                } catch {
+                    return [];
+                }
+            }
+            function saveHistory() {
+                if (!lastResult) return;
+                const h = history();
+                h.unshift({
+                    date: new Date().toISOString(),
+                    species: selected,
+                    stage: $("#stageSelect").value,
+                    cost: lastResult.cout_fcfa_kg,
+                    result: lastResult,
+                });
+                localStorage.setItem(
+                    "nutricore_history_v2",
+                    JSON.stringify(h.slice(0, 5)),
+                );
+                renderHistory();
+            }
+            function renderHistory() {
+                const h = history();
+                $("#rationCount").textContent = h.length;
+                $("#history").innerHTML = h.length
+                    ? h
+                          .map(
+                              (x, i) =>
+                                  `<div class="history-item"><strong>${species[x.species]?.icon || "🌾"} ${species[x.species]?.label || x.species}</strong><div class="muted">${x.stage} · ${Math.round(x.cost || 0)} FCFA/kg · ${new Date(x.date).toLocaleDateString("fr-FR")}</div><button onclick="renderResult(history()[${i}].result)">Revoir</button></div>`,
+                          )
+                          .join("")
+                    : '<p class="muted">Aucune ration sauvegardée.</p>';
+            }
+            function shareWhatsApp() {
+                const text = lastResult
+                    ? `Ration ${species[selected].label}: ${Math.round(lastResult.cout_fcfa_kg)} FCFA/kg`
+                    : "Ration NutriCore";
+                window.open(
+                    "https://wa.me/?text=" + encodeURIComponent(text),
+                    "_blank",
+                );
+            }
+            $("#generateBtn").onclick = generate;
+            $("#resetBtn").onclick = () => {
+                $("#ingredients").value = "";
+                $("#resultatZone").hidden = true;
+            };
+            selectSpecies(selected);
+            renderHistory();
+        </script>
     </body>
 </html>
-</strong></span></span></span></strong></div></div>
