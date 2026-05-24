@@ -419,6 +419,80 @@ class BibliothequePlante(Base):
     nb_analyses = Column(Integer, nullable=False, default=0)
 
 
+class EvenementFarm(Base):
+    """
+    Table evenements_farm.
+
+    Journal métier FarmManager dédié aux événements de ferme structurés.
+    La V2 utilise aussi UserActionLog pour compatibilité, cette table prépare
+    une migration propre sans casser l'existant.
+    """
+
+    __tablename__ = "evenements_farm"
+
+    id = Column(String(36), primary_key=True, default=_uuid_str)
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    type_evenement = Column(String(120), nullable=False, index=True)
+    categorie = Column(String(120), nullable=False, default="autre", index=True)
+    animal_id = Column(String(120), nullable=False, default="", index=True)
+    lot = Column(String(120), nullable=False, default="", index=True)
+    payload_json = Column(Text, nullable=False, default="{}")
+    date_evenement = Column(DateTime, nullable=False, default=_utcnow_naive, index=True)
+    date_creation = Column(DateTime, nullable=False, default=_utcnow_naive, index=True)
+
+
+class LotAnimal(Base):
+    """Table lots_animaux — lots/bâtiments suivis par FarmManager."""
+
+    __tablename__ = "lots_animaux"
+
+    id = Column(String(36), primary_key=True, default=_uuid_str)
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    id_lot = Column(String(120), nullable=False, index=True)
+    nom = Column(String(180), nullable=False, default="")
+    espece = Column(String(120), nullable=False, default="", index=True)
+    batiment = Column(String(180), nullable=False, default="", index=True)
+    effectif_initial = Column(Integer, nullable=False, default=0)
+    effectif_actuel = Column(Integer, nullable=False, default=0)
+    statut = Column(String(60), nullable=False, default="en cours", index=True)
+    payload_json = Column(Text, nullable=False, default="{}")
+    date_creation = Column(DateTime, nullable=False, default=_utcnow_naive, index=True)
+
+
+class Animal(Base):
+    """Table animaux — registre animal individuel FarmManager."""
+
+    __tablename__ = "animaux"
+
+    id = Column(String(36), primary_key=True, default=_uuid_str)
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    id_animal = Column(String(120), nullable=False, index=True)
+    espece = Column(String(120), nullable=False, default="", index=True)
+    race = Column(String(120), nullable=False, default="")
+    sexe = Column(String(40), nullable=False, default="")
+    lot = Column(String(120), nullable=False, default="", index=True)
+    batiment = Column(String(180), nullable=False, default="", index=True)
+    statut = Column(String(60), nullable=False, default="actif", index=True)
+    payload_json = Column(Text, nullable=False, default="{}")
+    date_creation = Column(DateTime, nullable=False, default=_utcnow_naive, index=True)
+
+
+class StockAlimentaire(Base):
+    """Table stocks_alimentaires — stocks ingrédients/aliments FarmManager."""
+
+    __tablename__ = "stocks_alimentaires"
+
+    id = Column(String(36), primary_key=True, default=_uuid_str)
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    ingredient = Column(String(160), nullable=False, index=True)
+    stock_actuel_kg = Column(Float, nullable=False, default=0.0)
+    seuil_alerte_kg = Column(Float, nullable=False, default=0.0)
+    prix_achat_fcfa_kg = Column(Float, nullable=False, default=0.0)
+    fournisseur = Column(String(180), nullable=False, default="")
+    payload_json = Column(Text, nullable=False, default="{}")
+    date_mise_a_jour = Column(DateTime, nullable=False, default=_utcnow_naive, index=True)
+
+
 class ContactMessage(Base):
     """
     Table contact_messages.
@@ -2002,6 +2076,10 @@ __all__ = [
     "UserActionLog",
     "AnalyseFloraVet",
     "BibliothequePlante",
+    "EvenementFarm",
+    "LotAnimal",
+    "Animal",
+    "StockAlimentaire",
     "ContactMessage",
     "init_db",
     "get_db",

@@ -904,6 +904,15 @@ async def transcription_audio(
             "langue_detectee": resultat.get("langue_detectee", "auto"),
         }
     except RuntimeError as exc:
+        # En environnement test/démo locale, on renvoie un fallback stable afin
+        # que la page et les diagnostics restent utilisables sans STT externe.
+        if APP_ENV in {"test", "testing", "development"}:
+            return {
+                "texte": "transcription de démonstration indisponible hors ligne",
+                "langue_detectee": langue if langue != "auto" else "fr",
+                "fallback": True,
+                "detail": str(exc),
+            }
         raise HTTPException(status_code=502, detail=str(exc))
     except Exception as exc:
         raise HTTPException(
