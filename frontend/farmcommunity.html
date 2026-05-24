@@ -4,218 +4,279 @@
         <meta charset="UTF-8" />
         <meta
             name="viewport"
-            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
         />
-        <title>FeedFormula AI — Nutrition Animale IA | Bénin</title>
-        <meta
-            name="keywords"
-            content="élevage bénin, nutrition animale, IA agricole, fon, poulet, vache, ration animale"
-        />
-        <meta name="author" content="Leonel TOGBE" />
-        <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://feedformula-ai.vercel.app/app/" />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://feedformula-ai.vercel.app" />
-        <meta
-            property="og:title"
-            content="FeedFormula AI — L IA au service de l élevage africain"
-        />
-        <meta
-            property="og:description"
-            content="Formulez la ration parfaite de vos animaux en 30 secondes. En fon, yoruba, français et 47 autres langues africaines."
-        />
-        <meta
-            property="og:image"
-            content="https://feedformula-ai.vercel.app/assets/branding/hero_image_accueil.png"
-        />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:locale" content="fr_BJ" />
-        <meta property="og:site_name" content="FeedFormula AI" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta
-            name="twitter:title"
-            content="FeedFormula AI — Nutrition Animale IA"
-        />
-        <meta
-            name="twitter:description"
-            content="L intelligence africaine au service de vos animaux."
-        />
-        <meta
-            name="twitter:image"
-            content="https://feedformula-ai.vercel.app/assets/branding/hero_image_accueil.png"
-        />
+        <meta name="theme-color" content="#19733F" />
         <meta
             name="description"
-            content="FeedFormula AI génère la ration parfaite pour vos animaux en 30 secondes. 50 langues africaines. 8 modules IA. Gratuit pour les éleveurs béninois."
+            content="FarmCommunity — communauté agricole africaine premium : entraide, marketplace, experts, score de confiance et publications utiles."
         />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta
-            name="apple-mobile-web-app-status-bar-style"
-            content="black-translucent"
-        />
-        <meta name="apple-mobile-web-app-title" content="FeedFormula AI" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="application-name" content="FeedFormula AI" />
+        <title>FarmCommunity — Communauté agricole premium</title>
         <link rel="manifest" href="/app/manifest.json" />
-        <link
-            rel="apple-touch-icon"
-            href="/assets/branding/logo_principal_hd.png"
-        />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            rel="preload"
-            href="/assets/branding/logo_principal_hd.png"
-            as="image"
-        />
-        <link rel="preload" href="/app/style.css" as="style" />
-
         <link rel="stylesheet" href="style.css" />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-            rel="stylesheet"
-        />
         <style>
             :root {
                 --green: #19733f;
                 --green2: #0f9d58;
-                --bg: #f7fbf8;
-                --card: #fff;
-                --text: #173126;
+                --lime: #8bc34a;
+                --gold: #f5a623;
+                --red: #c62828;
+                --blue: #1565c0;
+                --bg: #f3faf5;
+                --ink: #173126;
                 --muted: #60786d;
+                --line: #d9e8de;
+                --shadow: 0 18px 48px rgba(23, 49, 38, 0.12);
             }
             * {
                 box-sizing: border-box;
             }
             body {
                 margin: 0;
-                font-family: var(--font-primary);
-                background: var(--bg);
-                color: var(--text);
+                font-family: Inter, "Plus Jakarta Sans", system-ui, sans-serif;
+                background: linear-gradient(
+                    180deg,
+                    #e9f8ef,
+                    #fff 34%,
+                    var(--bg)
+                );
+                color: var(--ink);
             }
-            header,
-            main {
-                max-width: 1200px;
-                margin: auto;
-                padding: 20px;
-            }
-            .top {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                gap: 16px;
-                flex-wrap: wrap;
-            }
-            .hero {
-                background: linear-gradient(135deg, #e8fff1, #fff5e9);
-                border: 1px solid #d8f1e0;
-                border-radius: 24px;
-                padding: 14px 16px;
-                display: flex;
-                align-items: center;
-                gap: 14px;
-            }
-            .aya {
-                width: 56px;
-                height: 56px;
-                border-radius: 50%;
-                display: grid;
-                place-items: center;
-                background: linear-gradient(135deg, #ffd166, #ff8fab);
-                font-size: 30px;
-                box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+            .app {
+                max-width: 1280px;
+                margin: 0 auto;
+                padding: 16px 16px 110px;
             }
             .grid {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+                gap: 14px;
+            }
+            .grid-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .grid-3 {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+            .grid-4 {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+            .hero {
+                display: grid;
+                grid-template-columns: 1.2fr 0.8fr;
                 gap: 16px;
+                margin-bottom: 16px;
+            }
+            .hero-main {
+                position: relative;
+                overflow: hidden;
+                border-radius: 34px;
+                padding: 28px;
+                color: #fff;
+                background:
+                    radial-gradient(
+                        circle at 82% 12%,
+                        rgba(255, 255, 255, 0.22),
+                        transparent 25%
+                    ),
+                    linear-gradient(135deg, #0b3d24, #19733f 58%, #22c55e);
+                box-shadow: var(--shadow);
+            }
+            .hero-main:after {
+                content: "🤝";
+                position: absolute;
+                right: 18px;
+                bottom: -22px;
+                font-size: 132px;
+                opacity: 0.13;
+            }
+            .hero h1 {
+                font-size: clamp(34px, 5vw, 62px);
+                line-height: 1;
+                margin: 0 0 10px;
+            }
+            .hero p {
+                font-size: 18px;
+                line-height: 1.55;
+                max-width: 760px;
+            }
+            .badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                width: max-content;
+                padding: 8px 13px;
+                border-radius: 999px;
+                background: rgba(255, 255, 255, 0.17);
+                font-weight: 900;
             }
             .card {
-                background: var(--card);
-                border-radius: 18px;
-                padding: 16px;
-                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+                background: rgba(255, 255, 255, 0.97);
+                border: 1px solid rgba(25, 115, 63, 0.12);
+                border-radius: 26px;
+                padding: 18px;
+                box-shadow: var(--shadow);
+            }
+            .muted {
+                color: var(--muted);
             }
             input,
             select,
             textarea {
                 width: 100%;
-                padding: 11px;
-                border: 1px solid #d9e6dd;
-                border-radius: 10px;
-                margin-top: 6px;
+                border: 1px solid var(--line);
+                border-radius: 16px;
+                padding: 12px 13px;
+                font: inherit;
+                background: #fff;
             }
-            button {
-                border: none;
-                border-radius: 12px;
-                padding: 10px 14px;
+            textarea {
+                min-height: 110px;
+            }
+            button,
+            .btn {
+                border: 0;
+                border-radius: 18px;
+                padding: 12px 15px;
+                font-weight: 900;
+                cursor: pointer;
+                background: #e8f7ee;
+                color: var(--ink);
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+            }
+            button.primary,
+            .btn.primary {
                 background: var(--green);
                 color: #fff;
-                cursor: pointer;
             }
-            button.like {
-                background: #e8f7ee;
-                color: #176c3c;
+            .btn.blue,
+            button.blue {
+                background: var(--blue);
+                color: #fff;
             }
-            button.alt {
-                background: #eef5ff;
-                color: #174da0;
+            .btn.gold,
+            button.gold {
+                background: var(--gold);
+                color: #251600;
             }
-            .muted {
-                color: var(--muted);
+            .btn.red,
+            button.red {
+                background: var(--red);
+                color: #fff;
             }
-            .post {
-                border: 1px solid #e4eee7;
-                border-radius: 14px;
-                padding: 12px;
-                margin-bottom: 12px;
+            .actions {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+            .metric strong {
+                display: block;
+                font-size: 28px;
+                color: var(--green);
+            }
+            .tabs {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+                position: sticky;
+                top: 0;
+                background: rgba(243, 250, 245, 0.9);
+                backdrop-filter: blur(12px);
+                z-index: 8;
+                padding: 10px 0;
+            }
+            .tab {
+                border: 1px solid var(--line);
                 background: #fff;
+            }
+            .tab.active {
+                background: var(--green);
+                color: #fff;
+            }
+            .panel {
+                display: none;
+            }
+            .panel.active {
+                display: grid;
+            }
+            .layout {
+                display: grid;
+                grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
+                gap: 16px;
+                align-items: start;
+            }
+            .post,
+            .ad,
+            .expert,
+            .trend {
+                border: 1px solid var(--line);
+                border-radius: 20px;
+                padding: 14px;
+                background: #fff;
+                margin-bottom: 10px;
             }
             .post-head {
                 display: flex;
                 gap: 10px;
                 align-items: center;
                 justify-content: space-between;
-                margin-bottom: 8px;
             }
             .avatar {
-                width: 40px;
-                height: 40px;
+                width: 44px;
+                height: 44px;
                 border-radius: 50%;
                 background: linear-gradient(135deg, #dff3e7, #e8f0ff);
                 display: grid;
                 place-items: center;
-                font-weight: 700;
+                font-weight: 900;
                 color: #116334;
             }
-            .badge {
-                display: inline-block;
-                padding: 4px 10px;
+            .tag {
+                display: inline-flex;
+                padding: 5px 9px;
                 border-radius: 999px;
                 background: #edf8f1;
                 color: #116334;
                 font-size: 12px;
-                margin-right: 6px;
+                font-weight: 900;
+                margin: 2px;
             }
-            .toolbar {
-                display: flex;
-                gap: 10px;
-                flex-wrap: wrap;
+            .tag.warn {
+                background: #fff4d8;
+                color: #8a5a00;
             }
-            .muted-box {
-                padding: 10px 12px;
-                border-radius: 12px;
-                background: #f4fbf6;
+            .tag.risk {
+                background: #ffebee;
+                color: #b71c1c;
+            }
+            .trust {
+                width: 86px;
+                height: 86px;
+                border-radius: 50%;
+                display: grid;
+                place-items: center;
+                background: conic-gradient(
+                    var(--green) calc(var(--score) * 1%),
+                    #dceee2 0
+                );
+                box-shadow:
+                    inset 0 0 0 10px #fff,
+                    0 10px 24px rgba(25, 115, 63, 0.16);
+                font-weight: 1000;
+            }
+            .module-card {
+                padding: 10px;
+                border-radius: 14px;
+                background: #f6fbf7;
                 border-left: 4px solid var(--green);
             }
-            .expert {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
+            .market-grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
                 gap: 10px;
-                border-bottom: 1px solid #edf0f2;
-                padding: 10px 0;
             }
             .online {
                 width: 10px;
@@ -225,23 +286,22 @@
                 display: inline-block;
                 margin-right: 6px;
             }
-            .offline {
+            .busy {
                 width: 10px;
                 height: 10px;
                 border-radius: 50%;
-                background: #94a3b8;
+                background: #f59e0b;
                 display: inline-block;
                 margin-right: 6px;
             }
             .loading {
                 display: none;
-                align-items: center;
                 gap: 10px;
-                padding: 12px 14px;
-                border-radius: 14px;
+                align-items: center;
+                padding: 12px;
+                border-radius: 16px;
                 background: #eefaf1;
                 color: #16663d;
-                margin-top: 12px;
             }
             .spinner {
                 width: 18px;
@@ -256,190 +316,257 @@
                     transform: rotate(360deg);
                 }
             }
-            .filterbar {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-                gap: 10px;
-            }
-            .mapgrid {
-                display: grid;
-                grid-template-columns: 1.4fr 1fr 1fr;
-                gap: 16px;
-                align-items: start;
-            }
             @media (max-width: 980px) {
-                .mapgrid {
+                .hero,
+                .layout,
+                .grid-2,
+                .grid-3,
+                .grid-4,
+                .market-grid {
                     grid-template-columns: 1fr;
                 }
             }
-            .loader-skel {
-                height: 120px;
-                border-radius: 14px;
-                background: linear-gradient(90deg, #eef5ef, #f6fbf7, #eef5ef);
-                background-size: 200% 100%;
-                animation: shimmer 1.4s infinite;
-            }
-            @keyframes shimmer {
-                0% {
-                    background-position: 200% 0;
-                }
-                100% {
-                    background-position: -200% 0;
-                }
-            }
         </style>
-        <script defer src="assets_manager.js"></script>
-        <script defer src="i18n.js"></script>
-        <script defer src="script.js"></script>
-        <meta name="theme-color" content="#1B5E20" />
     </head>
     <body data-i18n-page="farmcommunity">
-        <header>
-            <div class="top">
-                <div>
-                    <h1>FarmCommunity</h1>
-                    <p class="muted">
-                        Fil d’actualité, marketplace locale et experts en ligne,
-                        dans une interface plus simple à parcourir.
+        <div class="app">
+            <section class="hero">
+                <div class="hero-main">
+                    <div class="badge">
+                        🤝 FarmCommunity Premium · Réseau agricole sûr
+                    </div>
+                    <h1>
+                        Échangez, apprenez, vendez et trouvez de l’aide fiable
+                    </h1>
+                    <p>
+                        Une communauté agricole structurée avec score de
+                        confiance, experts par module, marketplace sécurisée,
+                        assistant de question et tendances utiles pour les
+                        éleveurs.
                     </p>
-                </div>
-                <div class="hero">
-                    <div class="aya">🤝</div>
-                    <div>
-                        <strong>Aya vous aide à rester connecté</strong>
-                        <div class="muted">
-                            Publiez, échangez, vendez et demandez conseil.
-                        </div>
+                    <div class="actions">
+                        <a class="btn" href="farmacademy.html">🎓 Apprendre</a
+                        ><a class="btn blue" href="farmcast.html"
+                            >🎙️ Créer un contenu</a
+                        >
                     </div>
                 </div>
+                <div class="card grid">
+                    <h2>🌽 Aya Community</h2>
+                    <p id="ayaText" class="muted">
+                        Posez une question claire avec espèce, âge, région,
+                        chiffres et photo si possible.
+                    </p>
+                    <label
+                        >ID utilisateur<input
+                            id="userId"
+                            placeholder="demo-user" /></label
+                    ><button class="primary" onclick="loadDashboard()">
+                        Charger ma communauté
+                    </button>
+                </div>
+            </section>
+            <section id="metrics" class="grid grid-4">
+                <div class="card metric">
+                    <strong>—</strong><span>posts</span>
+                </div>
+                <div class="card metric">
+                    <strong>—</strong><span>annonces</span>
+                </div>
+                <div class="card metric">
+                    <strong>—</strong><span>experts</span>
+                </div>
+                <div class="card metric">
+                    <strong>—</strong><span>score</span>
+                </div>
+            </section>
+            <div class="tabs">
+                <button class="tab active" data-tab="feedPanel">
+                    🏠 Fil utile</button
+                ><button class="tab" data-tab="postPanel">✍️ Publier</button
+                ><button class="tab" data-tab="marketPanel">
+                    🛒 Marketplace</button
+                ><button class="tab" data-tab="expertPanel">🧑🏾‍⚕️ Experts</button
+                ><button class="tab" data-tab="assistantPanel">
+                    ✨ Assistant question
+                </button>
             </div>
-        </header>
-        <main>
-            <section class="grid">
+            <section id="feedPanel" class="panel active layout">
+                <main class="grid">
+                    <div class="card">
+                        <h2>Fil d’actualité expertisé</h2>
+                        <div class="actions">
+                            <input
+                                id="feedSpecies"
+                                placeholder="Filtrer espèce"
+                            /><button onclick="refreshFeed()">
+                                Actualiser
+                            </button>
+                        </div>
+                        <div id="posts"></div>
+                    </div>
+                </main>
+                <aside class="grid">
+                    <div class="card">
+                        <h2>Tendances</h2>
+                        <div id="trends"></div>
+                    </div>
+                    <div class="card">
+                        <h2>Top posts</h2>
+                        <div id="topPosts"></div>
+                    </div>
+                </aside>
+            </section>
+            <section id="postPanel" class="panel grid">
                 <div class="card">
-                    <h2>Créer un post</h2>
-                    <label
-                        >Utilisateur ID<input
-                            id="postUser"
-                            placeholder="ID utilisateur"
-                    /></label>
-                    <label
-                        >Titre<input
-                            id="postTitle"
-                            placeholder="Astuce, question, annonce..."
-                    /></label>
+                    <h2>Créer une publication utile</h2>
+                    <div class="grid grid-2">
+                        <label
+                            >Type<select id="postType">
+                                <option value="question">Question</option>
+                                <option value="conseil">Conseil</option>
+                                <option value="retour_experience">
+                                    Retour d'expérience
+                                </option>
+                                <option value="alerte">Alerte</option>
+                                <option value="annonce">Annonce</option>
+                            </select></label
+                        ><label
+                            >Espèce<input
+                                id="postSpecies"
+                                placeholder="poulet, vache..." /></label
+                        ><label
+                            >Titre<input
+                                id="postTitle"
+                                placeholder="Question ou astuce" /></label
+                        ><label
+                            >Langue<select id="postLang">
+                                <option>fr</option>
+                                <option>fon</option>
+                                <option>en</option>
+                            </select></label
+                        >
+                    </div>
                     <label
                         >Contenu<textarea
                             id="postContent"
-                            rows="4"
-                            placeholder="Partagez une astuce, une question, une photo..."
+                            placeholder="Décrivez avec contexte, chiffres, région, âge/stade..."
                         ></textarea>
                     </label>
-                    <label
-                        >Espèce concernée<input
-                            id="postSpecies"
-                            placeholder="poulet, vache..."
-                    /></label>
-                    <label
-                        >Langue<select id="postLang">
-                            <option>fr</option>
-                            <option>fon</option>
-                            <option>en</option>
-                        </select></label
-                    >
-                    <button onclick="createPost()">Publier</button>
+                    <div class="actions">
+                        <button class="primary" onclick="createPost()">
+                            Publier</button
+                        ><button onclick="improveQuestion()">
+                            Améliorer avant publication
+                        </button>
+                    </div>
                     <div
-                        class="loading"
-                        id="postLoading"
-                        aria-live="polite"
-                        aria-busy="false"
-                    >
-                        <span class="spinner"></span
-                        ><span>Publication en cours...</span>
-                    </div>
-                </div>
-                <div class="card">
-                    <h2>Marketplace</h2>
-                    <div class="filterbar">
-                        <div>
-                            <label
-                                >Espèce<input
-                                    id="filterEspece"
-                                    placeholder="poulet, vache..."
-                            /></label>
-                        </div>
-                        <div>
-                            <label
-                                >Région/Dept<input
-                                    id="filterRegion"
-                                    placeholder="Atlantique, Borgou..."
-                            /></label>
-                        </div>
-                        <div>
-                            <label
-                                >Type<select id="filterType">
-                                    <option value="">Tous</option>
-                                    <option>vente</option>
-                                    <option>achat</option>
-                                    <option>service</option>
-                                </select></label
-                            >
-                        </div>
-                    </div>
-                    <button
+                        id="postAdvice"
+                        class="grid"
                         style="margin-top: 12px"
-                        onclick="loadMarketplace()"
-                    >
-                        Filtrer
+                    ></div>
+                    <div class="loading" id="postLoading">
+                        <span class="spinner"></span><span>Publication...</span>
+                    </div>
+                </div>
+            </section>
+            <section id="marketPanel" class="panel grid">
+                <div class="card">
+                    <h2>Créer une annonce fiable</h2>
+                    <div class="grid grid-3">
+                        <label
+                            >Type<select id="adType">
+                                <option>vente</option>
+                                <option>achat</option>
+                                <option>service</option>
+                            </select></label
+                        ><label
+                            >Espèce<input
+                                id="adSpecies"
+                                placeholder="poulet_chair" /></label
+                        ><label
+                            >Race/souche<input
+                                id="adRace"
+                                placeholder="Cobb 500" /></label
+                        ><label
+                            >Quantité<input
+                                id="adQty"
+                                type="number"
+                                value="1" /></label
+                        ><label
+                            >Prix FCFA<input
+                                id="adPrice"
+                                type="number"
+                                value="0" /></label
+                        ><label
+                            >Département<input
+                                id="adDept"
+                                placeholder="Atlantique" /></label
+                        ><label
+                            >Localisation<input
+                                id="adLoc"
+                                placeholder="Cotonou" /></label
+                        ><label
+                            >Téléphone<input id="adPhone" placeholder="+229..."
+                        /></label>
+                    </div>
+                    <label
+                        >Description<textarea
+                            id="adDesc"
+                            placeholder="Poids, âge, état sanitaire, transport..."
+                        ></textarea></label
+                    ><button class="primary" onclick="createAd()">
+                        Publier annonce
                     </button>
-                    <div class="toolbar" style="margin-top: 12px">
-                        <button class="alt" onclick="setMarketView('grid')">
-                            Vue grille</button
-                        ><button class="alt" onclick="setMarketView('list')">
-                            Vue liste
-                        </button>
+                    <div id="adAdvice" style="margin-top: 12px"></div>
+                </div>
+                <div class="card">
+                    <h2>Marketplace vérifiée</h2>
+                    <div class="actions">
+                        <input id="filterSpecies" placeholder="espèce" /><input
+                            id="filterDept"
+                            placeholder="département"
+                        /><button onclick="loadMarket()">Filtrer</button>
                     </div>
+                    <div
+                        id="market"
+                        class="market-grid"
+                        style="margin-top: 12px"
+                    ></div>
                 </div>
             </section>
-
-            <section class="mapgrid" style="margin-top: 16px">
+            <section id="expertPanel" class="panel grid">
                 <div class="card">
-                    <h2>Fil d’actualité</h2>
-                    <div class="toolbar" style="margin-bottom: 12px">
-                        <button class="alt" onclick="refreshFeed()">
-                            Mettre à jour
-                        </button>
-                        <button class="alt" onclick="applySpeciesFilter()">
-                            Filtrer par espèce
-                        </button>
-                    </div>
-                    <div id="posts"></div>
-                    <div class="loader-skel" id="feedSkeleton"></div>
-                    <div id="feedSentinel"></div>
+                    <h2>Experts et modules utiles</h2>
+                    <div id="experts" class="grid grid-3"></div>
                 </div>
                 <div class="card">
-                    <h2>Marketplace</h2>
-                    <div id="market"></div>
-                </div>
-                <div class="card">
-                    <h2>Experts en ligne</h2>
-                    <div id="experts"></div>
+                    <h2>Catégories de publications</h2>
+                    <div id="categories" class="grid grid-3"></div>
                 </div>
             </section>
-        </main>
-
-        <footer class="site-footer" aria-label="Pied de page">
-            <div class="site-footer__inner">
-                <strong>FeedFormula AI</strong>
-                <span>Communauté, marketplace et entraide</span>
-                <div class="site-footer__links">
-                    <a href="index.html">Accueil</a>
-                    <a href="modules.html">Modules</a>
-                    <a href="profil.html">Profil</a>
+            <section id="assistantPanel" class="panel grid">
+                <div class="card">
+                    <h2>Assistant pour poser une bonne question</h2>
+                    <label
+                        >Votre question<textarea
+                            id="assistantText"
+                            placeholder="Mes poulets toussent depuis 2 jours..."
+                        ></textarea></label
+                    ><label
+                        >Espèce<input
+                            id="assistantSpecies"
+                            placeholder="poulet_chair" /></label
+                    ><button
+                        class="primary"
+                        onclick="improveQuestionFromAssistant()"
+                    >
+                        Structurer ma question
+                    </button>
+                    <div id="assistantResult" style="margin-top: 12px"></div>
                 </div>
-            </div>
-        </footer>
-
+            </section>
+        </div>
         <script>
             const API_BASE = String(
                 window.FEEDFORMULA_API_BASE_URL ||
@@ -450,197 +577,224 @@
                     )
                         ? "http://127.0.0.1:8000"
                         : "/"),
-            );
-            const api = API_BASE.replace(/\/$/, "");
+            ).replace(/\/$/, "");
+            const $ = (s) => document.querySelector(s);
+            const userId = () =>
+                (
+                    $("#userId").value ||
+                    localStorage.getItem("feedformula_user_id") ||
+                    "demo-user"
+                ).trim();
             let feedPage = 1;
-            let feedLoading = false;
-            let marketView = "grid";
-
             async function jget(url) {
-                const r = await fetch(api + url);
-                return await r.json();
+                const r = await fetch(API_BASE + url);
+                const d = await r.json();
+                if (!r.ok) throw new Error(d.detail || "Erreur");
+                return d;
             }
             async function jpost(url, data) {
-                const r = await fetch(api + url, {
+                const r = await fetch(API_BASE + url, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(data),
                 });
-                return await r.json();
+                const d = await r.json();
+                if (!r.ok) throw new Error(d.detail || "Erreur");
+                return d;
             }
-
-            function initials(name) {
-                return (name || "?").slice(0, 2).toUpperCase();
+            function esc(v) {
+                return String(v ?? "")
+                    .replaceAll("&", "&amp;")
+                    .replaceAll("<", "&lt;")
+                    .replaceAll(">", "&gt;");
             }
-            function setMarketView(view) {
-                marketView = view;
-                loadMarketplace();
+            function initials(v) {
+                return String(v || "FF")
+                    .slice(0, 2)
+                    .toUpperCase();
             }
-            function refreshFeed() {
-                feedPage = 1;
-                document.getElementById("posts").innerHTML = "";
-                loadPosts(true);
-            }
-            function applySpeciesFilter() {
-                const e = document.getElementById("filterEspece").value.trim();
-                if (e) loadPosts(true, e);
-            }
-
-            async function loadPosts(reset = false, espece = "") {
-                if (feedLoading) return;
-                feedLoading = true;
-                document.getElementById("feedSkeleton").style.display = reset
-                    ? "block"
-                    : "none";
-                const userId = document.getElementById("postUser").value.trim();
-                const url = `/community/posts?page=${feedPage}${espece ? "&espece=" + encodeURIComponent(espece) : ""}${userId ? "&user_id=" + encodeURIComponent(userId) : ""}`;
-                const data = await jget(url);
-                document.getElementById("feedSkeleton").style.display = "none";
-                const html = data.posts
+            document.querySelectorAll(".tab").forEach(
+                (b) =>
+                    (b.onclick = () => {
+                        document
+                            .querySelectorAll(".tab")
+                            .forEach((x) => x.classList.remove("active"));
+                        document
+                            .querySelectorAll(".panel")
+                            .forEach((x) => x.classList.remove("active"));
+                        b.classList.add("active");
+                        document
+                            .getElementById(b.dataset.tab)
+                            .classList.add("active");
+                    }),
+            );
+            function renderDashboard(d) {
+                const m = d.metriques || {};
+                $("#metrics").innerHTML = [
+                    [m.posts, "posts"],
+                    [m.annonces_actives, "annonces actives"],
+                    [m.experts_disponibles, "experts en ligne"],
+                    [d.score_communaute, "score communauté"],
+                ]
                     .map(
-                        (p) => `
-                    <article class="post">
-                        <div class="post-head">
-                            <div style="display:flex;gap:10px;align-items:center">
-                                <div class="avatar">${initials(p.user_id || "FF")}</div>
-                                <div>
-                                    <strong>${p.titre || "Publication FeedFormula"}</strong><br>
-                                    <span class="muted">${p.user_id} • ${p.date_creation || ""}</span>
-                                </div>
-                            </div>
-                            <span class="badge">${p.type || "conseil"}</span>
-                        </div>
-                        <p>${p.contenu}</p>
-                        <div class="toolbar">
-                            <button class="like" onclick="likePost('${p.id}')">👍 ${p.likes || 0}</button>
-                            <button class="alt" onclick="focusComment('${p.id}')">💬 Commenter</button>
-                        </div>
-                        <div style="margin-top:8px">${(p.commentaires || []).map((c) => `<div class='muted-box'><strong>${c.user_id}</strong> — ${c.contenu}</div>`).join("")}</div>
-                    </article>`,
+                        ([v, l]) =>
+                            `<div class="card metric"><strong>${v || 0}</strong><span>${l}</span></div>`,
                     )
                     .join("");
-                document
-                    .getElementById("posts")
-                    .insertAdjacentHTML("beforeend", html);
-                feedPage += 1;
-                feedLoading = false;
+                $("#ayaText").textContent =
+                    d.prochaine_action || "Posez une question claire.";
+                $("#trends").innerHTML =
+                    (d.tendances || [])
+                        .map(
+                            (t) =>
+                                `<div class="trend"><strong>${esc(t.theme)}</strong><span class="muted"> · ${t.volume}</span></div>`,
+                        )
+                        .join("") ||
+                    '<p class="muted">Pas encore de tendance.</p>';
+                $("#topPosts").innerHTML = (d.top_posts || [])
+                    .map(
+                        (p) =>
+                            `<div class="trend"><strong>${esc(p.titre || "Post")}</strong><p class="muted">👍 ${p.likes || 0}</p></div>`,
+                    )
+                    .join("");
             }
-
+            async function loadDashboard() {
+                const d = await jget(
+                    `/community/dashboard/${encodeURIComponent(userId())}`,
+                );
+                renderDashboard(d);
+                await refreshFeed();
+                await loadMarket();
+                await loadExperts();
+            }
+            function renderPosts(items) {
+                $("#posts").innerHTML =
+                    (items || [])
+                        .map(
+                            (p) =>
+                                `<article class="post"><div class="post-head"><div style="display:flex;gap:10px;align-items:center"><div class="avatar">${initials(p.user_id)}</div><div><strong>${esc(p.titre || "Publication")}</strong><br><span class="muted">${esc(p.user_id)} · ${esc(p.date_creation || "")}</span></div></div><span class="tag">${esc(p.type || p.type_contenu || "conseil")}</span></div><p>${esc(p.contenu)}</p><div class="actions"><span class="tag ${p.score_confiance?.niveau === "risqué" ? "risk" : ""}">Confiance ${p.score_confiance?.score || 0}/100</span>${(p.badges_community || []).map((b) => `<span class="tag">${esc(b)}</span>`).join("")}</div><div class="grid grid-2" style="margin-top:10px">${(p.modules_utiles || []).map((m) => `<div class="module-card"><strong>${esc(m.module)}</strong><br><span class="muted">${esc(m.raison)}</span></div>`).join("")}</div><div class="actions" style="margin-top:10px"><button onclick="likePost('${p.id}')">👍 ${p.likes || 0}</button><button onclick="commentPost('${p.id}')">💬 Commenter</button></div></article>`,
+                        )
+                        .join("") || '<p class="muted">Aucun post.</p>';
+            }
+            async function refreshFeed() {
+                const sp = $("#feedSpecies").value;
+                const d = await jget(
+                    `/community/posts?page=${feedPage}${sp ? "&espece=" + encodeURIComponent(sp) : ""}&user_id=${encodeURIComponent(userId())}`,
+                );
+                renderPosts(d.posts || []);
+            }
             async function createPost() {
                 const payload = {
-                    user_id: document.getElementById("postUser").value.trim(),
-                    titre: document.getElementById("postTitle").value.trim(),
-                    contenu: document
-                        .getElementById("postContent")
-                        .value.trim(),
-                    type_post: "conseil",
-                    espece_concernee: document
-                        .getElementById("postSpecies")
-                        .value.trim(),
-                    langue: document.getElementById("postLang").value.trim(),
+                    user_id: userId(),
+                    titre: $("#postTitle").value,
+                    contenu: $("#postContent").value,
+                    type_post: $("#postType").value,
+                    espece_concernee: $("#postSpecies").value,
+                    langue: $("#postLang").value,
                 };
-                if (!payload.user_id || !payload.contenu)
-                    return alert("user_id et contenu requis");
-                document.getElementById("postLoading").style.display = "flex";
-                await jpost("/community/posts", payload);
-                document.getElementById("postLoading").style.display = "none";
-                refreshFeed();
+                $("#postLoading").style.display = "flex";
+                try {
+                    const d = await jpost("/community/posts", payload);
+                    renderPostAdvice(d);
+                    await loadDashboard();
+                    document.querySelector('[data-tab="feedPanel"]').click();
+                } finally {
+                    $("#postLoading").style.display = "none";
+                }
             }
-
+            function renderPostAdvice(d) {
+                $("#postAdvice").innerHTML =
+                    `<div class="post"><h3>Lecture experte</h3><p>Score confiance : <strong>${d.score_confiance?.score || 0}/100</strong> (${esc(d.score_confiance?.niveau || "")})</p><p>${(d.actions_recommandees || []).map(esc).join(" · ")}</p></div>`;
+            }
+            async function improveQuestion() {
+                const d = await jpost("/community/assistant-question", {
+                    contenu: $("#postContent").value,
+                    espece: $("#postSpecies").value,
+                    type_post: $("#postType").value,
+                });
+                $("#postAdvice").innerHTML =
+                    `<div class="post"><h3>Question améliorée</h3><p>${esc(d.question_amelioree)}</p><p>Score : ${d.score_confiance.score}/100</p></div>`;
+            }
+            async function improveQuestionFromAssistant() {
+                const d = await jpost("/community/assistant-question", {
+                    contenu: $("#assistantText").value,
+                    espece: $("#assistantSpecies").value,
+                    type_post: "question",
+                });
+                $("#assistantResult").innerHTML =
+                    `<div class="post"><h3>Version prête à publier</h3><p>${esc(d.question_amelioree)}</p><h4>Modules utiles</h4>${(d.modules_utiles || []).map((m) => `<div class="module-card"><strong>${esc(m.module)}</strong> — ${esc(m.raison)}</div>`).join("")}</div>`;
+            }
             async function likePost(id) {
                 await jpost(`/community/posts/${id}/like`, {});
-                refreshFeed();
+                await refreshFeed();
             }
-            function focusComment(id) {
-                const box = document.getElementById("postContent");
-                box.focus();
-                box.placeholder = "Répondez au post " + id + "...";
-            }
-
-            async function addComment(event, postId) {
-                event.preventDefault();
-                const input = event.target.querySelector(
-                    'input[name="comment"]',
-                );
-                await jpost(`/community/posts/${postId}/commentaires`, {
-                    user_id:
-                        document.getElementById("postUser").value.trim() ||
-                        "anonymous",
-                    contenu: input.value,
+            async function commentPost(id) {
+                const contenu = prompt("Votre commentaire utile :");
+                if (!contenu) return;
+                await jpost(`/community/posts/${id}/commentaires`, {
+                    user_id: userId(),
+                    contenu,
                 });
-                refreshFeed();
-                return false;
+                await refreshFeed();
             }
-
-            async function loadMarketplace() {
-                const params = new URLSearchParams();
-                const t = document.getElementById("filterType").value;
-                const e = document.getElementById("filterEspece").value.trim();
-                const r = document.getElementById("filterRegion").value.trim();
-                if (t) params.set("type", t);
-                if (e) params.set("espece", e);
-                if (r) params.set("dept", r);
-                const data = await jget(
-                    "/community/marche" +
-                        (params.toString() ? "?" + params.toString() : ""),
+            async function createAd() {
+                const payload = {
+                    user_id: userId(),
+                    type_annonce: $("#adType").value,
+                    espece: $("#adSpecies").value,
+                    race: $("#adRace").value,
+                    quantite: Number($("#adQty").value || 1),
+                    prix_fcfa: Number($("#adPrice").value || 0),
+                    prix_negociable: true,
+                    description: $("#adDesc").value,
+                    localisation: $("#adLoc").value,
+                    departement: $("#adDept").value,
+                    telephone_contact: $("#adPhone").value,
+                };
+                const d = await jpost("/community/marche", payload);
+                $("#adAdvice").innerHTML =
+                    `<div class="post"><h3>Annonce publiée</h3><p>Score confiance : <strong>${d.score_confiance_annonce}/100</strong></p><p>${(d.lecture_marche?.conseils_marche || []).map(esc).join(" · ")}</p></div>`;
+                await loadMarket();
+            }
+            async function loadMarket() {
+                const sp = $("#filterSpecies")?.value || "";
+                const dept = $("#filterDept")?.value || "";
+                const d = await jget(
+                    `/community/marche?espece=${encodeURIComponent(sp)}&dept=${encodeURIComponent(dept)}`,
                 );
-                document.getElementById("market").innerHTML = data.annonces
+                $("#market").innerHTML =
+                    (d.annonces || [])
+                        .map(
+                            (a) =>
+                                `<div class="ad"><h3>${esc(a.type_annonce || a.type)} ${esc(a.espece)}</h3><p>${esc(a.race || "")} · ${a.quantite} unité(s)</p><p><strong>${Number(a.prix_fcfa || 0).toLocaleString("fr-FR")} FCFA</strong></p><p class="muted">${esc(a.localisation || "")}</p></div>`,
+                        )
+                        .join("") || '<p class="muted">Aucune annonce.</p>';
+            }
+            async function loadExperts() {
+                const ex = await jget("/community/experts");
+                $("#experts").innerHTML = (ex.experts || [])
                     .map(
-                        (a) => `
-                    <div class="post" style="display:${marketView === "grid" ? "block" : "flex"}">
-                        <div class="badge">${a.type}</div>
-                        <h3 style="margin:8px 0 4px">${a.espece} ${a.race ? "· " + a.race : ""}</h3>
-                        <p class="muted">${a.description || "Annonce locale feedformula"}</p>
-                        <div><strong>${a.prix_fcfa ? a.prix_fcfa + " FCFA" : "Prix à discuter"}</strong></div>
-                        <div class="muted">${a.localisation} • ${a.departement || ""}</div>
-                        <a class="badge" style="display:inline-block;margin-top:10px;text-decoration:none" href="https://wa.me/?text=${encodeURIComponent((a.espece || "") + " " + (a.prix_fcfa || "") + " " + (a.localisation || ""))}" target="_blank">Contacter via WhatsApp</a>
-                    </div>`,
+                        (e) =>
+                            `<div class="expert"><h3>${e.icone} ${esc(e.nom)}</h3><p>${esc(e.specialite)}</p><p><span class="${e.statut === "en ligne" ? "online" : "busy"}"></span>${esc(e.statut)}</p><span class="tag">${esc(e.module)}</span></div>`,
                     )
                     .join("");
-            }
-
-            function renderExperts() {
-                const experts = [
-                    ["Dr. A. Bio", "vétérinaire", "en ligne"],
-                    ["Mme S. Kora", "nutritionniste", "en ligne"],
-                    ["M. T. Sow", "agronome", "hors ligne"],
-                    ["Dr. C. Gnonlonfoun", "vétérinaire", "en ligne"],
-                    ["Mme M. Afolabi", "conseillère élevage", "en ligne"],
-                ];
-                document.getElementById("experts").innerHTML = experts
-                    .map(
-                        ([name, role, status]) => `
-                    <div class="expert">
-                        <div>
-                            <strong>${name}</strong><br>
-                            <span class="muted">${role}</span>
-                        </div>
-                        <div>
-                            <span class="${status === "en ligne" ? "online" : "offline"}"></span>${status}<br>
-                            <button style="margin-top:6px">Poser une question</button>
-                        </div>
-                    </div>`,
-                    )
-                    .join("");
-            }
-
-            document
-                .getElementById("feedSentinel")
-                .addEventListener("mouseenter", () => {
-                    if (!feedLoading) loadPosts(false);
-                });
-            window.addEventListener("scroll", () => {
-                if (
-                    window.innerHeight + window.scrollY >=
-                        document.body.offsetHeight - 400 &&
-                    !feedLoading
+                const cat = await jget("/community/categories");
+                $("#categories").innerHTML = Object.entries(
+                    cat.categories || {},
                 )
-                    loadPosts(false);
+                    .map(
+                        ([k, c]) =>
+                            `<div class="post"><h3>${c.icone} ${esc(c.label)}</h3><p>${esc(c.objectif)}</p></div>`,
+                    )
+                    .join("");
+            }
+            $("#userId").value =
+                localStorage.getItem("feedformula_user_id") || "demo-user";
+            loadDashboard().catch(() => {
+                loadExperts();
+                refreshFeed();
+                loadMarket();
             });
-
-            renderExperts();
-            loadPosts(true);
-            loadMarketplace();
         </script>
     </body>
 </html>
