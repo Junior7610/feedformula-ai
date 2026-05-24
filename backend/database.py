@@ -371,6 +371,54 @@ class UserActionLog(Base):
     created_at = Column(DateTime, nullable=False, default=_utcnow_naive, index=True)
 
 
+class AnalyseFloraVet(Base):
+    """
+    Table analyses_floravet.
+
+    Historique des analyses botaniques FloraVet AI.
+    """
+
+    __tablename__ = "analyses_floravet"
+
+    id = Column(String(36), primary_key=True, default=_uuid_str)
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    image_hash = Column(String(128), nullable=False, index=True)
+    nom_scientifique = Column(String(180), nullable=False, default="")
+    nom_francais = Column(String(180), nullable=False, default="")
+    noms_locaux_json = Column(Text, nullable=False, default="{}")
+    niveau_confiance = Column(Float, nullable=False, default=0.0)
+    analyse_complete_json = Column(Text, nullable=False, default="{}")
+    espece_eleveur = Column(String(120), nullable=False, default="")
+    region_benin = Column(String(120), nullable=False, default="")
+    langue = Column(String(20), nullable=False, default="fr")
+    points_gagnes = Column(Integer, nullable=False, default=25)
+    date_analyse = Column(DateTime, nullable=False, default=_utcnow_naive, index=True)
+
+
+class BibliothequePlante(Base):
+    """
+    Table bibliotheque_plantes.
+
+    Bibliothèque botanique béninoise utilisable par FloraVet.
+    """
+
+    __tablename__ = "bibliotheque_plantes"
+
+    id = Column(String(36), primary_key=True, default=_uuid_str)
+    nom_scientifique = Column(String(180), unique=True, nullable=False, index=True)
+    nom_francais = Column(String(180), nullable=False, default="")
+    famille_botanique = Column(String(120), nullable=False, default="")
+    noms_locaux_json = Column(Text, nullable=False, default="{}")
+    fiche_complete_json = Column(Text, nullable=False, default="{}")
+    especes_beneficiaires_json = Column(Text, nullable=False, default="[]")
+    est_toxique = Column(Boolean, nullable=False, default=False)
+    niveau_toxicite = Column(String(60), nullable=False, default="non toxique")
+    disponible_benin = Column(Boolean, nullable=False, default=True)
+    regions_benin_json = Column(Text, nullable=False, default="[]")
+    date_ajout = Column(DateTime, nullable=False, default=_utcnow_naive, index=True)
+    nb_analyses = Column(Integer, nullable=False, default=0)
+
+
 class ContactMessage(Base):
     """
     Table contact_messages.
@@ -814,7 +862,7 @@ def get_user_by_id(db: Session, user_id: str) -> Optional[User]:
     if user is not None:
         return user
 
-    if uid.startswith("test_user_") or uid in {"demo-user", "demo_user", "demo"}:
+    if uid.startswith("test_user_") or uid in {"test_user", "demo-user", "demo_user", "demo"}:
         try:
             suffix = uid.replace("test_user_", "") or "001"
             phone_suffix = str(abs(hash(uid)) % 10**6).rjust(6, "0")
@@ -1952,6 +2000,8 @@ __all__ = [
     "PrixMarche",
     "OtpCode",
     "UserActionLog",
+    "AnalyseFloraVet",
+    "BibliothequePlante",
     "ContactMessage",
     "init_db",
     "get_db",

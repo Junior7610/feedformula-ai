@@ -81,6 +81,14 @@ ACTIONS_POINTS["feedback_produit"] = 10
 ACTIONS_POINTS["signalement_fausse_info"] = 15
 ACTIONS_POINTS["contribution_traduction_locale"] = 20
 
+# Actions FloraVet AI — bibliothèque botanique vivante.
+ACTIONS_POINTS["analyser_plante_photo"] = 25
+ACTIONS_POINTS["identifier_plante_rare"] = 50
+ACTIONS_POINTS["plante_non_repertoriee"] = 75
+ACTIONS_POINTS["analyser_10_plantes"] = 100
+ACTIONS_POINTS["partager_analyse_floravet"] = 15
+ACTIONS_POINTS["identifier_plante_toxique"] = 30
+
 # 10 niveaux avec seuils exacts demandés.
 NIVEAUX: List[Dict[str, Any]] = [
     {"niveau": 1, "nom": "Semence", "seuil_min": 0, "seuil_max": 100},
@@ -258,6 +266,46 @@ TROPHEES: List[Dict[str, Any]] = [
         "nom": "Ambassadeur",
         "description": "Inviter 15 amis.",
         "condition": {"type": "action_count", "action": "inviter_ami", "min": 15},
+    },
+    {
+        "code": "botaniste_debutant",
+        "nom": "🌿 Botaniste Débutant",
+        "description": "Analyser 3 plantes avec FloraVet AI.",
+        "points": 50,
+        "badge": "🌿 Botaniste Débutant",
+        "condition": {"type": "action_count", "action": "analyser_plante_photo", "min": 3},
+    },
+    {
+        "code": "botaniste_experimente",
+        "nom": "🌳 Botaniste Expérimenté",
+        "description": "Analyser 20 plantes différentes avec FloraVet AI.",
+        "points": 150,
+        "badge": "🌳 Botaniste Expérimenté",
+        "condition": {"type": "action_count", "action": "analyser_plante_photo", "min": 20},
+    },
+    {
+        "code": "protecteur_troupeau",
+        "nom": "🛡️ Protecteur du Troupeau",
+        "description": "Identifier 3 plantes toxiques pour protéger le troupeau.",
+        "points": 100,
+        "badge": "🛡️ Protecteur du Troupeau",
+        "condition": {"type": "action_count", "action": "identifier_plante_toxique", "min": 3},
+    },
+    {
+        "code": "ethnobotaniste",
+        "nom": "🌍 Ethnobotaniste Africain",
+        "description": "Analyser 50 plantes avec FloraVet AI.",
+        "points": 500,
+        "badge": "🌍 Ethnobotaniste Africain",
+        "condition": {"type": "action_count", "action": "analyser_plante_photo", "min": 50},
+    },
+    {
+        "code": "bibliotheque_vivante",
+        "nom": "📚 Bibliothèque Vivante",
+        "description": "Documenter toutes les plantes de sa région.",
+        "points": 1000,
+        "badge": "📚 Bibliothèque Vivante",
+        "condition": {"type": "action_count", "action": "analyser_10_plantes", "min": 10},
     },
     {
         "code": "serie_7",

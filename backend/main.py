@@ -92,6 +92,7 @@ create_contact_message = database_module.create_contact_message
 analytics_router = importlib.import_module("analytics_service").router
 farmcast_router = importlib.import_module("farmcast_service").router
 farmmanager_router = importlib.import_module("farmmanager_service").router
+floravet_router = importlib.import_module("floravet_service").router
 gamification_router = importlib.import_module("gamification_api").router
 detecter_langue = importlib.import_module("langue_detector").detecter_langue
 get_prompt_pour_langue = importlib.import_module(
@@ -991,6 +992,7 @@ app.include_router(vetscan_router)
 app.include_router(audio_router)
 app.include_router(reprotrack_router)
 app.include_router(farmmanager_router)
+app.include_router(floravet_router)
 app.include_router(pasturemap_router)
 app.include_router(farmcast_router)
 app.include_router(community_router)

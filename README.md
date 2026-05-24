@@ -24,7 +24,7 @@
 
 1. [Vision](#vision)
 2. [Description](#description)
-3. [Les 8 modules](#les-8-modules)
+3. [Les 9 modules](#les-9-modules)
 4. [Stack technologique](#stack-technologique)
 5. [Installation locale en 5 étapes](#installation-locale-en-5-étapes)
 6. [Variables d’environnement](#variables-denvironnement)
@@ -53,7 +53,7 @@ Enfin, FeedFormula AI s’inscrit dans une logique startup internationale : arch
 
 ---
 
-## Les 8 modules
+## Les 9 modules
 
 | Module | Rôle | Valeur produit |
 |---|---|---|
@@ -64,6 +64,7 @@ Enfin, FeedFormula AI s’inscrit dans une logique startup internationale : arch
 | **FarmManager** | Gestion de ferme | Centralise journal, dépenses, revenus, stock et reporting |
 | **FarmAcademy** | Formation | Propose des cours, quiz et parcours pédagogiques multilingues |
 | **FarmCast** | Contenu automatique | Génère scripts, audio et contenus vidéo pour la vulgarisation agricole |
+| **FloraVet AI** | Botanique & plantes d’élevage | Identifie les plantes fourragères, médicinales et toxiques, puis recommande leur usage en ration, santé et pâturage |
 | **FarmCommunity** | Communauté & marketplace | Connecte les éleveurs, les annonces, les échanges et la modération |
 
 ---
@@ -160,7 +161,7 @@ La documentation interactive de l’API FastAPI est disponible via Swagger/OpenA
 ## Roadmap An 1 / An 2 / An 3
 
 ### An 1 — Validation produit et traction
-- Stabiliser le MVP complet autour des 8 modules
+- Stabiliser le MVP complet autour des 9 modules, dont FloraVet AI pour les plantes locales
 - Consolider l’adoption au Bénin
 - Mesurer la rétention, l’usage mobile et la valeur perçue
 - Renforcer le multilingue, la voix et les parcours terrain

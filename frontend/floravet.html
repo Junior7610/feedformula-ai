@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <meta name="theme-color" content="#2E7D32" />
+        <title>FloraVet AI — Bibliothèque botanique vivante</title>
+        <link rel="manifest" href="/app/manifest.json" />
+        <link rel="stylesheet" href="style.css" />
+        <style>
+            :root { --botanic:#2E7D32; --botanic-dark:#145a23; --soft:#eef8ee; --ink:#17351a; --muted:#607064; --red:#c62828; --gold:#f5a623; }
+            * { box-sizing:border-box; }
+            body { margin:0; font-family: Inter, "Plus Jakarta Sans", system-ui, sans-serif; background:linear-gradient(180deg,#e8f5e9,#fbfdf8); color:var(--ink); }
+            .wrap { max-width:1200px; margin:0 auto; padding:16px 16px 110px; }
+            .hero { background:linear-gradient(135deg,var(--botanic),#66bb6a); color:white; border-radius:28px; padding:24px; box-shadow:0 18px 45px rgba(46,125,50,.25); display:grid; gap:12px; }
+            .hero h1 { margin:0; font-size:clamp(30px,5vw,52px); }
+            .badge { display:inline-flex; align-items:center; gap:6px; width:max-content; border-radius:999px; padding:8px 14px; background:rgba(255,255,255,.18); font-weight:900; }
+            .card { background:white; border:1px solid rgba(46,125,50,.12); border-radius:24px; padding:18px; box-shadow:0 14px 38px rgba(20,90,35,.10); }
+            .grid { display:grid; gap:14px; }
+            .grid-2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+            .grid-3 { grid-template-columns:repeat(3,minmax(0,1fr)); }
+            .section-title { margin:0 0 8px; }
+            .muted { color:var(--muted); }
+            .btn { border:0; border-radius:18px; padding:13px 16px; font-weight:900; cursor:pointer; background:#edf5ed; color:var(--ink); }
+            .btn.primary { background:var(--botanic); color:white; }
+            .btn.danger { background:var(--red); color:white; }
+            input, select, textarea { width:100%; border:1px solid #dce8d9; border-radius:16px; padding:13px; font:inherit; background:white; }
+            .capture { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+            .capture label, .capture button { min-height:92px; display:grid; place-items:center; text-align:center; }
+            #preview { max-width:100%; max-height:300px; border-radius:18px; display:none; margin:auto; }
+            .progress { display:none; gap:8px; margin-top:12px; }
+            .progress div { padding:10px; border-radius:14px; background:var(--soft); color:var(--botanic-dark); font-weight:800; }
+            .tabs { display:flex; gap:8px; flex-wrap:wrap; position:sticky; top:0; padding:10px 0; background:rgba(251,253,248,.92); backdrop-filter:blur(12px); z-index:10; }
+            .tab { border:1px solid #dce8d9; border-radius:999px; padding:9px 13px; background:white; cursor:pointer; font-weight:800; }
+            .tab.active { background:var(--botanic); color:white; }
+            details { border:1px solid #e2ecde; border-radius:18px; padding:12px; background:#fff; }
+            summary { font-weight:900; cursor:pointer; color:var(--botanic-dark); }
+            pre { white-space:pre-wrap; word-break:break-word; background:#f7fbf5; padding:12px; border-radius:14px; overflow:auto; }
+            .plant-card { display:grid; gap:8px; border-left:6px solid var(--botanic); }
+            .plant-card.toxic { border-left-color:var(--red); }
+            .tags { display:flex; flex-wrap:wrap; gap:6px; }
+            .tag { padding:5px 9px; border-radius:999px; background:#e8f5e9; color:var(--botanic-dark); font-size:12px; font-weight:800; }
+            .tag.toxic { background:#ffebee; color:#b71c1c; }
+            .actions { display:flex; gap:8px; flex-wrap:wrap; }
+            @media(max-width:850px){ .grid-2,.grid-3,.capture{grid-template-columns:1fr;} }
+        </style>
+    </head>
+    <body data-i18n-page="floravet">
+        <div class="wrap grid">
+            <header class="hero">
+                <span class="badge">🌿 FloraVet AI · +25 🌟 par analyse</span>
+                <h1>La bibliothèque botanique vivante de l’Afrique pour l’élevage</h1>
+                <p>Identifiez les plantes, valorisez les fourrages locaux, détectez les plantes toxiques et intégrez les ressources végétales dans vos rations.</p>
+            </header>
+
+            <section class="card grid" id="analyse">
+                <h2 class="section-title">SECTION 1 — Analyser une plante</h2>
+                <div class="capture">
+                    <label class="btn primary" for="cameraInput">📷 Photographier la plante<br><small>Prenez feuilles et tige visibles</small></label>
+                    <input id="cameraInput" type="file" accept="image/*" capture="environment" hidden />
+                    <label class="btn" for="galleryInput">📁 Choisir depuis la galerie</label>
+                    <input id="galleryInput" type="file" accept="image/*" hidden />
+                    <button class="btn" id="commonPlantBtn" type="button">🌿 Pointer une plante courante</button>
+                </div>
+                <img id="preview" alt="Prévisualisation plante" />
+                <div class="grid grid-3">
+                    <label>Vos animaux principaux<select id="species"><option value="poulet_chair">Poulets de chair</option><option value="pondeuses">Poules pondeuses</option><option value="bovins">Bovins</option><option value="caprins">Caprins</option><option value="ovins">Ovins</option><option value="lapins">Lapins</option><option value="tilapia">Tilapia</option></select></label>
+                    <label>Votre région au Bénin<select id="region"><option>Atlantique</option><option>Ouémé</option><option>Zou</option><option>Collines</option><option>Borgou</option><option>Alibori</option><option>Atacora</option><option>Mono</option><option>Couffo</option><option>Plateau</option></select></label>
+                    <label>Langue<select id="langue"><option value="fr">Français</option><option value="fon">Fon</option><option value="yoruba">Yoruba</option><option value="en">English</option></select></label>
+                </div>
+                <button id="analyzeBtn" class="btn primary" type="button">🌿 Analyser avec FloraVet AI</button>
+                <div class="progress" id="progress"><div>FloraVet consulte sa bibliothèque...</div><div>Identification de la plante...</div><div>Valeur nutritive...</div><div>Vertus médicinales...</div><div>Recommandations...</div></div>
+                <div id="result" class="grid"></div>
+            </section>
+
+            <section class="card grid" id="library">
+                <h2 class="section-title">SECTION 2 — Bibliothèque des plantes</h2>
+                <div class="grid grid-3"><input id="search" placeholder="Rechercher : moringa, neem, leucaena..." /><select id="filterSpecies"><option value="">Espèce animale</option><option value="volailles">Volailles</option><option value="bovins">Bovins</option><option value="caprins">Caprins</option></select><select id="filterToxic"><option value="">Toxicité</option><option value="safe">Non toxique</option><option value="toxic">Toxique</option></select></div>
+                <div id="libraryGrid" class="grid grid-3"></div>
+            </section>
+
+            <section class="card grid" id="regional">
+                <h2 class="section-title">SECTION 3 — Plantes de ma région</h2>
+                <div class="actions"><button class="btn primary" onclick="loadRegion()">Afficher top 10 régional</button><button class="btn danger" onclick="loadToxic()">Alerte plantes toxiques</button></div>
+                <div id="regionPlants" class="grid grid-3"></div>
+            </section>
+
+            <section class="card grid" id="history">
+                <h2 class="section-title">SECTION 4 — Mes analyses sauvegardées</h2>
+                <button class="btn" onclick="loadHistory()">Charger mon historique</button>
+                <div id="historyGrid" class="grid"></div>
+            </section>
+        </div>
+
+        <script>
+            const userId = localStorage.getItem("feedformula_user_id") || "demo-user";
+            const $ = (s) => document.querySelector(s);
+            let selectedFile = null;
+            let library = [];
+            function apiBase(path){ return path; }
+            async function jsonFetch(url, opts={}){ const r=await fetch(apiBase(url),opts); const d=await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.detail||`Erreur ${r.status}`); return d; }
+            function money(v){ return `${Math.round(Number(v||0)).toLocaleString('fr-FR')} FCFA`; }
+            function plantCard(p){ const toxic=p.est_toxique; return `<div class="card plant-card ${toxic?'toxic':''}"><div style="font-size:38px">🌿</div><h3>${p.nom_francais}</h3><div class="muted"><em>${p.nom_scientifique}</em></div><div>Score FloraVet : <strong>${p.score_floravet}/10</strong></div><div class="tags"><span class="tag">${p.type}</span>${toxic?'<span class="tag toxic">Toxique</span>':'<span class="tag">Fourragère/Médicinale</span>'}</div><div>${(p.especes_beneficiaires||[]).slice(0,5).join(' · ')}</div><button class="btn primary" onclick="searchPlant('${p.nom_scientifique.replaceAll("'","\\'")}')">Voir fiche complète</button></div>`; }
+            function bindFile(input){ input.addEventListener('change',()=>{ selectedFile=input.files[0]; if(selectedFile){ const url=URL.createObjectURL(selectedFile); $('#preview').src=url; $('#preview').style.display='block'; } }); }
+            bindFile($('#cameraInput')); bindFile($('#galleryInput'));
+            $('#commonPlantBtn').addEventListener('click', async()=>{ await searchPlant(prompt('Nom de la plante', 'moringa') || 'moringa'); });
+            $('#analyzeBtn').addEventListener('click', async()=>{ if(!selectedFile){ const blob=new Blob(['moringa-test'],{type:'image/jpeg'}); selectedFile=new File([blob],'moringa-test.jpg',{type:'image/jpeg'}); } const fd=new FormData(); fd.append('image', selectedFile); fd.append('espece_eleveur',$('#species').value); fd.append('region_benin',$('#region').value); fd.append('langue',$('#langue').value); fd.append('user_id',userId); $('#progress').style.display='grid'; const data=await jsonFetch('/floravet/analyser-photo',{method:'POST',body:fd}); $('#progress').style.display='none'; renderAnalysis(data); await loadHistory(); });
+            function renderAnalysis(data){ const tabs=['identification','valeur_nutritive','animaux_beneficiaires','vertus_medicinales','toxicite','integration_rations','guide_culture','recommandations']; $('#result').innerHTML=`<div class="card"><h2>${data.identification?.nom_francais||'Plante'} — ${data.identification?.nom_scientifique||''}</h2><p>Score FloraVet : <strong>${data.score_floravet}/10</strong> · +${data.points_gagnes} 🌟</p><div class="actions"><button class="btn" onclick="window.print()">📄 PDF</button><button class="btn" onclick="shareAnalysis()">📱 WhatsApp</button><a class="btn primary" href="${data.integration_rations?.bouton_nutricore||'nutricore.html'}">Intégrer dans une ration → NutriCore</a></div></div>` + tabs.map(k=>`<details open><summary>${k.replaceAll('_',' ')}</summary><pre>${JSON.stringify(data[k],null,2)}</pre></details>`).join('') + `<details open><summary>Message d'Aya</summary><p>${data.message_aya||''}</p></details>`; }
+            function shareAnalysis(){ window.open('https://wa.me/?text='+encodeURIComponent('Analyse FloraVet AI prête 🌿 — ouvrez FeedFormula AI pour consulter la fiche complète.'),'_blank'); }
+            async function searchPlant(name){ const data=await jsonFetch(`/floravet/rechercher/${encodeURIComponent(name)}?langue=${encodeURIComponent($('#langue').value)}&espece=${encodeURIComponent($('#species').value)}`); renderAnalysis(data); window.location.hash='analyse'; }
+            async function loadLibrary(){ const data=await jsonFetch('/floravet/bibliotheque'); library=data.plantes||[]; renderLibrary(); }
+            function renderLibrary(){ const q=$('#search').value.toLowerCase(); const sp=$('#filterSpecies').value.toLowerCase(); const tox=$('#filterToxic').value; let items=library.filter(p=>(!q || JSON.stringify(p).toLowerCase().includes(q)) && (!sp || JSON.stringify(p.especes_beneficiaires||[]).toLowerCase().includes(sp)) && (!tox || (tox==='toxic'?p.est_toxique:!p.est_toxique))); $('#libraryGrid').innerHTML=items.slice(0,50).map(plantCard).join(''); }
+            $('#search').addEventListener('input',renderLibrary); $('#filterSpecies').addEventListener('change',renderLibrary); $('#filterToxic').addEventListener('change',renderLibrary);
+            async function loadRegion(){ const data=await jsonFetch(`/floravet/region/${encodeURIComponent($('#region').value)}?espece=${encodeURIComponent($('#species').value)}&saison=actuelle`); $('#regionPlants').innerHTML=(data.plantes_recommandees||[]).map(plantCard).join('') + `<div class="card danger"><strong>${(data.alertes_toxiques||[]).length} plantes toxiques à surveiller</strong></div>`; }
+            async function loadToxic(){ const data=await jsonFetch(`/floravet/toxiques/${encodeURIComponent($('#region').value)}`); $('#regionPlants').innerHTML=(data.plantes_toxiques||[]).map(plantCard).join(''); }
+            async function loadHistory(){ const data=await jsonFetch(`/floravet/historique/${encodeURIComponent(userId)}`); $('#historyGrid').innerHTML=(data.analyses||[]).map(a=>`<div class="card"><strong>${a.nom_francais}</strong><div class="muted">${a.nom_scientifique} · ${a.date_analyse||''}</div><button class="btn" onclick='renderAnalysis(${JSON.stringify(a.analyse_complete).replaceAll("'","&apos;")})'>Revoir l'analyse complète</button><button class="btn" onclick="shareAnalysis()">Partager</button></div>`).join('') || '<p class="muted">Aucune analyse sauvegardée.</p>'; }
+            loadLibrary(); loadRegion(); loadHistory();
+        </script>
+    </body>
+</html>
