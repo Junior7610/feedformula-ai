@@ -624,6 +624,23 @@ def _formation_card_payload(formation: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+def _infer_lesson_pillar(title: str) -> str:
+    txt = _normalize(title)
+    if any(k in txt for k in ["reproduction", "ponte", "fertil", "gestation", "mise bas", "eclosion", "croissance"]):
+        return "reproduction_et_performances"
+    if any(k in txt for k in ["sante", "santé", "maladie", "biosécurité", "biosecurite", "alerte", "prophylaxie", "vaccin"]):
+        return "sante_prophylaxie_maladies"
+    if any(k in txt for k in ["alimentation", "aliment", "ration", "eau", "nutri"]):
+        return "alimentation"
+    if any(k in txt for k in ["batiment", "bâtiment", "logement", "densite", "densité", "bien etre", "bien-être"]):
+        return "installation_bien_etre"
+    if any(k in txt for k in ["cout", "coût", "marge", "prix", "vente", "commercialisation", "rentabil"]):
+        return "gestion_finance_commercialisation"
+    if any(k in txt for k in ["registre", "farmmanager", "routine", "quotidienne"]):
+        return "gestion_quotidienne"
+    return "fondamentaux"
+
+
 def _build_elevage_az_guide(formation: Dict[str, Any]) -> Dict[str, Any]:
     """Guide A-Z ultra-pratique pour apprendre comment élever l'espèce ciblée."""
     espece = str(formation.get("espece", "multi_especes"))
@@ -695,11 +712,74 @@ def _build_elevage_az_guide(formation: Dict[str, Any]) -> Dict[str, Any]:
             "Carnet/FarmManager prêt pour les notes",
             "Client ou marché potentiel identifié",
         ],
+        "piliers_techniques_obligatoires": {
+            "reproduction": {
+                "objectif": "Comprendre comment l'espèce se reproduit, quand sélectionner les reproducteurs et comment éviter les échecs de fertilité.",
+                "a_apprendre": [
+                    "âge de mise à la reproduction ou de démarrage de ponte/production",
+                    "choix des mâles et femelles reproducteurs",
+                    "signes de chaleur, ponte, couvaison, gestation ou frai selon l'espèce",
+                    "gestion des mises bas, éclosions, sevrages ou alevinage",
+                    "tenue d'un calendrier avec ReproTrack ou FarmManager",
+                ],
+                "indicateurs": ["taux de fertilité", "taux d'éclosion ou de mise bas", "intervalle entre cycles", "survie des jeunes"],
+                "erreurs_a_eviter": ["reproducteurs trop jeunes", "consanguinité", "mauvais ratio mâle/femelle", "absence de registre"],
+            },
+            "prophylaxie": {
+                "objectif": "Prévenir avant de traiter grâce aux vaccins, déparasitages, hygiène, quarantaine et biosécurité.",
+                "a_apprendre": [
+                    "calendrier vaccinal ou préventif adapté à l'espèce",
+                    "quarantaine des nouveaux animaux",
+                    "nettoyage, désinfection, vide sanitaire",
+                    "contrôle des parasites internes et externes",
+                    "gestion de l'eau, litière, densité et visiteurs",
+                ],
+                "indicateurs": ["mortalité", "taux de morbidité", "nombre de traitements", "respect des rappels"],
+                "erreurs_a_eviter": ["vacciner trop tard", "mélanger nouveaux et anciens animaux", "réutiliser litière contaminée", "oublier les rappels"],
+            },
+            "alimentation": {
+                "objectif": "Nourrir selon le stade, l'objectif et le budget, sans carence ni gaspillage.",
+                "a_apprendre": [
+                    "besoins en énergie, protéines, minéraux, vitamines et eau",
+                    "quantité par jour et transition alimentaire",
+                    "ingrédients locaux et plantes utiles avec FloraVet",
+                    "formulation ou vérification avec NutriCore",
+                    "stockage pour éviter humidité, moisissures et rongeurs",
+                ],
+                "indicateurs": ["consommation journalière", "indice de consommation", "GMQ", "ponte/lait", "coût aliment/kg produit"],
+                "erreurs_a_eviter": ["alimenter à l'œil", "changer brutalement", "oublier l'eau", "acheter un aliment moins cher mais non rentable"],
+            },
+            "gestion_sanitaire": {
+                "objectif": "Organiser la surveillance quotidienne, isoler vite et décider quand traiter ou appeler un vétérinaire.",
+                "a_apprendre": [
+                    "observation matin et soir",
+                    "fiche sanitaire par lot ou animal",
+                    "isolement des sujets suspects",
+                    "utilisation raisonnée des médicaments",
+                    "respect des délais d'attente avant vente ou consommation",
+                ],
+                "indicateurs": ["animaux malades", "temps de réaction", "coût sanitaire", "récidives", "délai d'attente"],
+                "erreurs_a_eviter": ["traiter sans diagnostic", "surdoser", "vendre pendant délai d'attente", "ne pas noter les traitements"],
+            },
+            "maladies": {
+                "objectif": "Reconnaître les maladies fréquentes, les signes d'urgence et les premières actions sûres.",
+                "a_apprendre": [
+                    "signes digestifs, respiratoires, nerveux, cutanés et reproductifs",
+                    "maladies fréquentes de l'espèce et facteurs déclenchants",
+                    "différence entre urgence vétérinaire et observation simple",
+                    "prévention par hygiène, nutrition et biosécurité",
+                    "usage de VetScan pour documenter les symptômes",
+                ],
+                "indicateurs": ["mortalité anormale", "baisse d'appétit", "baisse de production", "fièvre", "diarrhée", "toux", "boiterie"],
+                "erreurs_a_eviter": ["attendre trop longtemps", "mélanger malades et sains", "utiliser antibiotiques au hasard", "ignorer une baisse de consommation"],
+            },
+        },
         "modules_a_utiliser": {
             "NutriCore": "formuler et vérifier l'aliment",
             "VetScan": "réagir aux symptômes",
+            "ReproTrack": "suivre chaleurs, saillies, gestations, pontes, éclosions ou mises bas",
             "FloraVet": "identifier plantes utiles ou toxiques",
-            "FarmManager": "suivre coûts, tâches, mortalité, production",
+            "FarmManager": "suivre coûts, tâches, mortalité, traitements, prophylaxie et production",
             "FarmCommunity": "poser des questions et trouver des acheteurs",
         },
     }
@@ -912,6 +992,7 @@ def get_formation(code: str) -> Dict[str, Any]:
                 "questions": lecon["questions"],
                 "temps_estime_minutes": 18,
                 "livrable": "fiche pratique + quiz + action terrain",
+                "pilier_technique": _infer_lesson_pillar(str(lecon["titre"])),
             }
             for lecon in formation["lecons"]
         ],

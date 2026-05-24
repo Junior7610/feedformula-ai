@@ -330,12 +330,14 @@
                 border-left: 4px solid var(--lime);
                 font-size: 14px;
             }
-            .module-map {
+            .module-map,
+            .pillar-grid {
                 display: grid;
                 grid-template-columns: repeat(2, minmax(0, 1fr));
                 gap: 8px;
             }
-            .module-map-item {
+            .module-map-item,
+            .pillar-card {
                 padding: 10px;
                 border-radius: 14px;
                 background: #fff;
@@ -443,7 +445,8 @@
                 .slide-row,
                 .guide-phases,
                 .checklist-grid,
-                .module-map {
+                .module-map,
+                .pillar-grid {
                     grid-template-columns: 1fr;
                 }
             }
@@ -818,6 +821,15 @@
                     <div class="guide-phases">${(guide.phases || []).map((p) => `<div class="phase-card"><h4>${esc(p.phase)}</h4><p>${esc(p.but)}</p><p><strong>Actions :</strong> ${(p.actions || []).map(esc).join(" · ")}</p><p class="muted"><strong>Livrable :</strong> ${esc(p.livrable)}</p></div>`).join("")}</div>
                     <h3>✅ Checklist avant de démarrer</h3>
                     <div class="checklist-grid">${(guide.checklist_demarrage || []).map((item) => `<div class="check-item">✅ ${esc(item)}</div>`).join("")}</div>
+                    <h3>🧬 Piliers techniques indispensables</h3>
+                    <div class="pillar-grid">${Object.entries(
+                        guide.piliers_techniques_obligatoires || {},
+                    )
+                        .map(
+                            ([name, p]) =>
+                                `<div class="pillar-card"><strong>${esc(name.replaceAll("_", " "))}</strong><p>${esc(p.objectif)}</p><p class="muted"><b>À apprendre :</b> ${(p.a_apprendre || []).map(esc).join(" · ")}</p><p class="muted"><b>Indicateurs :</b> ${(p.indicateurs || []).map(esc).join(" · ")}</p></div>`,
+                        )
+                        .join("")}</div>
                     <h3>🔗 Modules FeedFormula à utiliser pendant l'apprentissage</h3>
                     <div class="module-map">${Object.entries(
                         guide.modules_a_utiliser || {},
