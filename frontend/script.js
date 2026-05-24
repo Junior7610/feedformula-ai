@@ -1800,16 +1800,16 @@
 
   function getNiveauFromPoints(points) {
     const thresholds = [
-      { level: 1, seuil: 0, label: "🌱 Semence" },
-      { level: 2, seuil: 100, label: "🌿 Pousse" },
-      { level: 3, seuil: 250, label: "🌾 Tige" },
-      { level: 4, seuil: 500, label: "🌼 Floraison" },
-      { level: 5, seuil: 900, label: "🍀 Récolte" },
-      { level: 6, seuil: 1500, label: "🏅 Expert" },
-      { level: 7, seuil: 2300, label: "👑 Maître" },
-      { level: 8, seuil: 3400, label: "✨ Légende" },
-      { level: 9, seuil: 4800, label: "🚀 Visionnaire" },
-      { level: 10, seuil: 6500, label: "🌳 Sage" },
+      { level: 1, seuil: 0, label: "Semence" },
+      { level: 2, seuil: 100, label: "Pousse" },
+      { level: 3, seuil: 250, label: "Tige" },
+      { level: 4, seuil: 500, label: "Floraison" },
+      { level: 5, seuil: 900, label: "Récolte" },
+      { level: 6, seuil: 1500, label: "Expert" },
+      { level: 7, seuil: 2300, label: "Maître" },
+      { level: 8, seuil: 3400, label: "Légende" },
+      { level: 9, seuil: 4800, label: "Visionnaire" },
+      { level: 10, seuil: 6500, label: "Sage" },
     ];
 
     let current = thresholds[0];
@@ -1885,7 +1885,7 @@
     overlay.setAttribute("aria-live", "assertive");
     overlay.innerHTML = `
       <div class="level-up-card animate-scaleIn">
-        <div class="level-up-logo" aria-hidden="true">🌾</div>
+        <div class="level-up-logo" aria-hidden="true">Niveau</div>
         <p class="level-up-kicker">NIVEAU ${level} ATTEINT !</p>
         <h2>${escapeHtml(label)}</h2>
         <p>Aya célèbre ta progression. Continue, champion de l'élevage intelligent.</p>
@@ -1905,7 +1905,7 @@
 
   function showRankOvertakeToast(name = "Ibrahim M.") {
     const el = showToast(
-      `🏆 Tu as dépassé ${name} dans la ligue !`,
+      `Tu as dépassé ${name} dans la ligue !`,
       "success",
       3600,
     );
@@ -1923,7 +1923,7 @@
       overlay.setAttribute("aria-modal", "true");
       overlay.innerHTML = `
         <div class="streak-modal animate-scaleIn">
-          <div class="streak-flame" aria-hidden="true">🔥</div>
+          <div class="streak-flame" aria-hidden="true">30</div>
           <h2>30 jours d'affilée !</h2>
           <p>Aya est fière de toi. Tu construis une vraie discipline d'éleveur moderne.</p>
           <button type="button" class="btn btn-primary streak-close">Continuer</button>
@@ -1939,7 +1939,7 @@
     }
     if (streak % 7 === 0) {
       const el = showToast(
-        `🔥 ${streak} jours d'affilée ! Continue !`,
+        `${streak} jours d'affilée ! Continue !`,
         "warning",
         4200,
       );
@@ -1958,8 +1958,8 @@
       target.appendChild(check);
       window.setTimeout(() => check.remove(), 2200);
     }
-    showAyaPointsBubble(`+${points} 🌟`);
-    showToast(`Défi complété ! +${points} 🌟`, "success", 3200);
+    showAyaPointsBubble(`+${points} points`);
+    showToast(`Défi complété ! +${points} points`, "success", 3200);
   }
 
   function updateXpUI() {
@@ -2006,13 +2006,13 @@
     const previousLevel = getNiveauFromPoints(APP.points).current;
     APP.points += gain;
     const nextLevel = getNiveauFromPoints(APP.points).current;
-    showAyaPointsBubble(`+${gain} 🌟`);
+    showAyaPointsBubble(`+${gain} points`);
     celebrate();
     setAyaMood("celebration", reason || "Bravo ! Tu gagnes des points.");
     updateXpUI();
     saveAppState();
     toast(
-      reason ? `${reason} (+${gain} 🌟)` : `+${gain} 🌟 gagnés`,
+      reason ? `${reason} (+${gain} points)` : `+${gain} points gagnés`,
       "success",
       2200,
     );
@@ -2978,10 +2978,10 @@
 
     if (actions) {
       actions.innerHTML = `
-        <button type="button" class="btn btn-secondary" data-speak-ration>🔊 Écouter</button>
-        <button type="button" class="btn btn-gold" data-pdf-ration>📄 PDF</button>
-        <button type="button" class="btn btn-secondary" data-whatsapp-ration>📱 WhatsApp</button>
-      `;
+              <button type="button" class="btn btn-secondary" data-speak-ration>Écouter</button>
+              <button type="button" class="btn btn-gold" data-pdf-ration>PDF</button>
+              <button type="button" class="btn btn-secondary" data-whatsapp-ration>WhatsApp</button>
+            `;
       bindResultActions(data);
     }
 
