@@ -17,7 +17,7 @@
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link rel="preload" href="/assets/branding/logo_principal_hd.png" as="image" />
-        <link rel="preload" href="/app/style.css?v=simple-20260524" as="style" />
+        <link rel="preload" href="/app/style.css" as="style" />
         <meta name="description" content="FeedFormula AI génère la ration parfaite pour vos animaux en 30 secondes. 50 langues africaines. 9 modules IA dont FloraVet. Gratuit pour les éleveurs béninois." />
         <title>FeedFormula AI — Nutrition Animale IA | Bénin</title>
         <meta name="keywords" content="élevage bénin, nutrition animale, IA agricole, fon, poulet, vache, ration animale" />
@@ -39,25 +39,7 @@
         <meta name="twitter:image" content="https://feedformula-ai.vercel.app/assets/branding/hero_image_accueil.png" />
 
         <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-        <link rel="stylesheet" href="style.css?v=simple-20260524" />
-                <style>
-                    body.simple-home .splash-screen,
-                    body.simple-home #celebrationLayer,
-                    body.simple-home .aya-floating,
-                    body.simple-home .xp-sticky,
-                    body.simple-home .challenge-card,
-                    body.simple-home .subscription-card,
-                    body.simple-home #offlineCachePanel,
-                    body.simple-home #ffPageExperience,
-                    body.simple-home #ffQuickNav,
-                    body.simple-home #ffUxDock,
-                    body.simple-home .ff-heading-icon,
-                    body.simple-home .language-strip > .section-subtitle,
-                    body.simple-home .language-strip > .language-list,
-                    body.simple-home .language-strip > details {
-                        display: none !important;
-                    }
-                </style>
+        <link rel="stylesheet" href="style.css" />
 
         <!-- Bibliothèques externes pour l'export PDF et les graphiques -->
         <script
@@ -71,11 +53,11 @@
 
         <script defer src="assets_manager.js"></script>
         <script defer src="i18n.js"></script>
-        <script defer src="script.js?v=simple-20260524"></script>
-            <script defer src="ux_enhancer.js?v=simple-20260524"></script>
+        <script defer src="script.js"></script>
+            <!-- ux_enhancer désactivé sur l'accueil pour éviter les bannières automatiques trop chargées -->
     </head>
 
-    <body data-i18n-page="index" class="home-page simple-home" data-page="accueil">
+    <body data-i18n-page="index" class="home-page" data-page="accueil">
         <!-- Écran de démarrage -->
         <div
             id="splashScreen"
@@ -275,7 +257,7 @@
                         data-lang="fr"
                         aria-pressed="true"
                     >
-                        Français
+                        FR
                     </button>
                     <button
                         class="lang-item"
@@ -283,7 +265,7 @@
                         data-lang="en"
                         aria-pressed="false"
                     >
-                        English
+                        EN
                     </button>
                     <button
                         class="lang-item"
@@ -291,7 +273,7 @@
                         data-lang="fon"
                         aria-pressed="false"
                     >
-                        Fon
+                        FON
                     </button>
                     <button
                         class="lang-item"
@@ -299,7 +281,7 @@
                         data-lang="yor"
                         aria-pressed="false"
                     >
-                        Yoruba
+                        YOR
                     </button>
                     <button
                         class="lang-item"
@@ -307,7 +289,7 @@
                         data-lang="ha"
                         aria-pressed="false"
                     >
-                        Hausa
+                        HA
                     </button>
                     <button
                         class="lang-item"
@@ -315,7 +297,7 @@
                         data-lang="sw"
                         aria-pressed="false"
                     >
-                        Swahili
+                        SW
                     </button>
                     <button
                         class="lang-item"
@@ -323,7 +305,7 @@
                         data-lang="ar"
                         aria-pressed="false"
                     >
-                        Arabe
+                        AR
                     </button>
                     <button
                         class="lang-item"
@@ -331,7 +313,7 @@
                         data-lang="den"
                         aria-pressed="false"
                     >
-                        Dendi
+                        DEN
                     </button>
                     <button
                         class="lang-more"
@@ -348,10 +330,11 @@
 
                 <!-- Liste complète des langues -->
                 <details
-                                    id="languagePanel"
-                                    class="card"
-                                    data-lang-panel
-                                >
+                    id="languagePanel"
+                    class="card"
+                    open
+                    data-lang-panel
+                >
                     <summary class="section-title">Langues disponibles</summary>
                     <div
                         class="language-list"
@@ -1178,7 +1161,7 @@
                         <span class="mic-wave"></span>
                         <span class="mic-wave"></span>
                         <span class="mic-wave"></span>
-                        <span class="mic-core" aria-hidden="true">Micro</span>
+                        <span class="mic-core" aria-hidden="true">Voix</span>
                     </button>
 
                     <p class="mic-help">Appuyez et parlez</p>
@@ -1244,7 +1227,7 @@
                         data-label="Poulet chair"
                         role="listitem"
                     >
-
+                        <span class="species-emoji" aria-hidden="true">🐔</span>
                         <span class="species-name">Poulet chair</span>
                     </button>
 
@@ -1256,7 +1239,7 @@
                         data-label="Poule pondeuse"
                         role="listitem"
                     >
-
+                        <span class="species-emoji" aria-hidden="true">🥚</span>
                         <span class="species-name">Poule pondeuse</span>
                     </button>
 
@@ -1268,7 +1251,7 @@
                         data-label="Pintade"
                         role="listitem"
                     >
-
+                        <span class="species-emoji" aria-hidden="true">🦜</span>
                         <span class="species-name">Pintade</span>
                     </button>
 
@@ -1280,7 +1263,7 @@
                         data-label="Canard"
                         role="listitem"
                     >
-
+                        <span class="species-emoji" aria-hidden="true">🦆</span>
                         <span class="species-name">Canard</span>
                     </button>
 
@@ -1292,7 +1275,7 @@
                         data-label="Dinde"
                         role="listitem"
                     >
-
+                        <span class="species-emoji" aria-hidden="true">🦃</span>
                         <span class="species-name">Dinde</span>
                     </button>
 
@@ -1304,7 +1287,7 @@
                         data-label="Oie"
                         role="listitem"
                     >
-
+                        <span class="species-emoji" aria-hidden="true">🪿</span>
                         <span class="species-name">Oie</span>
                     </button>
 
@@ -1316,7 +1299,7 @@
                         data-label="Caille"
                         role="listitem"
                     >
-
+                        <span class="species-emoji" aria-hidden="true">🐦</span>
                         <span class="species-name">Caille</span>
                     </button>
 
@@ -1328,7 +1311,7 @@
                         data-label="Pigeon"
                         role="listitem"
                     >
-
+                        <span class="species-emoji" aria-hidden="true">🕊️</span>
                         <span class="species-name">Pigeon</span>
                     </button>
 
@@ -1340,7 +1323,7 @@
                         data-label="Faisan"
                         role="listitem"
                     >
-
+                        <span class="species-emoji" aria-hidden="true">🦚</span>
                         <span class="species-name">Faisan</span>
                     </button>
 
@@ -1352,7 +1335,7 @@
                         data-label="Lapin"
                         role="listitem"
                     >
-
+                        <span class="species-emoji" aria-hidden="true">🐰</span>
                         <span class="species-name">Lapin</span>
                     </button>
 
@@ -1364,7 +1347,7 @@
                         data-label="Vache laitière"
                         role="listitem"
                     >
-
+                        <span class="species-emoji" aria-hidden="true">🐄</span>
                         <span class="species-name">Vache laitière</span>
                     </button>
 
@@ -1376,7 +1359,7 @@
                         data-label="Mouton"
                         role="listitem"
                     >
-
+                        <span class="species-emoji" aria-hidden="true">🐑</span>
                         <span class="species-name">Mouton</span>
                     </button>
 
@@ -1388,7 +1371,7 @@
                         data-label="Chèvre"
                         role="listitem"
                     >
-
+                        <span class="species-emoji" aria-hidden="true">🐐</span>
                         <span class="species-name">Chèvre</span>
                     </button>
 
@@ -1400,7 +1383,7 @@
                         data-label="Porc"
                         role="listitem"
                     >
-
+                        <span class="species-emoji" aria-hidden="true">🐷</span>
                         <span class="species-name">Porc</span>
                     </button>
 
@@ -1412,7 +1395,7 @@
                         data-label="Tilapia"
                         role="listitem"
                     >
-
+                        <span class="species-emoji" aria-hidden="true">🐟</span>
                         <span class="species-name">Tilapia</span>
                     </button>
                 </div>
@@ -1612,7 +1595,7 @@
                     data-result-content
                 >
                     <div class="result-hero">
-                        <strong>Ration optimisée</strong>
+                        <strong>━━━ Ration optimisée ━━━</strong>
                         <p class="section-subtitle" style="margin-top: 8px">
                             Les détails s'affichent ici après la génération.
                         </p>

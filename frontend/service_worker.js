@@ -9,7 +9,7 @@
  * - Accélérer le chargement des ressources statiques
  */
 
-const CACHE_VERSION = "feedformula-ai-v6";
+const CACHE_VERSION = "feedformula-ai-v8-restored-animals";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const RATION_CACHE = `${CACHE_VERSION}-ration`;
