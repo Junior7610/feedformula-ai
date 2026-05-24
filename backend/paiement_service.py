@@ -45,7 +45,8 @@ FEATURES = {
         "farmmanager_evenements_par_mois": 10,
         "farmmanager_briefing_hebdomadaire": True,
         "reprotrack_evenements_par_mois": 2,
-        "farmacademy_lecons_decouverte": 1,
+        "farmacademy_illimite": True,
+        "farmacademy_certificats": "1 certificat découverte",
         "farmcommunity_lecture": True,
         "farmcommunity_posts_par_mois": 1,
         "farmcast_scripts_par_mois": 0,
@@ -56,7 +57,7 @@ FEATURES = {
         "support": "communauté",
         "modules_visibles": ["NutriCore", "VetScan", "ReproTrack", "FarmManager", "FloraVet AI", "FarmAcademy", "FarmCast", "FarmCommunity", "PastureMap"],
         "modules_limites": "Usage découverte très limité : idéal pour tester, insuffisant pour gérer une vraie ferme.",
-        "upgrade_trigger": "Standard débloque l'usage quotidien et retire les frustrations de quotas.",
+        "upgrade_trigger": "L'apprentissage reste illimité ; Standard débloque l'usage quotidien des outils terrain et retire les frustrations de quotas."
     },
     "standard": {
         "positionnement": "L'offre d'habitude quotidienne — assez accessible pour s'abonner vite, mais garde les fonctions avancées en Premium.",
@@ -66,7 +67,8 @@ FEATURES = {
         "farmmanager_evenements_par_mois": 250,
         "farmmanager_finances_simples": True,
         "reprotrack_evenements_par_mois": 50,
-        "farmacademy_lecons_par_mois": 6,
+        "farmacademy_illimite": True,
+        "certificats_farmacademy": True,
         "farmcast_contenus_par_mois": 2,
         "farmcommunity_posts_par_mois": 10,
         "langues": 20,
@@ -74,7 +76,7 @@ FEATURES = {
         "historique_jours": 30,
         "support": "communauté prioritaire",
         "bonus_gamification": "+150 🌟 activation Standard",
-        "upgrade_trigger": "Premium devient nécessaire dès que vous voulez illimité, rapports avancés, PastureMap et apprentissage complet.",
+        "upgrade_trigger": "Premium devient nécessaire dès que vous voulez illimité sur les diagnostics, FloraVet, rapports avancés et PastureMap."
     },
     "premium": {
         "positionnement": "Meilleure affaire — l'offre où l'éleveur sent qu'il arrête de bricoler et pilote vraiment sa ferme.",
