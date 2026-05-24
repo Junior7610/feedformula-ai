@@ -4,354 +4,474 @@
         <meta charset="UTF-8" />
         <meta
             name="viewport"
-            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
         />
-        <meta name="theme-color" content="#1B5E20" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta
-            name="apple-mobile-web-app-status-bar-style"
-            content="black-translucent"
-        />
-        <meta name="apple-mobile-web-app-title" content="FeedFormula AI" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="application-name" content="FeedFormula AI" />
-        <link rel="manifest" href="/app/manifest.json" />
-        <link
-            rel="apple-touch-icon"
-            href="/assets/branding/logo_principal_hd.png"
-        />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            rel="preload"
-            href="/assets/branding/logo_principal_hd.png"
-            as="image"
-        />
-        <link rel="preload" href="/app/style.css" as="style" />
+        <meta name="theme-color" content="#C62828" />
         <meta
             name="description"
-            content="FeedFormula AI génère la ration parfaite pour vos animaux en 30 secondes. 50 langues africaines. 8 modules IA. Gratuit pour les éleveurs béninois."
+            content="VetScan — diagnostic santé animale par photo, symptômes et protocole d'urgence clair pour les éleveurs africains."
         />
-        <title>FeedFormula AI — Nutrition Animale IA | Bénin</title>
-        <meta
-            name="keywords"
-            content="élevage bénin, nutrition animale, IA agricole, fon, poulet, vache, ration animale"
-        />
-        <meta name="author" content="Leonel TOGBE" />
-        <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://feedformula-ai.vercel.app/app/" />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://feedformula-ai.vercel.app" />
-        <meta
-            property="og:title"
-            content="FeedFormula AI — L IA au service de l élevage africain"
-        />
-        <meta
-            property="og:description"
-            content="Formulez la ration parfaite de vos animaux en 30 secondes. En fon, yoruba, français et 47 autres langues africaines."
-        />
-        <meta
-            property="og:image"
-            content="https://feedformula-ai.vercel.app/assets/branding/hero_image_accueil.png"
-        />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:locale" content="fr_BJ" />
-        <meta property="og:site_name" content="FeedFormula AI" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta
-            name="twitter:title"
-            content="FeedFormula AI — Nutrition Animale IA"
-        />
-        <meta
-            name="twitter:description"
-            content="L intelligence africaine au service de vos animaux."
-        />
-        <meta
-            name="twitter:image"
-            content="https://feedformula-ai.vercel.app/assets/branding/hero_image_accueil.png"
-        />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-            rel="stylesheet"
-        />
+        <title>VetScan — Diagnostic santé animale simple</title>
+        <link rel="manifest" href="/app/manifest.json" />
         <link rel="stylesheet" href="style.css" />
         <style>
+            :root {
+                --red: #c62828;
+                --red2: #e53935;
+                --orange: #ef6c00;
+                --green: #2e7d32;
+                --blue: #1565c0;
+                --soft: #fff7f7;
+                --ink: #331616;
+                --muted: #705f5f;
+                --line: #efd7d7;
+                --shadow: 0 18px 48px rgba(198, 40, 40, 0.13);
+            }
+            * {
+                box-sizing: border-box;
+            }
             body {
                 margin: 0;
-                font-family: var(--font-primary);
-                background: #fff7f7;
-                color: #3a1515;
+                font-family:
+                    Inter,
+                    "Plus Jakarta Sans",
+                    system-ui,
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    sans-serif;
+                background: linear-gradient(180deg, #fff1f1, #fff 36%, #fff7f7);
+                color: var(--ink);
             }
-            .wrap {
-                max-width: 980px;
+            .app {
+                max-width: 1280px;
                 margin: 0 auto;
-                padding: 16px 16px 120px;
+                padding: 16px 16px 118px;
             }
             .grid {
                 display: grid;
+                gap: 14px;
+            }
+            .grid-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .grid-3 {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+            .grid-4 {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+            .hero {
+                display: grid;
+                grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
                 gap: 16px;
+                margin-bottom: 16px;
+            }
+            .hero-main {
+                position: relative;
+                overflow: hidden;
+                border-radius: 34px;
+                padding: 28px;
+                color: #fff;
+                background:
+                    radial-gradient(
+                        circle at 84% 12%,
+                        rgba(255, 255, 255, 0.22),
+                        transparent 25%
+                    ),
+                    linear-gradient(135deg, #7f1111, #c62828 58%, #ff7043);
+                box-shadow: var(--shadow);
+            }
+            .hero-main::after {
+                content: "🩺";
+                position: absolute;
+                right: 18px;
+                bottom: -22px;
+                font-size: 132px;
+                opacity: 0.13;
+            }
+            .hero h1 {
+                margin: 0 0 10px;
+                font-size: clamp(34px, 5vw, 62px);
+                line-height: 1;
+            }
+            .hero p {
+                max-width: 780px;
+                font-size: 18px;
+                line-height: 1.55;
+            }
+            .badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                width: max-content;
+                padding: 8px 13px;
+                border-radius: 999px;
+                background: rgba(255, 255, 255, 0.17);
+                font-weight: 900;
             }
             .card {
-                background: #fff;
-                border-radius: 20px;
-                padding: 16px;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+                background: rgba(255, 255, 255, 0.98);
+                border: 1px solid rgba(198, 40, 40, 0.12);
+                border-radius: 26px;
+                padding: 18px;
+                box-shadow: var(--shadow);
             }
-            .input,
-            .select,
-            .textarea {
+            .muted {
+                color: var(--muted);
+            }
+            input,
+            select,
+            textarea {
                 width: 100%;
-                border: 1px solid #ddd;
-                border-radius: 14px;
-                padding: 14px;
-                font-size: 16px;
-                box-sizing: border-box;
+                border: 1px solid var(--line);
+                border-radius: 16px;
+                padding: 12px 13px;
+                font: inherit;
+                background: #fff;
             }
-            .textarea {
-                min-height: 120px;
+            textarea {
+                min-height: 128px;
                 resize: vertical;
             }
+            button,
             .btn {
                 border: 0;
-                border-radius: 16px;
-                padding: 16px;
-                font-size: 17px;
-                font-weight: 700;
-                cursor: pointer;
-            }
-            .primary {
-                background: #e53935;
-                color: #fff;
-            }
-            .secondary {
-                background: #f2f2f2;
-                color: #222;
-            }
-            .photo {
-                width: 100%;
-                min-height: 220px;
-                border: 2px dashed #e0b3b3;
                 border-radius: 18px;
-                display: flex;
+                padding: 12px 15px;
+                font-weight: 900;
+                cursor: pointer;
+                background: #fff0f0;
+                color: var(--ink);
+                text-decoration: none;
+                display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                overflow: hidden;
-                background: #fff9f9;
+                gap: 8px;
             }
-            .photo img {
+            button.primary,
+            .btn.primary {
+                background: var(--red);
+                color: #fff;
+            }
+            button.green,
+            .btn.green {
+                background: var(--green);
+                color: #fff;
+            }
+            button.blue,
+            .btn.blue {
+                background: var(--blue);
+                color: #fff;
+            }
+            .actions {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+            .photo-box {
+                min-height: 260px;
+                border: 2px dashed #e7b9b9;
+                border-radius: 24px;
+                background: #fffafa;
+                display: grid;
+                place-items: center;
+                text-align: center;
+                overflow: hidden;
+                padding: 16px;
+            }
+            .photo-box img {
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
+                border-radius: 20px;
             }
-            .diag {
-                margin-top: 10px;
+            .species-card {
+                background: #fff;
+                border: 1px solid var(--line);
+                border-radius: 20px;
+                padding: 12px;
+                min-height: 84px;
+                color: var(--ink);
+                display: grid;
+                place-items: center;
+                gap: 4px;
+            }
+            .species-card.active {
+                background: var(--red);
+                color: #fff;
+            }
+            .species-card span {
+                font-size: 28px;
+            }
+            .symptom-chip {
+                border: 1px solid #efcaca;
+                border-radius: 999px;
+                padding: 8px 11px;
+                background: #fff7f7;
+                color: var(--ink);
+            }
+            .decision {
+                padding: 16px;
+                border-radius: 20px;
+                font-weight: 1000;
+                text-align: center;
+                font-size: 18px;
+            }
+            .decision.safe {
+                background: #e8f5e9;
+                color: #1b5e20;
+            }
+            .decision.urgent {
+                background: #ffebee;
+                color: #b71c1c;
+            }
+            .diagnostic-card {
+                border: 1px solid var(--line);
+                border-radius: 20px;
+                padding: 14px;
+                background: #fffafa;
             }
             .diag-head {
                 display: flex;
                 justify-content: space-between;
                 gap: 10px;
-                font-weight: 700;
+                align-items: center;
+                font-weight: 900;
             }
             .bar {
                 height: 10px;
-                background: #f0e0e0;
+                background: #f2dfdf;
                 border-radius: 999px;
                 overflow: hidden;
-                margin-top: 6px;
+                margin: 8px 0;
             }
             .bar span {
                 display: block;
                 height: 100%;
-                background: linear-gradient(90deg, #f9a825, #e53935);
+                background: linear-gradient(90deg, #f9a825, var(--red));
             }
-            .decision {
-                padding: 14px;
-                border-radius: 14px;
-                font-weight: 800;
-                text-align: center;
-                margin-top: 8px;
+            .protocol-list {
+                display: grid;
+                gap: 8px;
+                padding: 0;
+                list-style: none;
             }
-            .safe {
-                background: #e8f5e9;
-                color: #1b5e20;
+            .protocol-list li {
+                padding: 12px;
+                border-radius: 16px;
+                background: #fff7f7;
+                border-left: 5px solid var(--red);
             }
-            .urgent {
-                background: #ffebee;
-                color: #b71c1c;
-            }
-            .muted {
-                color: #666;
-                font-size: 14px;
+            .metric strong {
+                display: block;
+                font-size: 26px;
+                color: var(--red);
             }
             .history-item {
-                padding: 12px 0;
-                border-bottom: 1px solid #eee;
+                padding: 12px;
+                border-radius: 16px;
+                background: #fffafa;
+                border: 1px solid var(--line);
+                margin-bottom: 8px;
+            }
+            .emergency-grid {
+                display: grid;
+                gap: 8px;
+            }
+            .emergency-grid div {
+                padding: 10px;
+                border-radius: 14px;
+                background: #ffebee;
+                color: #7f1111;
+                font-weight: 800;
+            }
+            @media (max-width: 920px) {
+                .hero,
+                .grid-2,
+                .grid-3,
+                .grid-4 {
+                    grid-template-columns: 1fr;
+                }
+                .photo-box {
+                    min-height: 210px;
+                }
             }
         </style>
-        <script defer src="assets_manager.js"></script>
         <script defer src="i18n.js"></script>
-        <script defer src="script.js"></script>
-            <script defer src="ux_enhancer.js"></script>
+        <script defer src="ux_enhancer.js"></script>
     </head>
-    <body data-i18n-page="vetscan">
-        <div class="wrap">
-            <header class="card">
-                <h1>🩺 VetScan</h1>
-                <p class="muted">
-                    Photo, micro ou texte : obtenez un diagnostic différentiel
-                    rapide depuis le backend.
-                </p>
-            </header>
+    <body data-i18n-page="vetscan" data-page="vetscan">
+        <div class="app">
+            <section class="hero">
+                <div class="hero-main">
+                    <div class="badge">🩺 VetScan · +15 à +20 🌟</div>
+                    <h1>Comprendre les symptômes sans paniquer</h1>
+                    <p>
+                        Décrivez les signes, ajoutez une photo si possible, puis
+                        obtenez des diagnostics probables, un protocole prudent
+                        et un signal d’urgence clair.
+                    </p>
+                    <div class="actions">
+                        <a class="btn" href="floravet.html"
+                            >🌿 Plantes utiles avec FloraVet</a
+                        ><a class="btn green" href="farmmanager.html"
+                            >📊 Enregistrer dans FarmManager</a
+                        >
+                    </div>
+                </div>
+                <div class="card grid">
+                    <h2>🚨 Signes d’urgence</h2>
+                    <div class="emergency-grid">
+                        <div>Respiration difficile</div>
+                        <div>Sang, convulsions ou paralysie</div>
+                        <div>Mortalité rapide</div>
+                        <div>Avortement, fièvre forte, abattement sévère</div>
+                    </div>
+                </div>
+            </section>
 
             <main class="grid">
-                <section class="card">
-                    <h2>Photo de l’animal</h2>
-                    <input
-                        id="photoInput"
-                        type="file"
-                        accept="image/*"
-                        capture="environment"
-                        hidden
-                    />
-                    <div id="photoPreview" class="photo">
-                        Aperçu de la photo
+                <section class="grid grid-2">
+                    <div class="card grid">
+                        <h2>1. Photo de l’animal</h2>
+                        <input
+                            id="photoInput"
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            hidden
+                        />
+                        <div id="photoPreview" class="photo-box">
+                            <div>
+                                <strong>📷 Aperçu de la photo</strong
+                                ><br /><span class="muted"
+                                    >Prenez l’animal ou le symptôme de près,
+                                    avec bonne lumière.</span
+                                >
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button id="photoBtn">Choisir une photo</button
+                            ><button id="analyzePhotoBtn" class="primary">
+                                Analyser la photo
+                            </button>
+                        </div>
                     </div>
-                    <div
-                        style="
-                            display: grid;
-                            grid-template-columns: 1fr 1fr;
-                            gap: 10px;
-                            margin-top: 12px;
-                        "
-                    >
-                        <button
-                            id="photoBtn"
-                            class="btn secondary"
-                            type="button"
-                        >
-                            📷 Choisir une photo
-                        </button>
-                        <button
-                            id="analyzePhotoBtn"
-                            class="btn primary"
-                            type="button"
-                        >
-                            Analyser la photo
-                        </button>
-                    </div>
-                </section>
-
-                <section class="card">
-                    <h2>Symptômes et espèce</h2>
-                    <div style="display: grid; gap: 12px">
-                        <button id="micBtn" class="btn secondary" type="button">
-                            🎤 Dicter les symptômes
-                        </button>
-                        <select id="speciesSelect" class="select">
+                    <div class="card grid">
+                        <h2>2. Espèce et symptômes</h2>
+                        <div id="speciesCards" class="grid grid-3"></div>
+                        <select id="speciesSelect" hidden>
                             <option value="">Choisir l’espèce</option>
-                            <option>Vache</option>
-                            <option>Chèvre</option>
-                            <option>Mouton</option>
-                            <option>Poulet</option>
-                            <option>Porc</option>
-                            <option>Tilapia</option>
-                            <option>Pintade</option>
                         </select>
+                        <div class="actions" id="symptomChips"></div>
+                        <button id="micBtn">🎤 Dicter les symptômes</button>
                         <textarea
                             id="symptomsInput"
-                            class="textarea"
-                            placeholder="Décrivez les symptômes observés..."
+                            placeholder="Exemple : diarrhée depuis 2 jours, baisse d'appétit, plumes hérissées, 3 morts sur 100..."
                         ></textarea>
-                        <button
-                            id="diagnoseBtn"
-                            class="btn primary"
-                            type="button"
-                        >
+                        <button id="diagnoseBtn" class="primary">
                             🔍 Diagnostiquer maintenant
                         </button>
                     </div>
                 </section>
 
-                <section id="resultBox" class="card" hidden>
+                <section id="resultBox" class="card grid" hidden>
                     <h2>Résultat du diagnostic</h2>
                     <div id="decisionBox" class="decision safe">
                         Soins autonomes possibles
                     </div>
-                    <div id="diagnostics"></div>
-                    <h3>Protocole de soins</h3>
-                    <ul id="protocol"></ul>
-                    <p id="urgenceMsg" class="muted"></p>
-                    <p id="preventionMsg" class="muted"></p>
-                    <div
-                        class="card"
-                        style="
-                            margin-top: 12px;
-                            background: #eef8ee;
-                            border-left: 6px solid #2e7d32;
-                        "
-                    >
-                        <h3>🌿 Plantes médicinales recommandées — FloraVet</h3>
-                        <p class="muted">
-                            Selon les symptômes, consultez FloraVet pour
-                            identifier les plantes locales utiles et vérifier
-                            leur sécurité.
-                        </p>
-                        <div style="display: flex; gap: 8px; flex-wrap: wrap">
-                            <a class="btn primary" href="floravet.html#library"
-                                >Ouvrir FloraVet</a
-                            >
-                            <a class="btn" href="floravet.html#regional"
-                                >Plantes de ma région</a
-                            >
+                    <div class="grid grid-3" id="diagnostics"></div>
+                    <div class="grid grid-2">
+                        <div class="card">
+                            <h3>Protocole de soins</h3>
+                            <ul id="protocol" class="protocol-list"></ul>
+                        </div>
+                        <div class="card">
+                            <h3>Prévention et urgence</h3>
+                            <p id="urgenceMsg" class="muted"></p>
+                            <p id="preventionMsg" class="muted"></p>
+                            <div class="actions">
+                                <a
+                                    id="vetLink"
+                                    class="btn primary"
+                                    href="https://www.google.com/maps/search/veterinaire"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    hidden
+                                    >📍 Trouver un vétérinaire</a
+                                ><a
+                                    class="btn green"
+                                    href="floravet.html#library"
+                                    >🌿 FloraVet</a
+                                >
+                            </div>
                         </div>
                     </div>
-                    <a
-                        id="vetLink"
-                        class="btn primary"
-                        href="https://www.google.com/maps/search/veterinaire"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        hidden
-                        >📍 Trouver un vétérinaire</a
-                    >
-                    >
                 </section>
 
                 <section class="card">
                     <h2>Historique récent</h2>
-                    <div
-                        id="history"
-                        aria-live="polite"
-                        aria-busy="false"
-                    ></div>
+                    <div id="history"></div>
                 </section>
             </main>
         </div>
-
         <script>
+            const species = [
+                { v: "poulet_chair", l: "Poulet", i: "🐔" },
+                { v: "bovin", l: "Bovin", i: "🐄" },
+                { v: "chevre", l: "Chèvre", i: "🐐" },
+                { v: "mouton", l: "Mouton", i: "🐑" },
+                { v: "porc", l: "Porc", i: "🐷" },
+                { v: "tilapia", l: "Tilapia", i: "🐟" },
+            ];
+            const symptoms = [
+                "diarrhée",
+                "toux",
+                "baisse appétit",
+                "mortalité",
+                "boiterie",
+                "plumes hérissées",
+                "fièvre",
+                "respiration difficile",
+            ];
             const $ = (s) => document.querySelector(s);
-            const photoInput = $("#photoInput");
-            const photoBtn = $("#photoBtn");
-            const analyzePhotoBtn = $("#analyzePhotoBtn");
-            const diagnoseBtn = $("#diagnoseBtn");
-            const symptomsInput = $("#symptomsInput");
-            const speciesSelect = $("#speciesSelect");
-            const photoPreview = $("#photoPreview");
-            const resultBox = $("#resultBox");
-            const diagnosticsBox = $("#diagnostics");
-            const protocolBox = $("#protocol");
-            const decisionBox = $("#decisionBox");
-            const urgenceMsg = $("#urgenceMsg");
-            const preventionMsg = $("#preventionMsg");
-            const vetLink = $("#vetLink");
-            const historyBox = $("#history");
             let selectedFile = null;
-
+            let selectedSpecies = "poulet_chair";
+            function renderSpecies() {
+                $("#speciesCards").innerHTML = species
+                    .map(
+                        (s) =>
+                            `<button class="species-card ${s.v === selectedSpecies ? "active" : ""}" onclick="selectSpecies('${s.v}')"><span>${s.i}</span><strong>${s.l}</strong></button>`,
+                    )
+                    .join("");
+                $("#speciesSelect").innerHTML = species
+                    .map(
+                        (s) =>
+                            `<option value="${s.v}" ${s.v === selectedSpecies ? "selected" : ""}>${s.l}</option>`,
+                    )
+                    .join("");
+            }
+            function selectSpecies(v) {
+                selectedSpecies = v;
+                renderSpecies();
+            }
+            function renderChips() {
+                $("#symptomChips").innerHTML = symptoms
+                    .map(
+                        (s) =>
+                            `<button class="symptom-chip" onclick="addSymptom('${s}')">${s}</button>`,
+                    )
+                    .join("");
+            }
+            function addSymptom(s) {
+                const box = $("#symptomsInput");
+                box.value = box.value ? box.value + ", " + s : s;
+            }
             function getHistory() {
                 try {
                     return JSON.parse(
-                        localStorage.getItem("feedformula_vet_history_v3") ||
+                        localStorage.getItem("feedformula_vet_history_v4") ||
                             "[]",
                     );
                 } catch {
@@ -360,23 +480,20 @@
             }
             function setHistory(items) {
                 localStorage.setItem(
-                    "feedformula_vet_history_v3",
+                    "feedformula_vet_history_v4",
                     JSON.stringify(items),
                 );
             }
             function renderHistory() {
-                const items = getHistory().slice(0, 5);
-                if (!items.length) {
-                    historyBox.innerHTML =
-                        '<p class="muted">Aucun diagnostic enregistré.</p>';
-                    return;
-                }
-                historyBox.innerHTML = items
-                    .map(
-                        (item) =>
-                            `<div class="history-item"><strong>${item.espece}</strong><div class="muted">${new Date(item.date).toLocaleString("fr-FR")}</div><div>${item.top}</div></div>`,
-                    )
-                    .join("");
+                const items = getHistory().slice(0, 6);
+                $("#history").innerHTML = items.length
+                    ? items
+                          .map(
+                              (it, i) =>
+                                  `<div class="history-item"><strong>${it.espece}</strong><div class="muted">${new Date(it.date).toLocaleString("fr-FR")}</div><div>${it.top}</div><button onclick="renderResult(getHistory()[${i}].result)">Revoir</button></div>`,
+                          )
+                          .join("")
+                    : '<p class="muted">Aucun diagnostic enregistré.</p>';
             }
             function pushHistory(item) {
                 setHistory([item, ...getHistory()].slice(0, 10));
@@ -389,73 +506,89 @@
                     r.diagnostic_2,
                     r.diagnostic_3,
                 ].filter(Boolean);
-                resultBox.hidden = false;
-                diagnosticsBox.innerHTML = diags
+                $("#resultBox").hidden = false;
+                $("#diagnostics").innerHTML = diags
                     .map((d, i) => {
                         const p = Math.round((d.probabilite || 0) * 100);
-                        return `<div class="diag"><div class="diag-head"><span>${i + 1}. ${d.nom}</span><strong>${p}%</strong></div><div class="bar"><span style="width:${p}%"></span></div><div class="muted">${d.description || ""}</div></div>`;
+                        return `<div class="diagnostic-card"><div class="diag-head"><span>${i + 1}. ${d.nom}</span><strong>${p}%</strong></div><div class="bar"><span style="width:${p}%"></span></div><p class="muted">${d.description || ""}</p></div>`;
                     })
                     .join("");
-                protocolBox.innerHTML = (r.protocole_soins || [])
-                    .map((step) => `<li>${step}</li>`)
+                $("#protocol").innerHTML = (r.protocole_soins || [])
+                    .map((x) => `<li>${x}</li>`)
                     .join("");
-                decisionBox.className = `decision ${r.decision === "urgence" ? "urgent" : "safe"}`;
-                decisionBox.textContent =
+                $("#decisionBox").className =
+                    `decision ${r.decision === "urgence" ? "urgent" : "safe"}`;
+                $("#decisionBox").textContent =
                     r.decision === "urgence"
                         ? "⚠️ URGENCE VÉTÉRINAIRE"
                         : "✅ Soins autonomes possibles";
-                urgenceMsg.textContent = r.message_urgence || "";
-                preventionMsg.textContent = r.prevention || "";
-                vetLink.hidden = r.decision !== "urgence";
+                $("#urgenceMsg").textContent =
+                    r.message_urgence ||
+                    "Aucune urgence vitale détectée dans les données fournies.";
+                $("#preventionMsg").textContent = r.prevention || "";
+                $("#vetLink").hidden = r.decision !== "urgence";
                 pushHistory({
                     date: new Date().toISOString(),
-                    espece: speciesSelect.value || "Animal",
+                    espece: selectedSpecies,
                     top: diags[0]?.nom || "Diagnostic",
                     result: r,
                 });
+                document
+                    .getElementById("resultBox")
+                    .scrollIntoView({ behavior: "smooth" });
             }
-            photoBtn.addEventListener("click", () => photoInput.click());
-            photoInput.addEventListener("change", () => {
-                selectedFile = photoInput.files?.[0] || null;
+            $("#photoBtn").onclick = () => $("#photoInput").click();
+            $("#photoInput").onchange = () => {
+                selectedFile = $("#photoInput").files?.[0] || null;
                 if (!selectedFile) return;
                 const reader = new FileReader();
-                reader.onload = () => {
-                    photoPreview.innerHTML = `<img src="${reader.result}" alt="Prévisualisation">`;
-                };
+                reader.onload = () =>
+                    ($("#photoPreview").innerHTML =
+                        `<img src="${reader.result}" alt="Prévisualisation">`);
                 reader.readAsDataURL(selectedFile);
-            });
-            diagnoseBtn.addEventListener("click", async () => {
-                const payload = {
-                    espece: speciesSelect.value || "Animal",
-                    symptomes: symptomsInput.value || "",
-                    langue: "fr",
-                };
+            };
+            $("#diagnoseBtn").onclick = async () => {
                 const res = await fetch("/vetscan/diagnostiquer", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload),
+                    body: JSON.stringify({
+                        espece: selectedSpecies,
+                        symptomes:
+                            $("#symptomsInput").value ||
+                            "symptômes non précisés",
+                        langue: document.documentElement.lang || "fr",
+                        user_id:
+                            localStorage.getItem("feedformula_user_id") ||
+                            "demo-user",
+                    }),
                 });
                 renderResult(await res.json());
-            });
-            analyzePhotoBtn.addEventListener("click", async () => {
+            };
+            $("#analyzePhotoBtn").onclick = async () => {
                 if (!selectedFile) {
                     alert("Choisissez d’abord une photo.");
                     return;
                 }
                 const form = new FormData();
                 form.append("image", selectedFile);
-                form.append("espece", speciesSelect.value || "Animal");
-                form.append("langue", "fr");
+                form.append("espece", selectedSpecies);
+                form.append("langue", document.documentElement.lang || "fr");
+                form.append(
+                    "user_id",
+                    localStorage.getItem("feedformula_user_id") || "demo-user",
+                );
                 const res = await fetch("/vetscan/analyser-photo", {
                     method: "POST",
                     body: form,
                 });
                 renderResult(await res.json());
-            });
-            micBtn.addEventListener("click", () => {
+            };
+            $("#micBtn").onclick = () => {
                 const txt = prompt("Décrivez les symptômes :");
-                if (txt) symptomsInput.value = txt;
-            });
+                if (txt) $("#symptomsInput").value = txt;
+            };
+            renderSpecies();
+            renderChips();
             renderHistory();
         </script>
     </body>
