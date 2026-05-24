@@ -4,199 +4,225 @@
         <meta charset="UTF-8" />
         <meta
             name="viewport"
-            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
         />
-        <title>FeedFormula AI — Nutrition Animale IA | Bénin</title>
-        <meta
-            name="keywords"
-            content="élevage bénin, nutrition animale, IA agricole, fon, poulet, vache, ration animale"
-        />
-        <meta name="author" content="Leonel TOGBE" />
-        <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://feedformula-ai.vercel.app/app/" />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://feedformula-ai.vercel.app" />
-        <meta
-            property="og:title"
-            content="FeedFormula AI — L IA au service de l élevage africain"
-        />
-        <meta
-            property="og:description"
-            content="Formulez la ration parfaite de vos animaux en 30 secondes. En fon, yoruba, français et 47 autres langues africaines."
-        />
-        <meta
-            property="og:image"
-            content="https://feedformula-ai.vercel.app/assets/branding/hero_image_accueil.png"
-        />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:locale" content="fr_BJ" />
-        <meta property="og:site_name" content="FeedFormula AI" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta
-            name="twitter:title"
-            content="FeedFormula AI — Nutrition Animale IA"
-        />
-        <meta
-            name="twitter:description"
-            content="L intelligence africaine au service de vos animaux."
-        />
-        <meta
-            name="twitter:image"
-            content="https://feedformula-ai.vercel.app/assets/branding/hero_image_accueil.png"
-        />
+        <meta name="theme-color" content="#1769FF" />
         <meta
             name="description"
-            content="FeedFormula AI génère la ration parfaite pour vos animaux en 30 secondes. 50 langues africaines. 8 modules IA. Gratuit pour les éleveurs béninois."
+            content="FarmCast — studio IA de contenus agricoles multicanaux : audio WhatsApp, TikTok/Reels, fiche PDF, carrousel, radio et campagnes d'élevage."
         />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta
-            name="apple-mobile-web-app-status-bar-style"
-            content="black-translucent"
-        />
-        <meta name="apple-mobile-web-app-title" content="FeedFormula AI" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="application-name" content="FeedFormula AI" />
+        <title>FarmCast — Studio IA de contenu agricole</title>
         <link rel="manifest" href="/app/manifest.json" />
-        <link
-            rel="apple-touch-icon"
-            href="/assets/branding/logo_principal_hd.png"
-        />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            rel="preload"
-            href="/assets/branding/logo_principal_hd.png"
-            as="image"
-        />
-        <link rel="preload" href="/app/style.css" as="style" />
-
         <link rel="stylesheet" href="style.css" />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-            rel="stylesheet"
-        />
         <style>
             :root {
                 --blue: #1769ff;
                 --blue2: #1b4fb8;
-                --bg: #f6f8fb;
-                --card: #fff;
-                --text: #16212d;
+                --sky: #0ea5e9;
+                --green: #0f9d58;
+                --gold: #f59e0b;
+                --red: #ef4444;
+                --bg: #f5f8ff;
+                --ink: #16212d;
                 --muted: #60708a;
+                --line: #d6e2f5;
+                --shadow: 0 18px 48px rgba(23, 105, 255, 0.12);
             }
             * {
                 box-sizing: border-box;
             }
             body {
                 margin: 0;
-                font-family: var(--font-primary);
-                background: var(--bg);
-                color: var(--text);
+                font-family: Inter, "Plus Jakarta Sans", system-ui, sans-serif;
+                background: linear-gradient(
+                    180deg,
+                    #eef5ff,
+                    #fff 35%,
+                    var(--bg)
+                );
+                color: var(--ink);
             }
-            header,
-            main {
-                max-width: 1200px;
-                margin: auto;
-                padding: 20px;
-            }
-            .card {
-                background: var(--card);
-                border-radius: 18px;
-                padding: 16px;
-                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-                margin-bottom: 16px;
+            .app {
+                max-width: 1280px;
+                margin: 0 auto;
+                padding: 16px 16px 110px;
             }
             .grid {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-                gap: 12px;
+                gap: 14px;
+            }
+            .grid-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .grid-3 {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+            .grid-4 {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+            .hero {
+                display: grid;
+                grid-template-columns: 1.2fr 0.8fr;
+                gap: 16px;
+                margin-bottom: 16px;
+            }
+            .hero-main {
+                position: relative;
+                overflow: hidden;
+                border-radius: 34px;
+                padding: 28px;
+                color: #fff;
+                background:
+                    radial-gradient(
+                        circle at 82% 12%,
+                        rgba(255, 255, 255, 0.22),
+                        transparent 25%
+                    ),
+                    linear-gradient(135deg, #0b3d91, #1769ff 58%, #0ea5e9);
+                box-shadow: var(--shadow);
+            }
+            .hero-main:after {
+                content: "🎙️";
+                position: absolute;
+                right: 16px;
+                bottom: -22px;
+                font-size: 132px;
+                opacity: 0.13;
+            }
+            .hero h1 {
+                font-size: clamp(34px, 5vw, 62px);
+                line-height: 1;
+                margin: 0 0 10px;
+            }
+            .hero p {
+                font-size: 18px;
+                line-height: 1.55;
+                max-width: 760px;
+            }
+            .badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                width: max-content;
+                padding: 8px 13px;
+                border-radius: 999px;
+                background: rgba(255, 255, 255, 0.17);
+                font-weight: 900;
+            }
+            .card {
+                background: rgba(255, 255, 255, 0.97);
+                border: 1px solid rgba(23, 105, 255, 0.12);
+                border-radius: 26px;
+                padding: 18px;
+                box-shadow: var(--shadow);
+            }
+            .muted {
+                color: var(--muted);
             }
             input,
             select,
             textarea {
                 width: 100%;
-                padding: 11px;
-                border: 1px solid #d6dce3;
-                border-radius: 10px;
-                margin-top: 6px;
+                border: 1px solid var(--line);
+                border-radius: 16px;
+                padding: 12px 13px;
+                font: inherit;
+                background: #fff;
             }
-            button {
-                border: none;
-                border-radius: 12px;
-                padding: 11px 16px;
-                background: var(--blue);
-                color: #fff;
+            textarea {
+                min-height: 110px;
+            }
+            button,
+            .btn {
+                border: 0;
+                border-radius: 18px;
+                padding: 12px 15px;
+                font-weight: 900;
                 cursor: pointer;
-                transition:
-                    transform 0.2s ease,
-                    opacity 0.2s ease;
-            }
-            button:hover {
-                transform: translateY(-1px);
-            }
-            button:disabled {
-                opacity: 0.6;
-                cursor: not-allowed;
-            }
-            .muted {
-                color: var(--muted);
-            }
-            .gallery {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-                gap: 12px;
-            }
-            .gallery .stub {
-                width: 100%;
-                min-height: 160px;
-                border-radius: 14px;
-                background: linear-gradient(135deg, #edf4ff, #f3fff7);
-                display: flex;
+                background: #eaf2ff;
+                color: var(--ink);
+                text-decoration: none;
+                display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                text-align: center;
-                padding: 10px;
+                gap: 8px;
             }
-            .pill {
-                display: inline-block;
-                padding: 4px 10px;
-                border-radius: 999px;
-                background: #e8f0ff;
-                color: #1b4fb8;
-                font-size: 12px;
+            button.primary,
+            .btn.primary {
+                background: var(--blue);
+                color: #fff;
             }
-            .history-item {
-                border-bottom: 1px solid #edf0f5;
+            .btn.green,
+            button.green {
+                background: var(--green);
+                color: #fff;
+            }
+            .btn.gold,
+            button.gold {
+                background: var(--gold);
+                color: #251600;
+            }
+            .btn.red,
+            button.red {
+                background: var(--red);
+                color: #fff;
+            }
+            .actions {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+            .metric strong {
+                display: block;
+                font-size: 28px;
+                color: var(--blue);
+            }
+            .tabs {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+                position: sticky;
+                top: 0;
+                background: rgba(245, 248, 255, 0.9);
+                backdrop-filter: blur(12px);
+                z-index: 8;
                 padding: 10px 0;
             }
-            audio {
-                width: 100%;
-                margin-top: 10px;
+            .tab {
+                border: 1px solid var(--line);
+                background: #fff;
+            }
+            .tab.active {
+                background: var(--blue);
+                color: #fff;
+            }
+            .panel {
+                display: none;
+            }
+            .panel.active {
+                display: grid;
             }
             .suggestions {
                 display: flex;
                 gap: 8px;
                 flex-wrap: wrap;
-                margin-top: 8px;
             }
             .chip {
                 border: 1px solid #cfe0ff;
                 background: #f2f7ff;
-                color: #1b4fb8;
-                padding: 7px 10px;
+                color: var(--blue2);
+                padding: 8px 12px;
                 border-radius: 999px;
                 cursor: pointer;
             }
             .loading {
                 display: none;
-                align-items: center;
                 gap: 10px;
-                padding: 12px 14px;
-                border-radius: 14px;
+                align-items: center;
+                padding: 12px;
+                border-radius: 16px;
                 background: #eef5ff;
-                color: #174da0;
-                margin-top: 12px;
+                color: var(--blue2);
             }
             .spinner {
                 width: 18px;
@@ -211,57 +237,11 @@
                     transform: rotate(360deg);
                 }
             }
-            .hero {
-                display: flex;
-                align-items: center;
-                gap: 14px;
-                background: linear-gradient(135deg, #eef4ff, #fff7ea);
-                border: 1px solid #dce8ff;
-                border-radius: 24px;
-                padding: 16px 18px;
-            }
-            .aya {
-                width: 58px;
-                height: 58px;
-                border-radius: 50%;
-                background: linear-gradient(135deg, #ffd166, #ff8fab);
-                display: grid;
-                place-items: center;
-                font-size: 30px;
-                box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
-                animation: bounce 3.2s ease-in-out infinite;
-            }
-            @keyframes bounce {
-                0%,
-                100% {
-                    transform: translateY(0);
-                }
-                50% {
-                    transform: translateY(-5px);
-                }
-            }
-            .share-row {
-                display: flex;
-                gap: 10px;
-                flex-wrap: wrap;
-            }
-            .share-row button {
-                background: #0f9d58;
-            }
-            .share-row button:nth-child(2) {
-                background: #0ea5e9;
-            }
-            .share-row button:nth-child(3) {
-                background: #f59e0b;
-            }
-            .share-row button:nth-child(4) {
-                background: #ef4444;
-            }
             .status {
-                margin-top: 12px;
-                padding: 12px 14px;
-                border-radius: 14px;
                 display: none;
+                margin-top: 12px;
+                padding: 12px;
+                border-radius: 16px;
             }
             .status.ok {
                 background: #e8fff1;
@@ -271,172 +251,288 @@
                 background: #eef5ff;
                 color: #174da0;
             }
+            .script-box {
+                white-space: pre-wrap;
+                line-height: 1.65;
+                background: #f8fbff;
+                border-left: 5px solid var(--blue);
+                border-radius: 18px;
+                padding: 16px;
+            }
+            .scene-card,
+            .platform-card,
+            .campaign-card {
+                padding: 14px;
+                border-radius: 20px;
+                background: #f8fbff;
+                border: 1px solid var(--line);
+            }
+            .scene-card h4,
+            .platform-card h4,
+            .campaign-card h4 {
+                margin: 0 0 8px;
+                color: var(--blue2);
+            }
+            .gallery {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 12px;
+            }
+            .stub {
+                min-height: 160px;
+                border-radius: 18px;
+                background: linear-gradient(135deg, #edf4ff, #f3fff7);
+                display: grid;
+                place-items: center;
+                text-align: center;
+                padding: 12px;
+            }
+            .score-ring {
+                width: 118px;
+                height: 118px;
+                border-radius: 50%;
+                display: grid;
+                place-items: center;
+                background: conic-gradient(
+                    var(--blue) calc(var(--score) * 10%),
+                    #dbe8ff 0
+                );
+                box-shadow:
+                    inset 0 0 0 12px #fff,
+                    0 10px 28px rgba(23, 105, 255, 0.18);
+                font-weight: 1000;
+            }
+            .history-item {
+                padding: 12px;
+                border-radius: 16px;
+                background: #f8fbff;
+                border: 1px solid var(--line);
+                margin-bottom: 8px;
+            }
+            audio {
+                width: 100%;
+                margin-top: 10px;
+            }
+            @media (max-width: 980px) {
+                .hero,
+                .grid-2,
+                .grid-3,
+                .grid-4,
+                .gallery {
+                    grid-template-columns: 1fr;
+                }
+            }
         </style>
-        <script defer src="assets_manager.js"></script>
-        <script defer src="i18n.js"></script>
-        <script defer src="script.js"></script>
-        <meta name="theme-color" content="#1B5E20" />
     </head>
     <body data-i18n-page="farmcast">
-        <header>
-            <div>
-                <h1>FarmCast</h1>
-                <p class="muted">
-                    Créez un script court, une voix, des images et une fiche PDF
-                    partageable en quelques clics.
-                </p>
-            </div>
-            <div class="hero">
-                <div class="aya">🎙️</div>
-                <div>
-                    <strong>Aya prépare votre message</strong>
-                    <div class="muted">
-                        Un contenu simple, percutant et prêt à partager.
+        <div class="app">
+            <section class="hero">
+                <div class="hero-main">
+                    <div class="badge">
+                        🎙️ FarmCast Premium · Studio IA agricole
+                    </div>
+                    <h1>Créez des contenus agricoles prêts à publier</h1>
+                    <p>
+                        Transformez un sujet technique en audio WhatsApp, vidéo
+                        courte, fiche PDF, carrousel, post Facebook, script
+                        radio et campagne de 7 jours — avec stratégie,
+                        storyboard et pack multicanal.
+                    </p>
+                    <div class="actions">
+                        <a class="btn" href="farmacademy.html"
+                            >🎓 Former avec FarmAcademy</a
+                        ><a class="btn green" href="farmcommunity.html"
+                            >🤝 Publier dans FarmCommunity</a
+                        >
                     </div>
                 </div>
-            </div>
-        </header>
-        <main>
-            <section class="card">
-                <h2>Créer mon contenu</h2>
-                <div class="grid">
+                <div class="card grid">
+                    <h2>🌽 Aya Créatrice</h2>
+                    <p id="ayaText" class="muted">
+                        Choisissez un thème et FarmCast prépare un kit complet.
+                    </p>
                     <label
-                        >Thème<input
-                            id="theme"
-                            placeholder="Ex: Vaccination des poulets"
-                    /></label>
-                    <label
-                        >Langue<select id="langue">
-                            <option>fr</option>
-                            <option>fon</option>
-                            <option>en</option>
-                        </select></label
-                    >
-                    <label
-                        >Format<select id="format">
-                            <option>audio</option>
-                            <option>video</option>
-                            <option>fiche</option>
-                        </select></label
-                    >
-                    <label
-                        >Public cible<input
-                            id="public"
-                            placeholder="Ex: éleveurs de volailles"
-                    /></label>
-                </div>
-                <div class="suggestions">
-                    <button
-                        class="chip"
-                        type="button"
-                        onclick="setTheme('vaccination')"
-                    >
-                        vaccination
-                    </button>
-                    <button
-                        class="chip"
-                        type="button"
-                        onclick="setTheme('alimentation')"
-                    >
-                        alimentation
-                    </button>
-                    <button
-                        class="chip"
-                        type="button"
-                        onclick="setTheme('reproduction')"
-                    >
-                        reproduction
-                    </button>
-                    <button
-                        class="chip"
-                        type="button"
-                        onclick="setTheme('marché')"
-                    >
-                        marché
-                    </button>
-                    <button
-                        class="chip"
-                        type="button"
-                        onclick="setTheme('prévention')"
-                    >
-                        prévention
+                        >ID utilisateur<input
+                            id="userId"
+                            placeholder="demo-user" /></label
+                    ><button class="primary" onclick="loadDashboard()">
+                        Charger mon studio
                     </button>
                 </div>
-                <button
-                    id="createBtn"
-                    style="margin-top: 12px"
-                    onclick="createContent()"
-                >
-                    Créer mon contenu
+            </section>
+            <section id="metrics" class="grid grid-4">
+                <div class="card metric">
+                    <strong>—</strong><span>contenus</span>
+                </div>
+                <div class="card metric">
+                    <strong>—</strong><span>points</span>
+                </div>
+                <div class="card metric">
+                    <strong>—</strong><span>score créateur</span>
+                </div>
+                <div class="card metric">
+                    <strong>—</strong><span>formats</span>
+                </div>
+            </section>
+            <div class="tabs">
+                <button class="tab active" data-tab="create">✨ Créer</button
+                ><button class="tab" data-tab="previewPanel">
+                    👁️ Prévisualiser</button
+                ><button class="tab" data-tab="storyboardPanel">
+                    🎬 Storyboard</button
+                ><button class="tab" data-tab="platformPanel">
+                    📱 Multicanal</button
+                ><button class="tab" data-tab="campaignPanel">
+                    📅 Campagne</button
+                ><button class="tab" data-tab="historyPanel">
+                    🕘 Historique
                 </button>
-                <div class="loading" id="loadingBox">
-                    <span class="spinner"></span
-                    ><span
-                        >Génération en cours... Aya travaille pour vous.</span
-                    >
-                </div>
-                <div id="stateBox" class="status info"></div>
-            </section>
-
-            <section class="card">
-                <h2>Prévisualisation</h2>
-                <div id="preview" class="muted">
-                    Aucun contenu généré pour le moment.
-                </div>
-            </section>
-
-            <section class="card">
-                <h2>Galerie des images</h2>
-                <div id="gallery" class="gallery"></div>
-            </section>
-
-            <section class="card">
-                <h2>Partager</h2>
-                <div class="share-row">
-                    <button type="button" onclick="share('whatsapp')">
-                        WhatsApp
-                    </button>
-                    <button type="button" onclick="share('youtube')">
-                        YouTube
-                    </button>
-                    <button type="button" onclick="share('tiktok')">
-                        TikTok
-                    </button>
-                    <button type="button" onclick="share('facebook')">
-                        Facebook
-                    </button>
-                </div>
-            </section>
-
-            <section class="card">
-                <h2>Historique des 10 derniers contenus</h2>
-                <label
-                    >Utilisateur ID<input
-                        id="userId"
-                        placeholder="ID utilisateur"
-                /></label>
-                <button style="margin-top: 12px" onclick="loadHistory()">
-                    Charger l'historique
-                </button>
-                <div id="history" aria-live="polite" aria-busy="false"></div>
-            </section>
-        </main>
-
-        <footer class="site-footer" aria-label="Pied de page">
-            <div class="site-footer__inner">
-                <strong>FeedFormula AI</strong>
-                <span
-                    >FarmCast · Contenu vocal, vidéo et fiche PDF pour
-                    l’Afrique</span
-                >
-                <div class="site-footer__links">
-                    <a href="index.html">Accueil</a>
-                    <a href="abonnement.html">Offres</a>
-                    <a href="modules.html">Modules</a>
-                </div>
             </div>
-        </footer>
-
+            <section id="create" class="panel active grid">
+                <div class="card">
+                    <h2>Créer un contenu</h2>
+                    <div class="grid grid-4">
+                        <label
+                            >Thème<input
+                                id="theme"
+                                placeholder="Ex: Vaccination Newcastle" /></label
+                        ><label
+                            >Langue<select id="langue">
+                                <option value="fr">Français</option>
+                                <option value="fon">Fon</option>
+                                <option value="yoruba">Yoruba</option>
+                                <option value="en">English</option>
+                            </select></label
+                        ><label
+                            >Format<select id="format">
+                                <option value="whatsapp_audio">
+                                    WhatsApp Audio
+                                </option>
+                                <option value="tiktok_reels">
+                                    TikTok / Reels
+                                </option>
+                                <option value="youtube_short">
+                                    YouTube Short
+                                </option>
+                                <option value="fiche_technique">
+                                    Fiche technique
+                                </option>
+                                <option value="carrousel">Carrousel</option>
+                                <option value="radio_locale">
+                                    Radio locale
+                                </option>
+                            </select></label
+                        ><label
+                            >Public cible<input
+                                id="public"
+                                placeholder="éleveurs débutants"
+                        /></label>
+                    </div>
+                    <div class="suggestions" style="margin-top: 10px">
+                        <button
+                            class="chip"
+                            onclick="
+                                setTheme('vaccination Newcastle volailles')
+                            "
+                        >
+                            vaccination</button
+                        ><button
+                            class="chip"
+                            onclick="setTheme('alimentation poulets chair')"
+                        >
+                            alimentation</button
+                        ><button
+                            class="chip"
+                            onclick="setTheme('détection chaleurs vache')"
+                        >
+                            reproduction</button
+                        ><button
+                            class="chip"
+                            onclick="setTheme('calcul coût de revient')"
+                        >
+                            rentabilité</button
+                        ><button
+                            class="chip"
+                            onclick="setTheme('plantes toxiques au pâturage')"
+                        >
+                            FloraVet
+                        </button>
+                    </div>
+                    <div class="actions" style="margin-top: 12px">
+                        <button
+                            id="createBtn"
+                            class="primary"
+                            onclick="createContent()"
+                        >
+                            Créer le kit FarmCast</button
+                        ><button onclick="loadStrategyOnly()">
+                            Générer stratégie seule
+                        </button>
+                    </div>
+                    <div class="loading" id="loadingBox">
+                        <span class="spinner"></span
+                        ><span
+                            >Aya prépare le script, l'audio, la fiche et la
+                            campagne...</span
+                        >
+                    </div>
+                    <div id="stateBox" class="status info"></div>
+                </div>
+                <div class="card">
+                    <h2>Formats disponibles</h2>
+                    <div id="formatsBox" class="grid grid-3"></div>
+                </div>
+            </section>
+            <section id="previewPanel" class="panel grid">
+                <div class="card">
+                    <h2>Script et audio</h2>
+                    <div id="preview" class="muted">Aucun contenu généré.</div>
+                </div>
+                <div class="card">
+                    <h2>Images / visuels</h2>
+                    <div id="gallery" class="gallery"></div>
+                </div>
+                <div class="card">
+                    <h2>Qualité</h2>
+                    <div id="qualityBox"></div>
+                </div>
+            </section>
+            <section id="storyboardPanel" class="panel grid">
+                <div class="card">
+                    <h2>Storyboard vidéo</h2>
+                    <div id="storyboard" class="grid grid-3"></div>
+                </div>
+            </section>
+            <section id="platformPanel" class="panel grid">
+                <div class="card">
+                    <h2>Pack multicanal prêt à publier</h2>
+                    <div id="platformPack" class="grid grid-2"></div>
+                </div>
+                <div class="card">
+                    <h2>Partager</h2>
+                    <div id="shareLinks" class="actions"></div>
+                </div>
+            </section>
+            <section id="campaignPanel" class="panel grid">
+                <div class="card">
+                    <h2>Campagne 7 jours</h2>
+                    <div id="campaignPlan" class="grid"></div>
+                </div>
+                <div class="card">
+                    <h2>Modèles de campagnes</h2>
+                    <div id="campaignTemplates" class="grid grid-3"></div>
+                </div>
+            </section>
+            <section id="historyPanel" class="panel grid">
+                <div class="card">
+                    <h2>Historique</h2>
+                    <button onclick="loadHistory()">
+                        Charger l'historique
+                    </button>
+                    <div id="history"></div>
+                </div>
+            </section>
+        </div>
         <script>
             const API_BASE = String(
                 window.FEEDFORMULA_API_BASE_URL ||
@@ -448,141 +544,209 @@
                         ? "http://127.0.0.1:8000"
                         : "/"),
             ).replace(/\/$/, "");
-            const api = API_BASE;
+            const $ = (s) => document.querySelector(s);
             let currentContent = null;
+            const userId = () =>
+                (
+                    $("#userId").value ||
+                    localStorage.getItem("feedformula_user_id") ||
+                    "demo-user"
+                ).trim();
             async function jget(url) {
-                const r = await fetch(api + url);
-                const data = await r.json();
-                if (!r.ok) {
-                    throw new Error(
-                        data?.detail ||
-                            data?.message ||
-                            "Requête FarmCast impossible",
-                    );
-                }
-                return data;
+                const r = await fetch(API_BASE + url);
+                const d = await r.json();
+                if (!r.ok) throw new Error(d.detail || "Erreur");
+                return d;
             }
             async function jpost(url, data) {
-                const r = await fetch(api + url, {
+                const r = await fetch(API_BASE + url, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(data),
                 });
-                const payload = await r.json();
-                if (!r.ok) {
-                    throw new Error(
-                        payload?.detail ||
-                            payload?.message ||
-                            "Requête FarmCast impossible",
-                    );
-                }
-                return payload;
+                const d = await r.json();
+                if (!r.ok) throw new Error(d.detail || "Erreur");
+                return d;
             }
-            function setTheme(value) {
-                document.getElementById("theme").value = value;
+            function esc(v) {
+                return String(v ?? "")
+                    .replaceAll("&", "&amp;")
+                    .replaceAll("<", "&lt;")
+                    .replaceAll(">", "&gt;");
             }
-            function showState(message, type) {
-                const box = document.getElementById("stateBox");
-                box.textContent = message;
-                box.className = "status " + (type || "info");
-                box.style.display = "block";
+            document.querySelectorAll(".tab").forEach(
+                (b) =>
+                    (b.onclick = () => {
+                        document
+                            .querySelectorAll(".tab")
+                            .forEach((x) => x.classList.remove("active"));
+                        document
+                            .querySelectorAll(".panel")
+                            .forEach((x) => x.classList.remove("active"));
+                        b.classList.add("active");
+                        document
+                            .getElementById(b.dataset.tab)
+                            .classList.add("active");
+                    }),
+            );
+            function setTheme(v) {
+                $("#theme").value = v;
             }
-
-            async function createContent() {
-                const payload = {
-                    theme: document.getElementById("theme").value,
-                    langue: document.getElementById("langue").value,
-                    format_souhaite: document.getElementById("format").value,
-                    public_cible: document.getElementById("public").value,
-                    user_id:
-                        document.getElementById("userId").value.trim() ||
-                        "demo-user",
-                };
-                const btn = document.getElementById("createBtn");
-                btn.disabled = true;
-                document.getElementById("loadingBox").style.display = "flex";
-                showState(
-                    "Aya génère votre contenu. Patientez quelques secondes.",
-                    "info",
-                );
-                try {
-                    const data = await jpost("/farmcast/creer", payload);
-                    currentContent = data;
-                    showState(
-                        "Contenu généré avec succès. Vous pouvez écouter, télécharger et partager.",
-                        "ok",
-                    );
-                    const audioBlock = data.audio_url
-                        ? `<audio controls src="${api + data.audio_url}"></audio>`
-                        : `<div class="muted">Audio indisponible pour ce contenu.</div>`;
-                    document.getElementById("preview").innerHTML = `
-                        <span class="pill">${data.langue}</span>
-                        <span class="pill">${data.format_type}</span>
-                        <h3>${data.theme}</h3>
-                        <p>${String(data.script || "").replace(/\n/g, "<br>")}</p>
-                        ${audioBlock}
-                        <p><a href="${api + data.fiche_url}" download>Télécharger la fiche PDF</a></p>
-                    `;
-                    document.getElementById("gallery").innerHTML = (
-                        data.images_urls || []
-                    )
-                        .map(
-                            (u, i) =>
-                                `<div class="stub"><span>Image ${i + 1}<br>${u}</span></div>`,
-                        )
-                        .join("");
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                } catch (error) {
-                    currentContent = null;
-                    showState(
-                        error?.message || "La génération FarmCast a échoué.",
-                        "err",
-                    );
-                    document.getElementById("preview").innerHTML = `
-                        <div class="muted">${error?.message || "Impossible de générer le contenu pour le moment."}</div>
-                    `;
-                } finally {
-                    btn.disabled = false;
-                    document.getElementById("loadingBox").style.display =
-                        "none";
-                }
+            function showState(m, t = "info") {
+                const b = $("#stateBox");
+                b.textContent = m;
+                b.className = "status " + t;
+                b.style.display = "block";
             }
-
-            async function loadHistory() {
-                const userId = document.getElementById("userId").value.trim();
-                if (!userId) return alert("Entrez un ID utilisateur");
-                const data = await jget(
-                    `/farmcast/contenus/${encodeURIComponent(userId)}`,
-                );
-                document.getElementById("history").innerHTML = data.contenus
+            function renderContent(data) {
+                currentContent = data;
+                $("#preview").innerHTML =
+                    `<div class="script-box">${esc(data.script)}</div>${data.audio_url ? `<audio controls src="${API_BASE + data.audio_url}"></audio>` : ""}<div class="actions" style="margin-top:10px"><a class="btn primary" href="${API_BASE + data.fiche_url}" target="_blank">📄 Fiche PDF</a><a class="btn green" href="${data.whatsapp_link}" target="_blank">WhatsApp</a></div>`;
+                $("#gallery").innerHTML = (data.images_urls || [])
                     .map(
-                        (item) => `
-                    <div class="history-item">
-                        <strong>${item.theme}</strong><br>
-                        <span class="muted">${item.date_creation} • ${item.points_gagnes || 0} points</span><br>
-                        <a href="${api + item.audio_url}" target="_blank">Audio</a> ·
-                        <a href="${api + item.fiche_url}" target="_blank">PDF</a>
-                    </div>`,
+                        (u, i) =>
+                            `<div class="stub"><div>🖼️ Visuel ${i + 1}<br><small>${esc(u)}</small></div></div>`,
+                    )
+                    .join("");
+                renderStoryboard(data.storyboard);
+                renderPlatform(data.platform_pack, data.share_links);
+                renderCampaign(data.campaign_plan);
+                renderQuality(data.quality_score);
+            }
+            function renderStoryboard(sb) {
+                $("#storyboard").innerHTML =
+                    (sb?.scenes || [])
+                        .map(
+                            (s) =>
+                                `<div class="scene-card"><h4>Scène ${s.scene} — ${esc(s.titre)}</h4><p><b>${esc(s.temps)}</b></p><p>${esc(s.visuel)}</p><p><b>Texte :</b> ${esc(s.texte_ecran)}</p><p class="muted">${esc(s.plan_camera)}</p></div>`,
+                        )
+                        .join("") ||
+                    '<p class="muted">Storyboard non généré.</p>';
+            }
+            function renderPlatform(pack, links) {
+                $("#platformPack").innerHTML = Object.entries(pack || {})
+                    .map(
+                        ([k, v]) =>
+                            `<div class="platform-card"><h4>${esc(k)}</h4><pre style="white-space:pre-wrap">${esc(JSON.stringify(v, null, 2))}</pre></div>`,
+                    )
+                    .join("");
+                $("#shareLinks").innerHTML = Object.entries(links || {})
+                    .map(
+                        ([k, u]) =>
+                            `<a class="btn" href="${u}" target="_blank">${esc(k)}</a>`,
                     )
                     .join("");
             }
-
-            async function share(kind) {
-                if (!currentContent) return alert("Générez un contenu d abord");
-                const res = await jget(
-                    `/farmcast/partager/${currentContent.id}`,
-                );
-                const url =
-                    kind === "youtube"
-                        ? res.share_links?.youtube || res.youtube || ""
-                        : kind === "tiktok"
-                          ? res.share_links?.tiktok || res.tiktok || ""
-                          : kind === "facebook"
-                            ? res.share_links?.facebook || res.facebook || ""
-                            : res.share_links?.whatsapp || res.whatsapp || "";
-                if (!url) return alert("Lien de partage indisponible");
-                window.open(url, "_blank");
+            function renderCampaign(cp) {
+                $("#campaignPlan").innerHTML =
+                    (cp?.calendrier || [])
+                        .map(
+                            (d) =>
+                                `<div class="campaign-card"><h4>Jour ${d.jour} — ${esc(d.contenu)}</h4><p>${esc(d.action)}</p></div>`,
+                        )
+                        .join("") +
+                    `<p class="muted">KPI : ${(cp?.kpi || []).map(esc).join(" · ")}</p>`;
             }
+            function renderQuality(q) {
+                $("#qualityBox").innerHTML =
+                    `<div class="score-ring" style="--score:${q?.score || 0}">${q?.score || 0}/10</div><p>${esc(q?.niveau || "")}</p>`;
+            }
+            async function createContent() {
+                const payload = {
+                    theme: $("#theme").value || "conseil élevage",
+                    langue: $("#langue").value,
+                    format_type: $("#format").value,
+                    format_souhaite: $("#format").value,
+                    public_cible: $("#public").value || "éleveurs débutants",
+                    user_id: userId(),
+                };
+                $("#createBtn").disabled = true;
+                $("#loadingBox").style.display = "flex";
+                showState("Génération du kit premium en cours...");
+                try {
+                    const data = await jpost("/farmcast/creer", payload);
+                    renderContent(data);
+                    showState("Kit FarmCast généré avec succès.", "ok");
+                    await loadDashboard();
+                } finally {
+                    $("#createBtn").disabled = false;
+                    $("#loadingBox").style.display = "none";
+                }
+            }
+            async function loadStrategyOnly() {
+                const data = await jpost("/farmcast/strategie", {
+                    theme: $("#theme").value || "conseil élevage",
+                    format_type: $("#format").value,
+                    public_cible: $("#public").value || "éleveurs débutants",
+                    langue: $("#langue").value,
+                });
+                renderStoryboard(data.storyboard);
+                renderPlatform(data.platform_pack, {});
+                renderCampaign(data.campaign_plan);
+                showState("Stratégie éditoriale générée.", "ok");
+            }
+            async function loadFormats() {
+                const data = await jget("/farmcast/formats");
+                $("#formatsBox").innerHTML = Object.entries(data.formats || {})
+                    .map(
+                        ([k, f]) =>
+                            `<div class="platform-card"><h4>${f.icone} ${esc(f.nom)}</h4><p>${esc(f.objectif)}</p><p class="muted">${esc(f.duree)}</p></div>`,
+                    )
+                    .join("");
+            }
+            async function loadCampaigns() {
+                const data = await jget("/farmcast/campagnes");
+                $("#campaignTemplates").innerHTML = (data.campagnes || [])
+                    .map(
+                        (c) =>
+                            `<div class="campaign-card"><h4>${esc(c.titre)}</h4><p>${(c.themes || []).map(esc).join(" · ")}</p></div>`,
+                    )
+                    .join("");
+            }
+            async function loadDashboard() {
+                const data = await jget(
+                    `/farmcast/dashboard/${encodeURIComponent(userId())}`,
+                );
+                $("#metrics").innerHTML = [
+                    [data.total_contenus, "contenus"],
+                    [data.points_gagnes, "points"],
+                    [data.score_createur, "score créateur"],
+                    [
+                        Object.keys(data.formats_disponibles || {}).length,
+                        "formats",
+                    ],
+                ]
+                    .map(
+                        ([v, l]) =>
+                            `<div class="card metric"><strong>${v}</strong><span>${l}</span></div>`,
+                    )
+                    .join("");
+                $("#ayaText").textContent =
+                    data.prochaine_action || "Créez une campagne de 7 jours.";
+            }
+            async function loadHistory() {
+                const data = await jget(
+                    `/farmcast/contenus/${encodeURIComponent(userId())}`,
+                );
+                $("#history").innerHTML =
+                    (data.contenus || [])
+                        .map(
+                            (c) =>
+                                `<div class="history-item"><strong>${esc(c.theme)}</strong><div class="muted">${esc(c.langue)} · ${esc(c.format_type)} · ${esc(c.date_creation || "")}</div><button onclick="loadShared('${c.id}')">Revoir partage</button></div>`,
+                        )
+                        .join("") || '<p class="muted">Aucun contenu.</p>';
+            }
+            async function loadShared(id) {
+                const data = await jget(`/farmcast/partager/${id}`);
+                renderPlatform({}, data.share_links);
+                document.querySelector('[data-tab="platformPanel"]').click();
+            }
+            $("#userId").value =
+                localStorage.getItem("feedformula_user_id") || "demo-user";
+            loadFormats();
+            loadCampaigns();
+            loadDashboard().catch(() => {});
+            loadHistory().catch(() => {});
         </script>
     </body>
 </html>
