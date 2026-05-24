@@ -4,363 +4,838 @@
         <meta charset="UTF-8" />
         <meta
             name="viewport"
-            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
         />
         <meta name="theme-color" content="#1B5E20" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="FeedFormula AI" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="application-name" content="FeedFormula AI" />
+        <title>FarmManager AI — Deuxième cerveau de ferme</title>
         <link rel="manifest" href="/app/manifest.json" />
-        <link rel="apple-touch-icon" href="/assets/branding/logo_principal_hd.png" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link rel="preload" href="/assets/branding/logo_principal_hd.png" as="image" />
-        <link rel="preload" href="/app/style.css" as="style" />
-        <meta
-            name="description"
-            content="FeedFormula AI génère la ration parfaite pour vos animaux en 30 secondes. 50 langues africaines. 8 modules IA. Gratuit pour les éleveurs béninois."
+        <link
+            rel="apple-touch-icon"
+            href="/assets/branding/logo_principal_hd.png"
         />
-        <title>FeedFormula AI — Nutrition Animale IA | Bénin</title>
-        <meta
-            name="keywords"
-            content="élevage bénin, nutrition animale, IA agricole, fon, poulet, vache, ration animale"
-        />
-        <meta name="author" content="Leonel TOGBE" />
-        <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://feedformula-ai.vercel.app/app/" />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://feedformula-ai.vercel.app" />
-        <meta
-            property="og:title"
-            content="FeedFormula AI — L IA au service de l élevage africain"
-        />
-        <meta
-            property="og:description"
-            content="Formulez la ration parfaite de vos animaux en 30 secondes. En fon, yoruba, français et 47 autres langues africaines."
-        />
-        <meta
-            property="og:image"
-            content="https://feedformula-ai.vercel.app/assets/branding/hero_image_accueil.png"
-        />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:locale" content="fr_BJ" />
-        <meta property="og:site_name" content="FeedFormula AI" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta
-            name="twitter:title"
-            content="FeedFormula AI — Nutrition Animale IA"
-        />
-        <meta
-            name="twitter:description"
-            content="L intelligence africaine au service de vos animaux."
-        />
-        <meta
-            name="twitter:image"
-            content="https://feedformula-ai.vercel.app/assets/branding/hero_image_accueil.png"
-        />
-
         <link rel="stylesheet" href="style.css" />
-        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <style>
+            :root {
+                --green: #1b5e20;
+                --green-2: #2e7d32;
+                --soft: #f3f7ef;
+                --red: #c62828;
+                --orange: #ef6c00;
+                --line: #dfe8d7;
+                --ink: #17351a;
+                --muted: #607064;
+                --shadow: 0 14px 40px rgba(23, 53, 26, 0.1);
+            }
+            * {
+                box-sizing: border-box;
+            }
             body {
                 margin: 0;
-                font-family: var(--font-primary);
-                background: #f6f7f3;
-                color: #17351a;
+                font-family:
+                    Inter,
+                    "Plus Jakarta Sans",
+                    system-ui,
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    sans-serif;
+                background: linear-gradient(
+                    180deg,
+                    #eef7e9,
+                    #fafbf6 28%,
+                    #f6f8f3
+                );
+                color: var(--ink);
             }
-            .wrap {
-                max-width: 1100px;
+            .app {
+                max-width: 1280px;
                 margin: 0 auto;
-                padding: 16px 16px 120px;
+                padding: 16px 16px 140px;
             }
-            .grid {
+            .hero {
                 display: grid;
+                grid-template-columns: 1.3fr 0.7fr;
                 gap: 16px;
+                align-items: stretch;
+                margin-bottom: 16px;
             }
             .card {
-                background: #fff;
-                border-radius: 20px;
-                padding: 16px;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+                background: rgba(255, 255, 255, 0.95);
+                border: 1px solid rgba(27, 94, 32, 0.1);
+                border-radius: 24px;
+                padding: 18px;
+                box-shadow: var(--shadow);
             }
+            .hero h1 {
+                margin: 0 0 8px;
+                font-size: clamp(28px, 4vw, 46px);
+            }
+            .hero p,
+            .muted {
+                color: var(--muted);
+            }
+            .tabs {
+                position: sticky;
+                top: 0;
+                z-index: 20;
+                display: grid;
+                grid-template-columns: repeat(6, minmax(120px, 1fr));
+                gap: 8px;
+                padding: 10px 0;
+                background: rgba(246, 248, 243, 0.92);
+                backdrop-filter: blur(12px);
+            }
+            .tab-btn,
             .btn {
                 border: 0;
                 border-radius: 18px;
-                padding: 16px;
-                font-size: 17px;
-                font-weight: 700;
-                cursor: pointer;
-            }
-            .primary {
-                background: #1b5e20;
-                color: #fff;
-            }
-            .secondary {
-                background: #f0f0f0;
-                color: #222;
-            }
-            .mic {
-                width: 100%;
-                min-height: 120px;
-                border-radius: 22px;
-                background: #1b5e20;
-                color: #fff;
-                font-size: 22px;
+                padding: 13px 14px;
                 font-weight: 800;
-                display: flex;
-                align-items: center;
-                justify-content: center;
+                cursor: pointer;
+                background: #fff;
+                color: var(--ink);
+                box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
             }
-            .input,
-            .textarea {
-                width: 100%;
-                border: 1px solid #ddd;
-                border-radius: 14px;
-                padding: 14px;
-                font-size: 16px;
-                box-sizing: border-box;
+            .tab-btn.active,
+            .btn.primary {
+                background: var(--green);
+                color: white;
             }
-            .textarea {
-                min-height: 120px;
-                resize: vertical;
+            .btn.orange {
+                background: var(--orange);
+                color: #fff;
             }
-            .stats {
+            .btn.red {
+                background: var(--red);
+                color: #fff;
+            }
+            .tab-panel {
+                display: none;
+                animation: fade 0.18s ease-out;
+            }
+            .tab-panel.active {
+                display: block;
+            }
+            @keyframes fade {
+                from {
+                    opacity: 0.4;
+                    transform: translateY(4px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            .grid {
                 display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 12px;
+                gap: 14px;
             }
-            .box {
-                background: #fafafa;
-                border-radius: 14px;
-                padding: 14px;
+            .grid-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
-            .meta {
-                color: #666;
-                font-size: 14px;
+            .grid-3 {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
             }
-            .event {
-                padding: 12px 0;
-                border-bottom: 1px solid #eee;
+            .grid-5 {
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+            }
+            .metric strong {
+                display: block;
+                font-size: 24px;
+                margin-bottom: 4px;
+            }
+            .alert {
+                border-left: 6px solid var(--red);
+                background: #fff5f5;
+                color: #7f1d1d;
+            }
+            .warning {
+                border-left: 6px solid var(--orange);
+                background: #fff8ed;
+            }
+            .ok {
+                border-left: 6px solid var(--green-2);
+                background: #f1fbf2;
+            }
+            .subtabs {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                margin: 12px 0;
+            }
+            .subtab {
+                border: 1px solid var(--line);
+                border-radius: 999px;
+                padding: 8px 12px;
+                background: #fff;
+                cursor: pointer;
+                font-weight: 700;
+            }
+            .subtab.active {
+                background: #e6f4e6;
+                color: var(--green);
+                border-color: var(--green);
             }
             .filters {
                 display: grid;
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(5, minmax(120px, 1fr));
+                gap: 8px;
+                margin: 12px 0;
+            }
+            input,
+            select,
+            textarea {
+                width: 100%;
+                border: 1px solid var(--line);
+                border-radius: 16px;
+                padding: 12px 13px;
+                font: inherit;
+                background: #fff;
+            }
+            textarea {
+                min-height: 84px;
+                resize: vertical;
+            }
+            .animal-card,
+            .task,
+            .stock-row,
+            .report-row {
+                display: grid;
                 gap: 8px;
             }
+            .status {
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                display: inline-block;
+                margin-right: 8px;
+            }
+            .green {
+                background: #2e7d32;
+            }
+            .orange-dot {
+                background: #ef6c00;
+            }
+            .red-dot {
+                background: #c62828;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                overflow: hidden;
+                border-radius: 16px;
+            }
+            th,
+            td {
+                padding: 12px;
+                border-bottom: 1px solid var(--line);
+                text-align: left;
+            }
+            th {
+                background: #edf6ea;
+            }
+            .week {
+                display: grid;
+                grid-template-columns: repeat(7, minmax(130px, 1fr));
+                gap: 10px;
+                overflow-x: auto;
+            }
+            .day {
+                min-height: 220px;
+            }
+            .task {
+                border-radius: 14px;
+                padding: 10px;
+                margin: 8px 0;
+                background: #f7faf5;
+                border-left: 5px solid var(--green);
+            }
+            .task.urgent {
+                border-left-color: var(--orange);
+                background: #fff7ed;
+            }
+            .task.late {
+                border-left-color: var(--red);
+                background: #fff5f5;
+            }
+            .bar {
+                height: 12px;
+                border-radius: 999px;
+                background: #e8eee4;
+                overflow: hidden;
+            }
+            .bar span {
+                display: block;
+                height: 100%;
+                background: var(--green);
+                border-radius: inherit;
+            }
+            .bar.critical span {
+                background: var(--red);
+            }
+            .voice-dock {
+                position: fixed;
+                left: 50%;
+                bottom: 14px;
+                transform: translateX(-50%);
+                z-index: 40;
+                width: min(960px, calc(100% - 24px));
+                display: grid;
+                grid-template-columns: 86px 1fr 170px;
+                gap: 10px;
+                padding: 12px;
+                border-radius: 28px;
+                background: rgba(255, 255, 255, 0.96);
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+                border: 1px solid rgba(27, 94, 32, 0.18);
+            }
+            .mic {
+                border: 0;
+                border-radius: 24px;
+                background: var(--green);
+                color: white;
+                font-size: 30px;
+                cursor: pointer;
+            }
+            #voiceStatus {
+                font-size: 13px;
+                color: var(--muted);
+                margin-top: 5px;
+            }
+            .toast {
+                position: fixed;
+                right: 16px;
+                top: 16px;
+                z-index: 80;
+                max-width: 360px;
+                display: none;
+            }
+            @media (max-width: 920px) {
+                .hero,
+                .grid-2,
+                .grid-3,
+                .grid-5 {
+                    grid-template-columns: 1fr;
+                }
+                .tabs {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+                .filters {
+                    grid-template-columns: 1fr 1fr;
+                }
+                .voice-dock {
+                    grid-template-columns: 62px 1fr;
+                }
+                .voice-dock .send {
+                    grid-column: 1 / -1;
+                }
+            }
         </style>
-        <script defer src="assets_manager.js"></script>
-        <script defer src="i18n.js"></script>
     </head>
     <body data-i18n-page="farmmanager">
-        <div class="wrap">
-            <header class="card">
-                <h1>🎙️ FarmManager</h1>
-                <p class="meta">
-                    Dictez un événement, l’IA le structure et l’enregistre.
-                </p>
-            </header>
-
-            <main class="grid">
-                <section class="card">
-                    <button id="micBtn" class="mic" type="button">
-                        🎤 Dicter un événement
-                    </button>
-                    <textarea
-                        id="voiceText"
-                        class="textarea"
-                        placeholder="Exemple : Vache 47 traitée pour mammite avec 10 ml d’antibiotique et contrôle dans 3 jours."
-                    ></textarea>
-                    <div
-                        style="
-                            display: grid;
-                            grid-template-columns: repeat(2, 1fr);
-                            gap: 10px;
-                            margin-top: 12px;
-                        "
-                    >
-                        <input
-                            id="animalId"
-                            class="input"
-                            placeholder="Animal (optionnel)"
-                        />
-                        <input
-                            id="eventType"
-                            class="input"
-                            placeholder="Type d’événement"
-                        />
+        <div class="toast card" id="toast"></div>
+        <div class="app">
+            <section class="hero">
+                <div class="card">
+                    <h1>🧠 FarmManager AI</h1>
+                    <p>
+                        Le deuxième cerveau du propriétaire de ferme : il
+                        mémorise, analyse, planifie, alerte et transforme chaque
+                        événement vocal en action utile.
+                    </p>
+                    <div id="criticalAlerts" class="grid"></div>
+                </div>
+                <div class="card">
+                    <h2>🌅 Briefing du jour</h2>
+                    <div id="briefingHero" class="muted">
+                        Chargement du briefing IA...
                     </div>
-                    <button
-                        id="saveBtn"
-                        class="btn primary"
-                        type="button"
-                        style="margin-top: 12px"
-                    >
-                        Enregistrer l’événement
+                    <button class="btn primary" onclick="loadBriefing()">
+                        Actualiser briefing
                     </button>
+                </div>
+            </section>
+
+            <nav class="tabs" aria-label="Navigation FarmManager">
+                <button class="tab-btn active" data-tab="dashboard">
+                    🏠 Tableau de bord
+                </button>
+                <button class="tab-btn" data-tab="animals">
+                    🐄 Mes animaux
+                </button>
+                <button class="tab-btn" data-tab="finances">💰 Finances</button>
+                <button class="tab-btn" data-tab="planning">📅 Planning</button>
+                <button class="tab-btn" data-tab="stocks">📦 Stocks</button>
+                <button class="tab-btn" data-tab="reports">📊 Rapports</button>
+            </nav>
+
+            <main>
+                <section id="dashboard" class="tab-panel active grid">
+                    <div class="grid grid-5" id="metricCards"></div>
+                    <div class="grid grid-2">
+                        <div class="card">
+                            <h2>🚨 Alertes critiques</h2>
+                            <div id="dashboardAlerts"></div>
+                        </div>
+                        <div class="card">
+                            <h2>📋 5 priorités du jour</h2>
+                            <ol id="priorities"></ol>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h2>🐄 Lots en cours</h2>
+                        <div id="lotsOverview" class="grid grid-3"></div>
+                    </div>
                 </section>
 
-                <section class="card">
-                    <h2>Événements du jour</h2>
-                    <div class="filters">
-                        <input
-                            id="filterAnimal"
-                            class="input"
-                            placeholder="Filtrer par animal"
-                        />
-                        <input id="filterDate" class="input" type="date" />
-                        <input
-                            id="filterType"
-                            class="input"
-                            placeholder="Filtrer par type"
-                        />
+                <section id="animals" class="tab-panel grid">
+                    <div class="card">
+                        <h2>🐄 Mes animaux et lots</h2>
+                        <div class="subtabs">
+                            <button class="subtab active">Tous</button
+                            ><button class="subtab">Par lot</button
+                            ><button class="subtab">Par espèce</button
+                            ><button class="subtab">Alertes</button>
+                        </div>
+                        <div class="filters">
+                            <select id="filterSpecies">
+                                <option value="">Espèce</option>
+                                <option>poulet_chair</option>
+                                <option>poule_pondeuse</option>
+                                <option>bovin</option>
+                                <option>porc</option>
+                            </select>
+                            <input id="filterLot" placeholder="Lot" />
+                            <input id="filterBuilding" placeholder="Bâtiment" />
+                            <select id="filterStatus">
+                                <option value="">Statut</option>
+                                <option>en production</option>
+                                <option>malade</option>
+                                <option>vendu</option>
+                                <option>mort</option>
+                            </select>
+                            <select id="filterAlert">
+                                <option value="">Alerte</option>
+                                <option>rouge</option>
+                                <option>orange</option>
+                                <option>vert</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap">
+                            <button
+                                class="btn primary"
+                                onclick="addDemoAnimal()"
+                            >
+                                Ajouter animal démo</button
+                            ><button class="btn" onclick="loadAnimals()">
+                                Rafraîchir
+                            </button>
+                        </div>
                     </div>
-                    <button
-                        id="refreshBtn"
-                        class="btn secondary"
-                        type="button"
-                        style="margin-top: 12px"
-                    >
-                        Actualiser
-                    </button>
-                    <div id="events"></div>
+                    <div id="animalCards" class="grid grid-3"></div>
                 </section>
 
-                <section class="card">
-                    <h2>Dashboard financier</h2>
-                    <div id="dashboard" class="stats"></div>
-                    <button
-                        id="reportBtn"
-                        class="btn primary"
-                        type="button"
-                        style="margin-top: 12px"
-                    >
-                        Générer rapport mensuel
-                    </button>
+                <section id="finances" class="tab-panel grid">
+                    <div class="card">
+                        <h2>💰 Analyse financière complète</h2>
+                        <div class="subtabs">
+                            <button class="subtab active">Résumé</button
+                            ><button class="subtab">Revenus</button
+                            ><button class="subtab">Dépenses</button
+                            ><button class="subtab">Analyse</button>
+                        </div>
+                        <button
+                            class="btn primary"
+                            onclick="recordTransaction()"
+                        >
+                            🎙️ Enregistrer transaction vocalement
+                        </button>
+                    </div>
+                    <div class="grid grid-2">
+                        <div class="card">
+                            <canvas id="financeChart" height="160"></canvas>
+                        </div>
+                        <div class="card" id="financeSummary"></div>
+                    </div>
+                    <div class="grid grid-2">
+                        <div class="card">
+                            <h3>Revenus</h3>
+                            <table id="revenuesTable"></table>
+                        </div>
+                        <div class="card">
+                            <h3>Dépenses</h3>
+                            <table id="expensesTable"></table>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="planning" class="tab-panel grid">
+                    <div class="card">
+                        <h2>📅 Planning intelligent</h2>
+                        <button class="btn primary" onclick="loadPlanning()">
+                            Générer planning semaine (IA)
+                        </button>
+                        <button class="btn" onclick="assignTask()">
+                            Assigner tâche technicien
+                        </button>
+                    </div>
+                    <div class="week" id="weekView"></div>
+                    <div class="card">
+                        <h2>Vue mois — événements majeurs</h2>
+                        <div id="monthView" class="grid grid-3"></div>
+                    </div>
+                </section>
+
+                <section id="stocks" class="tab-panel grid">
+                    <div class="card">
+                        <h2>📦 Stocks alimentaires</h2>
+                        <button class="btn primary" onclick="recordDelivery()">
+                            🎙️ Enregistrer livraison
+                        </button>
+                        <button class="btn orange" onclick="orderStock()">
+                            Commander
+                        </button>
+                    </div>
+                    <div id="stockRows" class="grid"></div>
+                    <div class="card">
+                        <h2>Historique achats et consommation</h2>
+                        <table id="stockHistory"></table>
+                    </div>
+                </section>
+
+                <section id="reports" class="tab-panel grid">
+                    <div class="card">
+                        <h2>📊 Rapports professionnels</h2>
+                        <p class="muted">
+                            Téléchargez les rapports PDF ou partagez-les avec
+                            l'équipe et les partenaires.
+                        </p>
+                    </div>
+                    <div id="reportRows" class="grid grid-2"></div>
                 </section>
             </main>
         </div>
 
-        <footer class="site-footer" aria-label="Pied de page">
-            <div class="site-footer__inner">
-                <strong>FeedFormula AI</strong>
-                <span>Carnet vocal et suivi financier</span>
-                <div class="site-footer__links">
-                    <a href="index.html">Accueil</a>
-                    <a href="modules.html">Modules</a>
-                    <a href="profil.html">Profil</a>
+        <div class="voice-dock" aria-label="Zone vocale persistante">
+            <button id="micBtn" class="mic" title="Micro">🎤</button>
+            <div>
+                <textarea
+                    id="voiceText"
+                    placeholder="Dites ce qui s'est passé sur la ferme..."
+                ></textarea>
+                <div id="voiceStatus">
+                    Après enregistrement : transcription → catégorisation →
+                    enregistrement → confirmation → points.
                 </div>
             </div>
-        </footer>
+            <button class="btn primary send" id="sendVoice">Enregistrer</button>
+        </div>
 
         <script>
             const userId =
-                localStorage.getItem("feedformula_user_id") || "demo-user";
+                localStorage.getItem("feedformula_user_id") || "test_user";
             const $ = (s) => document.querySelector(s);
-            const voiceText = $("#voiceText");
-            const animalId = $("#animalId");
-            const eventType = $("#eventType");
-            const eventsBox = $("#events");
-            const dash = $("#dashboard");
-            const filterAnimal = $("#filterAnimal");
-            const filterDate = $("#filterDate");
-            const filterType = $("#filterType");
+            let financeChart;
 
-            function renderEvents(items) {
-                if (!items.length) {
-                    eventsBox.innerHTML =
-                        '<p class="meta">Aucun événement.</p>';
-                    return;
-                }
-                eventsBox.innerHTML = items
-                    .map(
-                        (e) =>
-                            `<div class="event"><strong>${e.event?.type_evenement || e.event?.type || "Événement"}</strong><div class="meta">${e.event?.animal_id || ""} — ${e.created_at || ""}</div><div class="meta">${e.event?.details || ""}</div></div>`,
-                    )
-                    .join("");
+            function toast(html, type = "ok") {
+                const box = $("#toast");
+                box.className = `toast card ${type}`;
+                box.innerHTML = html;
+                box.style.display = "block";
+                setTimeout(() => {
+                    box.style.display = "none";
+                }, 5200);
+            }
+            async function api(url, options = {}) {
+                const res = await fetch(url, options);
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok)
+                    throw new Error(data.detail || `Erreur API ${res.status}`);
+                return data;
+            }
+            function money(v) {
+                return `${Math.round(Number(v || 0)).toLocaleString("fr-FR")} FCFA`;
             }
 
-            function renderDashboard(data) {
-                const d = data.dashboard_financier || {};
-                dash.innerHTML = [
-                    {
-                        label: "Coût alimentation",
-                        value: `${d.cout_total_alimentation_mois || 0} FCFA`,
-                    },
-                    {
-                        label: "Revenus",
-                        value: `${d.revenus_ventes_animaux || 0} FCFA`,
-                    },
-                    {
-                        label: "Marge nette",
-                        value: `${d.marge_nette_estimee || 0} FCFA`,
-                    },
+            document.querySelectorAll(".tab-btn").forEach((btn) =>
+                btn.addEventListener("click", () => {
+                    document
+                        .querySelectorAll(".tab-btn")
+                        .forEach((b) => b.classList.remove("active"));
+                    document
+                        .querySelectorAll(".tab-panel")
+                        .forEach((p) => p.classList.remove("active"));
+                    btn.classList.add("active");
+                    document
+                        .getElementById(btn.dataset.tab)
+                        .classList.add("active");
+                }),
+            );
+
+            async function loadBriefing() {
+                const data = await api(
+                    `/farmmanager/ia/briefing-quotidien/${encodeURIComponent(userId)}`,
+                );
+                $("#briefingHero").innerHTML =
+                    `<strong>Statut global : ${data.statut_global}</strong><br>${data.conseil_ia}`;
+                const alerts = data.alertes_critiques || [];
+                $("#criticalAlerts").innerHTML = alerts.length
+                    ? alerts
+                          .map((a) => `<div class="card alert">${a}</div>`)
+                          .join("")
+                    : `<div class="card ok">Aucune alerte critique immédiate.</div>`;
+                $("#dashboardAlerts").innerHTML = alerts.length
+                    ? alerts
+                          .map((a) => `<div class="card alert">${a}</div>`)
+                          .join("")
+                    : `<div class="ok card">Tout est sous contrôle.</div>`;
+                $("#priorities").innerHTML = (data.priorites_du_jour || [])
+                    .map((p) => `<li>${p}</li>`)
+                    .join("");
+                $("#lotsOverview").innerHTML = (data.lots_en_cours || [])
+                    .map(
+                        (l) =>
+                            `<div class="card"><span class="status green"></span><strong>${l.id_lot}</strong><div class="muted">J+${l.age_jours} — ${l.effectif} animaux — ${l.statut}</div></div>`,
+                    )
+                    .join("");
+                const f = data.finances_mois || {};
+                $("#metricCards").innerHTML = [
+                    [
+                        "Animaux actifs",
+                        (data.lots_en_cours || []).reduce(
+                            (s, l) => s + Number(l.effectif || 0),
+                            0,
+                        ),
+                    ],
+                    ["Revenus du mois", money(f.total_revenus_fcfa)],
+                    ["Dépenses du mois", money(f.total_depenses_fcfa)],
+                    ["Marge nette", money(f.marge_nette_fcfa)],
+                    [
+                        "Prochaine tâche urgente",
+                        (data.priorites_du_jour || ["Contrôle ferme"])[0],
+                    ],
                 ]
                     .map(
                         (m) =>
-                            `<div class="box"><strong>${m.value}</strong><div class="meta">${m.label}</div></div>`,
+                            `<div class="card metric"><strong>${m[1]}</strong><span class="muted">${m[0]}</span></div>`,
                     )
                     .join("");
             }
 
-            async function loadEvents() {
-                const params = new URLSearchParams();
-                if (filterAnimal.value)
-                    params.set("animal_id", filterAnimal.value);
-                if (filterDate.value)
-                    params.set("date_filtre", filterDate.value);
-                if (filterType.value)
-                    params.set("type_evenement", filterType.value);
-                const cal = await fetch(
-                    `/farmmanager/evenements/${encodeURIComponent(userId)}?${params.toString()}`,
-                ).then((r) => r.json());
-                const stats = await fetch(
-                    `/farmmanager/finances/${encodeURIComponent(userId)}`,
-                ).then((r) => r.json());
-                renderEvents(cal.evenements || []);
-                renderDashboard(stats || {});
+            async function loadAnimals() {
+                const data = await api(
+                    `/farmmanager/animaux/${encodeURIComponent(userId)}/tous`,
+                );
+                const animals = data.animaux || [];
+                $("#animalCards").innerHTML = animals.length
+                    ? animals
+                          .map((a) => {
+                              const color =
+                                  a.statut === "malade"
+                                      ? "red-dot"
+                                      : a.statut === "vendu"
+                                        ? "orange-dot"
+                                        : "green";
+                              return `<div class="card animal-card"><h3><span class="status ${color}"></span>${a.id_animal}</h3><div>${a.espece} — ${a.race || "race à préciser"}</div><div class="muted">Lot ${a.lot} • ${a.batiment}</div><div>Poids : ${a.poids_actuel || 0} kg • Âge : ${a.age_actuel}</div><button class="btn" onclick='showDetails(${JSON.stringify(a).replaceAll("'", "&apos;")})'>Voir détails</button><button class="btn primary" onclick="focusVoice('Événement pour ${a.id_animal} : ')">Enregistrer événement</button></div>`;
+                          })
+                          .join("")
+                    : `<div class="card muted">Aucun animal enregistré. Utilisez le bouton démo ou dictez un événement.</div>`;
             }
-
-            $("#micBtn").addEventListener("click", () => {
-                const txt = prompt("Dictez l’événement à enregistrer :");
-                if (txt) voiceText.value = txt;
-            });
-            $("#saveBtn").addEventListener("click", async () => {
-                const payload = {
-                    texte: voiceText.value || "",
-                    user_id: userId,
-                };
-                const res = await fetch("/farmmanager/evenement", {
+            function showDetails(a) {
+                toast(
+                    `<strong>Fiche ${a.id_animal}</strong><br>${a.espece} • ${a.statut}<br>Rentabilité cumulée : ${money(a.rentabilite_cumule)}`,
+                );
+            }
+            async function addDemoAnimal() {
+                await api("/farmmanager/animaux/ajouter", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload),
+                    body: JSON.stringify({
+                        user_id: userId,
+                        data: {
+                            id_animal: `POULE_${Date.now().toString().slice(-4)}`,
+                            espece: "poule_pondeuse",
+                            race: "ISA Brown",
+                            sexe: "femelle",
+                            date_naissance: "2025-01-15",
+                            poids_actuel: 1.85,
+                            lot: "LOT_A",
+                            batiment: "Poulailler_1",
+                            statut: "en production",
+                            prix_acquisition: 3500,
+                        },
+                    }),
                 });
-                const data = await res.json();
-                if (!res.ok) {
-                    alert(data.detail || "Erreur");
-                    return;
-                }
-                if (!animalId.value && data.event?.event?.animal_id)
-                    animalId.value = data.event.event.animal_id;
-                if (!eventType.value && data.event?.event?.type_evenement)
-                    eventType.value = data.event.event.type_evenement;
-                await loadEvents();
-            });
-            $("#reportBtn").addEventListener("click", async () => {
-                const month = prompt(
-                    "Mois au format YYYY-MM",
-                    new Date().toISOString().slice(0, 7),
+                await loadAnimals();
+                toast("Animal démo ajouté ✅");
+            }
+
+            async function loadFinances() {
+                const data = await api(
+                    `/farmmanager/finances/tableau-bord/${encodeURIComponent(userId)}`,
                 );
-                if (!month) return;
+                $("#financeSummary").innerHTML =
+                    `<h3>RÉSUMÉ FINANCIER</h3><p>Total revenus : <strong>${money(data.total_revenus_fcfa)}</strong></p><p>Total dépenses : <strong>${money(data.total_depenses_fcfa)}</strong></p><p>Marge nette : <strong>${money(data.marge_nette_fcfa)}</strong></p><p>Taux rentabilité : <strong>${data.taux_rentabilite_pct}%</strong></p>`;
+                $("#revenuesTable").innerHTML =
+                    `<tr><th>Catégorie</th><th>Montant</th></tr>` +
+                    Object.entries(data.revenus || {})
+                        .map(
+                            ([k, v]) =>
+                                `<tr><td>${k}</td><td>${money(v)}</td></tr>`,
+                        )
+                        .join("");
+                $("#expensesTable").innerHTML =
+                    `<tr><th>Catégorie</th><th>Montant</th></tr>` +
+                    Object.entries(data.depenses || {})
+                        .map(
+                            ([k, v]) =>
+                                `<tr><td>${k}</td><td>${money(v)}</td></tr>`,
+                        )
+                        .join("");
+                const ctx = $("#financeChart");
+                if (financeChart) financeChart.destroy();
+                financeChart = new Chart(ctx, {
+                    type: "bar",
+                    data: {
+                        labels: ["Revenus", "Dépenses", "Marge nette"],
+                        datasets: [
+                            {
+                                label: "FCFA",
+                                data: [
+                                    data.total_revenus_fcfa,
+                                    data.total_depenses_fcfa,
+                                    data.marge_nette_fcfa,
+                                ],
+                                backgroundColor: [
+                                    "#2e7d32",
+                                    "#c62828",
+                                    "#1565c0",
+                                ],
+                            },
+                        ],
+                    },
+                    options: { responsive: true },
+                });
+            }
+            function recordTransaction() {
+                focusVoice("Transaction : ");
+            }
+
+            async function loadPlanning() {
+                const data = await api(
+                    `/farmmanager/planning/semaine/${encodeURIComponent(userId)}`,
+                );
+                $("#weekView").innerHTML = (data.jours || [])
+                    .map(
+                        (day) =>
+                            `<div class="card day"><h3>${day.jour}</h3><div class="muted">${day.date}</div>${(day.taches || []).map((t) => `<div class="task ${t.priorite === "urgent" ? "urgent" : ""}"><strong>${t.heure}</strong> ${t.titre}<div class="muted">${t.priorite}</div></div>`).join("")}</div>`,
+                    )
+                    .join("");
+                $("#monthView").innerHTML = [
+                    "Vaccinations",
+                    "Ventes prévues",
+                    "Commandes stocks",
+                ]
+                    .map(
+                        (x) =>
+                            `<div class="card ok"><strong>${x}</strong><div class="muted">Planifié par l'IA</div></div>`,
+                    )
+                    .join("");
+            }
+            async function assignTask() {
+                const task = prompt(
+                    "Tâche à assigner",
+                    "Nettoyage abreuvoirs lot A",
+                );
+                if (!task) return;
+                await api("/farmmanager/rh/assigner-tache", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        technicien_id: "TECH_001",
+                        tache: task,
+                        date: new Date().toISOString().slice(0, 10),
+                        priorite: "urgent",
+                    }),
+                });
+                toast("Tâche assignée au technicien ✅");
+            }
+
+            async function loadStocks() {
+                const data = await api(
+                    `/farmmanager/stocks/critiques/${encodeURIComponent(userId)}`,
+                );
+                const stocks = data.stocks_critiques?.length
+                    ? data.stocks_critiques
+                    : [
+                          {
+                              ingredient: "maïs",
+                              stock_actuel_kg: 120,
+                              seuil_alerte_kg: 150,
+                              jours_restants: 3,
+                              valeur_stock_fcfa: 30000,
+                          },
+                          {
+                              ingredient: "premix",
+                              stock_actuel_kg: 18,
+                              seuil_alerte_kg: 15,
+                              jours_restants: 9,
+                              valeur_stock_fcfa: 21600,
+                          },
+                      ];
+                $("#stockRows").innerHTML = stocks
+                    .map((s) => {
+                        const pct = Math.min(
+                            100,
+                            Math.round(
+                                (Number(s.stock_actuel_kg || 0) /
+                                    Math.max(
+                                        1,
+                                        Number(s.seuil_alerte_kg || 100),
+                                    )) *
+                                    100,
+                            ),
+                        );
+                        return `<div class="card stock-row ${pct < 100 ? "alert" : "ok"}"><h3>${s.ingredient}</h3><div>${s.stock_actuel_kg} kg — ${s.jours_restants} jours restants — ${money(s.valeur_stock_fcfa)}</div><div class="bar ${pct < 100 ? "critical" : ""}"><span style="width:${Math.min(100, pct)}%"></span></div><button class="btn orange" onclick="orderStock('${s.ingredient}')">Commander</button></div>`;
+                    })
+                    .join("");
+                $("#stockHistory").innerHTML =
+                    `<tr><th>Date</th><th>Action</th><th>Quantité</th></tr><tr><td>Aujourd'hui</td><td>Analyse stocks critiques</td><td>${stocks.length} ingrédient(s)</td></tr>`;
+            }
+            async function recordDelivery() {
+                focusVoice("Livraison stock : ");
+            }
+            async function orderStock(ingredient = "maïs") {
+                const data = await api(
+                    `/farmmanager/stocks/commander/${encodeURIComponent(userId)}/${encodeURIComponent(ingredient)}`,
+                );
+                toast(
+                    `<strong>Bon de commande généré</strong><br>${data.ingredient} : ${data.quantite_optimale_kg} kg<br>Prix estimé : ${money(data.bon_commande.prix_estime_fcfa)}`,
+                );
+            }
+
+            function renderReports() {
+                const reports = [
+                    "Rapport mensuel complet",
+                    "Rapport sanitaire",
+                    "Rapport financier",
+                    "Rapport performance lots",
+                    "Rapport techniciens",
+                ];
+                $("#reportRows").innerHTML = reports
+                    .map(
+                        (r) =>
+                            `<div class="card report-row"><h3>${r}</h3><p class="muted">PDF prêt à générer avec les données FarmManager.</p><button class="btn primary" onclick="downloadMonthlyReport()">Télécharger PDF</button><button class="btn" onclick="shareWhatsApp('${r}')">Envoyer par WhatsApp</button></div>`,
+                    )
+                    .join("");
+            }
+            async function downloadMonthlyReport() {
+                const month = new Date().toISOString().slice(0, 7);
                 const res = await fetch(
-                    `/farmmanager/rapport-mensuel/${encodeURIComponent(userId)}?mois=${encodeURIComponent(month)}`,
+                    `/farmmanager/rapport-mensuel/${encodeURIComponent(userId)}?mois=${month}`,
                 );
-                if (!res.ok) {
-                    alert("Impossible de générer le rapport.");
-                    return;
-                }
                 const blob = await res.blob();
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
@@ -368,9 +843,90 @@
                 a.download = `rapport-farmmanager-${month}.pdf`;
                 a.click();
                 URL.revokeObjectURL(url);
+            }
+            function shareWhatsApp(report) {
+                window.open(
+                    `https://wa.me/?text=${encodeURIComponent(report + " FarmManager prêt. Connectez-vous pour télécharger le PDF.")}`,
+                    "_blank",
+                );
+            }
+
+            function focusVoice(prefix = "") {
+                $("#voiceText").value = prefix;
+                $("#voiceText").focus();
+            }
+            $("#micBtn").addEventListener("click", () => {
+                if (
+                    "webkitSpeechRecognition" in window ||
+                    "SpeechRecognition" in window
+                ) {
+                    const Rec =
+                        window.SpeechRecognition ||
+                        window.webkitSpeechRecognition;
+                    const rec = new Rec();
+                    rec.lang = "fr-FR";
+                    rec.interimResults = false;
+                    rec.onstart = () =>
+                        ($("#voiceStatus").textContent = "Écoute en cours...");
+                    rec.onresult = (e) => {
+                        $("#voiceText").value = e.results[0][0].transcript;
+                        $("#voiceStatus").textContent =
+                            "Transcription prête. Cliquez Enregistrer.";
+                    };
+                    rec.onerror = () =>
+                        ($("#voiceStatus").textContent =
+                            "Micro indisponible. Saisissez le texte manuellement.");
+                    rec.start();
+                } else {
+                    const txt = prompt(
+                        "Dites ce qui s'est passé sur la ferme...",
+                    );
+                    if (txt) $("#voiceText").value = txt;
+                }
             });
-            $("#refreshBtn").addEventListener("click", loadEvents);
-            loadEvents();
+            $("#sendVoice").addEventListener("click", async () => {
+                const texte = $("#voiceText").value.trim();
+                if (!texte)
+                    return toast(
+                        "Dictez ou saisissez un événement.",
+                        "warning",
+                    );
+                $("#voiceStatus").textContent =
+                    "Analyse IA et enregistrement...";
+                const data = await api("/farmmanager/evenement", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        texte,
+                        user_id: userId,
+                        langue: "fr",
+                    }),
+                });
+                $("#voiceText").value = "";
+                $("#voiceStatus").textContent =
+                    `Confirmé : +${data.points_gagnes} points`;
+                toast(
+                    `${data.confirmation}<br>${data.conseils_experts?.[0] || "Conseil généré."}<br>+${data.points_gagnes} points`,
+                );
+                await Promise.all([
+                    loadBriefing(),
+                    loadFinances(),
+                    loadAnimals(),
+                    loadStocks(),
+                ]);
+            });
+
+            async function boot() {
+                await Promise.allSettled([
+                    loadBriefing(),
+                    loadAnimals(),
+                    loadFinances(),
+                    loadPlanning(),
+                    loadStocks(),
+                ]);
+                renderReports();
+            }
+            boot();
         </script>
     </body>
 </html>
