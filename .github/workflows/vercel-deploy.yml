@@ -1,0 +1,45 @@
+name: Force Vercel Deploy
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Trigger Vercel deploy hook if configured
+        id: hook
+        env:
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -n "$VERCEL_DEPLOY_HOOK_URL" ]; then
+            echo "Using VERCEL_DEPLOY_HOOK_URL."
+            curl -fsS -X POST "$VERCEL_DEPLOY_HOOK_URL"
+            echo "triggered=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No VERCEL_DEPLOY_HOOK_URL secret configured."
+            echo "triggered=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy with Vercel CLI if token secrets are configured
+        if: steps.hook.outputs.triggered != 'true'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "Vercel deployment secrets are not configured."
+            echo "Add either VERCEL_DEPLOY_HOOK_URL, or VERCEL_TOKEN + VERCEL_ORG_ID + VERCEL_PROJECT_ID."
+            exit 0
+          fi
+          npm install --global vercel@latest
+          vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+          vercel build --prod --token="$VERCEL_TOKEN"
+          vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
