@@ -299,6 +299,48 @@
                 background: #f1f9ef;
                 border-left: 5px solid var(--green);
             }
+            .guide-az {
+                border: 2px solid rgba(27, 94, 32, 0.14);
+                background: linear-gradient(135deg, #ffffff, #eef8ee);
+            }
+            .guide-phases {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+            }
+            .phase-card {
+                border-radius: 18px;
+                padding: 12px;
+                background: #fff;
+                border: 1px solid var(--line);
+            }
+            .phase-card h4 {
+                margin: 0 0 6px;
+                color: var(--green);
+            }
+            .checklist-grid {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 8px;
+            }
+            .check-item {
+                padding: 10px;
+                border-radius: 14px;
+                background: #f7fbf5;
+                border-left: 4px solid var(--lime);
+                font-size: 14px;
+            }
+            .module-map {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 8px;
+            }
+            .module-map-item {
+                padding: 10px;
+                border-radius: 14px;
+                background: #fff;
+                border: 1px solid var(--line);
+            }
             .quiz-question {
                 padding: 14px;
                 border-radius: 20px;
@@ -398,7 +440,10 @@
                 .grid-3,
                 .grid-4,
                 .filters,
-                .slide-row {
+                .slide-row,
+                .guide-phases,
+                .checklist-grid,
+                .module-map {
                     grid-template-columns: 1fr;
                 }
             }
@@ -510,6 +555,11 @@
                         <div id="catalogue" class="grid grid-3"></div>
                     </section>
                     <section id="lessonPanel" class="lesson-shell card">
+                        <div
+                            id="elevageGuide"
+                            class="card guide-az"
+                            hidden
+                        ></div>
                         <div class="lesson-hero">
                             <div class="badge" id="lessonBadge">Leçon</div>
                             <h2 id="lessonTitle">Choisissez une formation</h2>
@@ -738,12 +788,46 @@
             async function openFormation(code) {
                 currentFormation = code;
                 currentLesson = 1;
+                const formationDetail = await jget(
+                    `/academy/formation/${encodeURIComponent(code)}`,
+                );
+                renderElevageGuide(
+                    formationDetail.guide_elevage_debutant,
+                    formationDetail,
+                );
                 await loadLesson();
                 $("#ayaText").textContent =
-                    "Aya : suivez les étapes, puis validez le quiz.";
+                    "Aya : commencez par le guide A-Z, puis avancez leçon par leçon.";
                 document
                     .getElementById("lessonPanel")
                     .scrollIntoView({ behavior: "smooth" });
+            }
+            function renderElevageGuide(guide, formation) {
+                const box = $("#elevageGuide");
+                if (!guide) {
+                    box.hidden = true;
+                    return;
+                }
+                box.hidden = false;
+                box.innerHTML = `
+                    <div class="tags"><span class="tag gold">Guide débutant A-Z</span><span class="tag">${esc(formation.icone || "🎓")} ${esc(formation.titre || "Formation")}</span></div>
+                    <h2>${esc(guide.titre)}</h2>
+                    <p class="muted"><strong>Pour qui ?</strong> ${esc(guide.public)}</p>
+                    <p><strong>Objectif final :</strong> ${esc(guide.objectif_final)}</p>
+                    <h3>🧭 Les 8 phases pour apprendre à élever cette espèce</h3>
+                    <div class="guide-phases">${(guide.phases || []).map((p) => `<div class="phase-card"><h4>${esc(p.phase)}</h4><p>${esc(p.but)}</p><p><strong>Actions :</strong> ${(p.actions || []).map(esc).join(" · ")}</p><p class="muted"><strong>Livrable :</strong> ${esc(p.livrable)}</p></div>`).join("")}</div>
+                    <h3>✅ Checklist avant de démarrer</h3>
+                    <div class="checklist-grid">${(guide.checklist_demarrage || []).map((item) => `<div class="check-item">✅ ${esc(item)}</div>`).join("")}</div>
+                    <h3>🔗 Modules FeedFormula à utiliser pendant l'apprentissage</h3>
+                    <div class="module-map">${Object.entries(
+                        guide.modules_a_utiliser || {},
+                    )
+                        .map(
+                            ([name, value]) =>
+                                `<div class="module-map-item"><strong>${esc(name)}</strong><br><span class="muted">${esc(value)}</span></div>`,
+                        )
+                        .join("")}</div>
+                `;
             }
             async function loadLesson() {
                 if (!currentFormation) return;

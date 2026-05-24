@@ -624,6 +624,87 @@ def _formation_card_payload(formation: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+def _build_elevage_az_guide(formation: Dict[str, Any]) -> Dict[str, Any]:
+    """Guide A-Z ultra-pratique pour apprendre comment élever l'espèce ciblée."""
+    espece = str(formation.get("espece", "multi_especes"))
+    titre = str(formation.get("titre", "Production animale"))
+    is_species = espece != "multi_especes"
+    animal_name = titre.replace("Production complète —", "").strip() if is_species else "ferme multi-espèces"
+    return {
+        "titre": f"Comment élever {animal_name} de A à Z",
+        "public": "Débutant absolu : aucune expérience préalable n'est nécessaire.",
+        "objectif_final": f"Être capable de préparer, démarrer, conduire, surveiller, rentabiliser et améliorer un élevage de {animal_name}.",
+        "phases": [
+            {
+                "phase": "1. Avant de commencer",
+                "but": "Vérifier que l'espèce correspond à votre budget, votre temps, votre marché et votre espace.",
+                "actions": ["définir l'objectif", "calculer un budget simple", "identifier clients potentiels", "choisir petite taille de démarrage"],
+                "livrable": "Une décision écrite : je démarre maintenant / j'attends / je change d'espèce.",
+            },
+            {
+                "phase": "2. Préparer l'installation",
+                "but": "Avoir un logement propre, ventilé, sécurisé et adapté avant l'arrivée des animaux.",
+                "actions": ["nettoyer et désinfecter", "préparer eau et mangeoires", "contrôler ventilation", "préparer litière ou bassin/enclos selon espèce"],
+                "livrable": "Checklist bâtiment validée avant achat des animaux.",
+            },
+            {
+                "phase": "3. Acheter les premiers animaux",
+                "but": "Éviter de démarrer avec des animaux malades, faibles ou non adaptés.",
+                "actions": ["choisir fournisseur fiable", "observer yeux, respiration, activité", "vérifier âge/poids", "prévoir quarantaine"],
+                "livrable": "Lot d'animaux sain + fiche d'entrée FarmManager.",
+            },
+            {
+                "phase": "4. Nourrir et abreuver correctement",
+                "but": "Donner une ration adaptée sans gaspillage ni carence.",
+                "actions": ["mesurer l'aliment", "donner eau propre", "adapter au stade", "utiliser NutriCore pour vérifier la ration"],
+                "livrable": "Plan alimentaire simple avec quantité/jour et coût FCFA.",
+            },
+            {
+                "phase": "5. Suivre la santé chaque jour",
+                "but": "Détecter tôt les maladies et éviter les mortalités évitables.",
+                "actions": ["observer matin et soir", "noter refus d'aliment", "isoler les suspects", "utiliser VetScan si symptômes"],
+                "livrable": "Routine sanitaire quotidienne + registre des alertes.",
+            },
+            {
+                "phase": "6. Mesurer les performances",
+                "but": "Savoir si l'élevage progresse réellement.",
+                "actions": ["peser un échantillon", "suivre mortalité", "suivre ponte/lait/croissance", "comparer à l'objectif"],
+                "livrable": "Tableau simple : date, poids/production, consommation, mortalité.",
+            },
+            {
+                "phase": "7. Calculer la rentabilité",
+                "but": "Savoir si l'élevage gagne ou perd de l'argent.",
+                "actions": ["additionner dépenses", "noter ventes", "calculer coût par animal", "fixer prix minimum rentable"],
+                "livrable": "Coût de revient + marge nette estimée.",
+            },
+            {
+                "phase": "8. Vendre et améliorer le cycle suivant",
+                "but": "Vendre au bon moment et progresser cycle après cycle.",
+                "actions": ["préparer clients", "respecter délais sanitaires", "analyser erreurs", "planifier prochain cycle"],
+                "livrable": "Rapport de cycle + décision d'amélioration.",
+            },
+        ],
+        "checklist_demarrage": [
+            "Objectif clair et taille de démarrage réaliste",
+            "Budget écrit en FCFA",
+            "Logement prêt avant achat",
+            "Eau propre disponible",
+            "Aliment ou ration validé",
+            "Fournisseur d'animaux identifié",
+            "Plan sanitaire de base",
+            "Carnet/FarmManager prêt pour les notes",
+            "Client ou marché potentiel identifié",
+        ],
+        "modules_a_utiliser": {
+            "NutriCore": "formuler et vérifier l'aliment",
+            "VetScan": "réagir aux symptômes",
+            "FloraVet": "identifier plantes utiles ou toxiques",
+            "FarmManager": "suivre coûts, tâches, mortalité, production",
+            "FarmCommunity": "poser des questions et trouver des acheteurs",
+        },
+    }
+
+
 def _lesson_design_payload(formation: Dict[str, Any], lecon: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "hero": {
@@ -839,6 +920,7 @@ def get_formation(code: str) -> Dict[str, Any]:
             "conditions": "Valider toutes les leçons et quiz du parcours.",
             "valeur": "Attestation de compétences pratiques en production animale.",
         },
+        "guide_elevage_debutant": _build_elevage_az_guide(formation),
         "roadmap_debutant": [
             {"etape": 1, "titre": "Comprendre l'espèce", "resultat": "Savoir si cette production correspond à son budget, son temps et son marché."},
             {"etape": 2, "titre": "Préparer l'installation", "resultat": "Avoir bâtiment, matériel, eau, aliment et hygiène avant l'arrivée des animaux."},
