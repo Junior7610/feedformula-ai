@@ -58,6 +58,11 @@ def test_1_analyse_photo_moringa_15_sections() -> None:
     assert "energie_metabolisable_kcal_kg_ms" in nutritive
     assert payload["points_gagnes"] == 25
     assert payload["score_floravet"] >= 9
+    assert "mode_utilisation_et_posologie" in payload
+    for animal in ["bovins_zebus", "ovins", "caprins", "poulets_chair", "poules_pondeuses", "pintades", "porcins", "tilapia", "lapins"]:
+        assert animal in payload["mode_utilisation_et_posologie"]
+        assert payload["mode_utilisation_et_posologie"][animal]["mode_utilisation"]
+        assert payload["mode_utilisation_et_posologie"][animal]["posologie"]
 
 
 def test_2_recherche_par_nom() -> None:
@@ -99,6 +104,9 @@ def test_4_bibliotheque_50_plantes() -> None:
     }
     for plant in data["plantes"]:
         assert required.issubset(plant.keys())
+        assert "modes_utilisation_par_animal" in plant
+        assert "bovins_zebus" in plant["modes_utilisation_par_animal"]
+        assert plant["modes_utilisation_par_animal"]["bovins_zebus"]["posologie"]
 
 
 def test_5_integration_nutricore_et_score() -> None:

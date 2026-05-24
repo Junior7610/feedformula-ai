@@ -150,6 +150,22 @@ Le fichier `frontend/floravet.html` a été créé.
 
 Interface en 4 sections :
 
+### Correction — Mode d'utilisation et posologie par animal
+
+Après retour utilisateur, FloraVet inclut maintenant explicitement une section `mode_utilisation_et_posologie` dans chaque analyse, avec une posologie spécifique par animal :
+
+- bovins/zébus ;
+- ovins ;
+- caprins ;
+- poulets de chair ;
+- poules pondeuses ;
+- pintades ;
+- porcins ;
+- tilapia ;
+- lapins.
+
+Chaque fiche précise : statut, mode d'utilisation, dose/posologie, préparation, fréquence et précautions. Les fiches de bibliothèque exposent aussi `modes_utilisation_par_animal` et `posologie_specifique` pour chaque plante.
+
 ### Section 1 — Analyser une plante
 
 - header vert botanique ;
@@ -295,9 +311,14 @@ Tests inclus :
 4. bibliothèque de 50 plantes ;
 5. intégration NutriCore.
 
-Résultat exécuté :
+Résultat exécuté initial :
 
 - `5 passed in 52.10s`
+- Score FloraVet : `10/10`
+
+Résultat après ajout des modes d'utilisation et posologies par animal :
+
+- `5 passed in 32.90s`
 - Score FloraVet : `10/10`
 
 ## 11. Résultat final

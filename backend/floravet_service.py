@@ -125,6 +125,13 @@ def _find_plant(nom: str) -> Optional[Dict[str, Any]]:
     return None
 
 
+def _enrich_plant_with_posology(plant: Dict[str, Any]) -> Dict[str, Any]:
+    enriched = dict(plant or {})
+    enriched["modes_utilisation_par_animal"] = _usage_posology_for_plant(enriched)
+    enriched["posologie_specifique"] = enriched["modes_utilisation_par_animal"]
+    return enriched
+
+
 def _default_plant_for_image(image_base64: str) -> Dict[str, Any]:
     """Fallback photo : Moringa est choisi pour permettre un résultat utile et stable."""
     return _find_plant("Moringa oleifera") or (_load_library()[20] if len(_load_library()) > 20 else {})
@@ -153,23 +160,150 @@ def _nutrition_for(plant: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+def _usage_posology_for_plant(plant: Dict[str, Any]) -> Dict[str, Any]:
+    """Construit le mode d'utilisation et la posologie par animal pour une plante donnée."""
+    toxic = bool(plant.get("est_toxique"))
+    plant_type = _slug(plant.get("type"))
+    pb = float(plant.get("proteines_brutes_pct_ms") or 10)
+    name = plant.get("nom_francais", "cette plante")
+    is_medicinal = "medic" in plant_type or any(k in _slug(json.dumps(plant, ensure_ascii=False)) for k in ["neem", "papayer", "vernonie", "basilic", "ail", "gingembre", "curcuma", "aloe"])
+    is_grass = any(k in plant_type for k in ["graminee", "paturage", "cereale"])
+    is_tree = any(k in plant_type for k in ["arbre", "arbuste"])
+    is_leaf_meal = pb >= 14 or is_tree or is_medicinal
+
+    if toxic:
+        forbidden = {
+            "statut": "❌ Interdit",
+            "mode_utilisation": "Ne pas distribuer. Retirer des pâturages, haies accessibles, litières et résidus de récolte.",
+            "posologie": "0 g/kg poids vif — aucune dose alimentaire sûre recommandée sans protocole vétérinaire spécialisé.",
+            "preparation": "Porter des gants si plante irritante. Détruire ou isoler les parties consommables.",
+            "frequence": "Jamais en ration.",
+            "precautions": plant.get("niveau_toxicite", "Plante toxique"),
+        }
+        return {animal: dict(forbidden) for animal in ["bovins_zebus", "ovins", "caprins", "poulets_chair", "poules_pondeuses", "pintades", "porcins", "tilapia", "lapins"]}
+
+    ruminant_fresh = "2-10 kg frais/adulte/jour" if is_grass else "1-5 kg frais/adulte/jour"
+    ruminant_dry = "0,5-3 kg MS/adulte/jour" if is_grass else "0,3-1,5 kg MS/adulte/jour"
+    small_ruminant_fresh = "0,3-1,5 kg frais/animal/jour" if is_grass else "100-700 g frais/animal/jour"
+    poultry_pct = "1-3%" if is_medicinal else "2-5%" if is_leaf_meal else "0-2%"
+    pig_pct = "1-3%" if is_medicinal else "3-8%" if is_leaf_meal else "5-12%"
+    fish_pct = "1-4%" if is_medicinal else "3-8%" if is_leaf_meal else "2-6%"
+    rabbit_fresh = "50-250 g frais/lapin/jour" if is_leaf_meal or is_grass else "20-100 g frais/lapin/jour"
+
+    if "moringa" in _slug(name):
+        poultry_pct = "2-5% feuilles séchées moulues ; commencer à 1% pendant 7 jours"
+        pig_pct = "3-6% farine de feuilles ; maximum 8% si ration équilibrée"
+        fish_pct = "4-8% farine de feuilles bien séchées"
+        ruminant_fresh = "2-6 kg feuilles fraîches/adulte/jour"
+        small_ruminant_fresh = "200-800 g feuilles fraîches/animal/jour"
+    elif "leucene" in _slug(name) or "leucaena" in _slug(plant.get("nom_scientifique")):
+        ruminant_fresh = "1-4 kg frais/adulte/jour, maximum 20% de la ration"
+        small_ruminant_fresh = "100-500 g frais/animal/jour"
+        poultry_pct = "0-2% après séchage ; usage limité à cause de la mimosine"
+    elif "neem" in _slug(name) or "azadirachta" in _slug(plant.get("nom_scientifique")):
+        poultry_pct = "0,5-1% poudre de feuilles pendant 5-7 jours, pas en continu"
+        ruminant_fresh = "100-500 g feuilles/adulte/jour en usage court"
+        small_ruminant_fresh = "20-100 g feuilles/animal/jour en usage court"
+        pig_pct = "0,5-1% maximum, cure courte"
+        fish_pct = "usage alimentaire déconseillé hors essai encadré"
+    elif is_grass:
+        poultry_pct = "Déconseillé comme ingrédient majeur ; fibres trop élevées. Jeunes feuilles séchées ≤1-2% si besoin."
+
+    return {
+        "bovins_zebus": {
+            "statut": "✅ Recommandé" if is_grass or is_leaf_meal else "⚠️ Complément ponctuel",
+            "mode_utilisation": f"Distribuer {name} haché en vert, en foin, en ensilage ou en complément de pâturage selon disponibilité.",
+            "posologie": f"{ruminant_fresh} ou {ruminant_dry}. Taux d'inclusion : 10-30% de la matière sèche selon fibre et protéines.",
+            "preparation": "Hacher 3-5 cm, enlever parties moisies, introduire progressivement sur 7 jours.",
+            "frequence": "Quotidien si fourrage sain ; cure 5-10 jours si usage médicinal.",
+            "precautions": "Toujours associer à eau propre, sel/minéraux et énergie suffisante.",
+        },
+        "ovins": {
+            "statut": "✅ Recommandé" if is_leaf_meal or is_grass else "⚠️ Petite dose",
+            "mode_utilisation": "Feuilles fraîches hachées, foin fin ou pâturage contrôlé.",
+            "posologie": f"{small_ruminant_fresh} ; foin/farine : 50-250 g MS/jour ; maximum 20-25% ration MS.",
+            "preparation": "Préfaner 2-4 h si plante très aqueuse ou très riche.",
+            "frequence": "3-7 fois/semaine selon disponibilité.",
+            "precautions": "Introduire lentement pour éviter diarrhée et refus.",
+        },
+        "caprins": {
+            "statut": "✅ Très adapté" if is_tree or is_leaf_meal else "✅ Adapté",
+            "mode_utilisation": "Branches feuillées suspendues, feuilles hachées, foin de feuilles.",
+            "posologie": f"{small_ruminant_fresh} ; farine sèche : 30-200 g/jour selon taille ; maximum 25% ration MS.",
+            "preparation": "Couper branches propres, éviter feuilles poussiéreuses ou traitées.",
+            "frequence": "Quotidien possible pour fourrage ; cure courte pour médicinal.",
+            "precautions": "Surveiller météorisation si légumineuse très jeune.",
+        },
+        "poulets_chair": {
+            "statut": "✅ Utile en farine" if is_leaf_meal else "⚠️ Limité",
+            "mode_utilisation": "Feuilles séchées à l'ombre puis moulues finement ; jamais feuilles grossières en forte proportion.",
+            "posologie": f"{poultry_pct} de l'aliment complet, soit environ 10-50 g/kg aliment selon plante.",
+            "preparation": "Laver, sécher à l'ombre 2-4 jours, moudre, tamiser, incorporer progressivement.",
+            "frequence": "En continu à faible dose ou cure 7-14 jours selon objectif.",
+            "precautions": "Si baisse de consommation, réduire de moitié ou arrêter.",
+        },
+        "poules_pondeuses": {
+            "statut": "✅ Utile pour pigments/minéraux" if is_leaf_meal else "⚠️ Limité",
+            "mode_utilisation": "Farine de feuilles dans l'aliment pondeuse ; peut améliorer couleur du jaune selon plante.",
+            "posologie": f"{poultry_pct} de la ration ; commencer à 1% puis augmenter après 7 jours.",
+            "preparation": "Séchage à l'ombre pour conserver caroténoïdes et vitamines.",
+            "frequence": "Continu à faible dose ; pause si coquilles ou ponte baissent.",
+            "precautions": "Maintenir calcium, phosphore et énergie équilibrés.",
+        },
+        "pintades": {
+            "statut": "✅ Adapté à faible dose" if is_leaf_meal else "⚠️ Très limité",
+            "mode_utilisation": "Farine fine mélangée à l'aliment, surtout en croissance ou stress.",
+            "posologie": "1-3% de l'aliment complet ; maximum 30 g/kg aliment.",
+            "preparation": "Même préparation que volailles : sécher, moudre, tamiser.",
+            "frequence": "Cure 7-14 jours ou continu à 1%.",
+            "precautions": "Éviter excès de fibres chez jeunes pintadeaux.",
+        },
+        "porcins": {
+            "statut": "⚠️ Avec précaution" if is_medicinal else "✅ Possible",
+            "mode_utilisation": "Farine de feuilles ou résidu végétal finement broyé dans aliment humide/sec.",
+            "posologie": f"{pig_pct} de l'aliment ; truies gestantes : rester au bas de la fourchette.",
+            "preparation": "Séchage complet pour éviter moisissures ; mélange homogène.",
+            "frequence": "Cure courte si médicinal ; continu possible si fourrage protéique validé.",
+            "precautions": "Surveiller diarrhée, appétit et odeur de l'aliment.",
+        },
+        "tilapia": {
+            "statut": "⚠️ Possible après transformation" if is_leaf_meal else "⚠️ Limité",
+            "mode_utilisation": "Farine de feuilles très fine dans granulé, idéalement testée en petite quantité.",
+            "posologie": f"{fish_pct} de l'aliment ; introduire sur 10 jours.",
+            "preparation": "Sécher fortement, moudre fin, incorporer dans granulé stable à l'eau.",
+            "frequence": "Continu à faible dose si croissance maintenue.",
+            "precautions": "Arrêter si baisse d'ingestion ou eau se dégrade.",
+        },
+        "lapins": {
+            "statut": "✅ Très adapté" if is_leaf_meal or is_grass else "⚠️ Petite dose",
+            "mode_utilisation": "Feuilles fraîches préfanées, foin de feuilles ou granulé enrichi.",
+            "posologie": f"{rabbit_fresh} ; farine sèche : 5-15% du granulé selon fibre et appétence.",
+            "preparation": "Préfaner pour réduire humidité ; ne jamais donner moisi ou fermenté.",
+            "frequence": "Quotidien possible si selles normales.",
+            "precautions": "Introduire très progressivement ; les lapereaux sont sensibles aux changements brusques.",
+        },
+    }
+
+
 def _beneficiaries_for(plant: Dict[str, Any], espece: str) -> Dict[str, Any]:
     toxic = bool(plant.get("est_toxique"))
     species = plant.get("especes_beneficiaires") or []
+    posology = _usage_posology_for_plant(plant)
     def status(name: str) -> str:
         if toxic:
             return "❌ Déconseillé"
         return "✅ Excellent" if any(_slug(name) in _slug(s) or _slug(s) in _slug(name) for s in species) else "⚠️ Avec précaution"
     return {
-        "bovins_zebus": {"statut": status("bovins"), "dose_frais": "2-8 kg/animal/jour", "dose_foin": "0,5-2 kg/animal/jour", "max_ration_pct": 20, "effet_lait": "augmente légèrement si ration déficitaire en protéines"},
-        "ovins_caprins": {"statut": status("caprins"), "dose_frais": "0,3-1,5 kg/animal/jour", "max_ration_pct": 25},
-        "poulets_chair": {"statut": status("volailles"), "forme": "feuilles séchées moulues", "dose_pct": "2-5% maximum", "effets": "meilleur apport en pigments, vitamines et immunité"},
-        "pondeuses": {"statut": status("volailles"), "dose_pct": "2-4%", "effet_ponte": "neutre à positif", "qualite_oeufs": "jaune plus coloré si plante riche en caroténoïdes"},
-        "pintades": {"statut": status("volailles"), "dose_pct": "1-3%"},
-        "porcins": {"statut": status("porcs"), "dose_pct": "2-5%"},
-        "tilapia": {"statut": status("tilapia"), "dose_pct": "2-8% selon transformation"},
-        "lapins": {"statut": status("lapins"), "dose_frais": "50-200 g/jour selon poids"},
-        "resume_visuel": {"🐄 Bovins": status("bovins"), "🐑 Ovins": status("ovins"), "🐐 Caprins": status("caprins"), "🐔 Poulets": status("volailles"), "🥚 Pondeuses": status("volailles"), "🐷 Porcs": status("porcs"), "🐟 Tilapia": status("tilapia"), "🐰 Lapins": status("lapins")},
+        "bovins_zebus": {"statut": status("bovins"), "palatabilite": "appétente si récoltée jeune", **posology["bovins_zebus"], "effet_lait": "augmente légèrement si ration déficitaire en protéines"},
+        "ovins": {"statut": status("ovins"), "palatabilite": "appétente après adaptation", **posology["ovins"]},
+        "caprins": {"statut": status("caprins"), "palatabilite": "très appétente pour feuilles d'arbres", **posology["caprins"]},
+        "poulets_chair": {"statut": status("volailles"), **posology["poulets_chair"], "effets": "meilleur apport en pigments, vitamines et immunité"},
+        "poules_pondeuses": {"statut": status("volailles"), **posology["poules_pondeuses"], "effet_ponte": "neutre à positif", "qualite_oeufs": "jaune plus coloré si plante riche en caroténoïdes"},
+        "pintades": {"statut": status("volailles"), **posology["pintades"]},
+        "porcins": {"statut": status("porcs"), **posology["porcins"]},
+        "tilapia": {"statut": status("tilapia"), **posology["tilapia"]},
+        "lapins": {"statut": status("lapins"), **posology["lapins"]},
+        "resume_visuel": {"🐄 Bovins": status("bovins"), "🐑 Ovins": status("ovins"), "🐐 Caprins": status("caprins"), "🐔 Poulets": status("volailles"), "🥚 Pondeuses": status("volailles"), "🦜 Pintades": status("volailles"), "🐷 Porcs": status("porcs"), "🐟 Tilapia": status("tilapia"), "🐰 Lapins": status("lapins")},
     }
 
 
@@ -212,6 +346,7 @@ def _build_complete_analysis(plant: Dict[str, Any], espece: str, region: str, la
         },
         "valeur_nutritive": nutrition,
         "animaux_beneficiaires": _beneficiaries_for(plant, espece),
+        "mode_utilisation_et_posologie": _usage_posology_for_plant(plant),
         "vertus_medicinales": {
             "proprietes": {"antiparasitaire": "possible selon plante", "antibacterien": "documenté pour plusieurs plantes médicinales", "anti_inflammatoire": "possible", "antioxydant": "moyen à fort", "immunostimulant": "possible"},
             "usages_traditionnels_benin": ["soutien digestif", "hygiène sanitaire", "complément vitaminique"],
@@ -343,7 +478,7 @@ class FloraVetService:
         if not plant:
             raise HTTPException(status_code=404, detail="Plante introuvable dans la bibliothèque FloraVet.")
         analysis = _build_complete_analysis(plant, "bovins", "Bénin", langue, confidence=98.0)
-        analysis["fiche_resume"] = plant
+        analysis["fiche_resume"] = _enrich_plant_with_posology(plant)
         return analysis
 
     async def get_plantes_region(self, region_benin: str, espece_animale: str) -> List[Dict[str, Any]]:
@@ -354,17 +489,17 @@ class FloraVetService:
             in_region = any(region_slug in _slug(r) or _slug(r) == "tous" for r in p.get("regions_benin", []))
             for_species = any(espece_slug in _slug(s) or _slug(s) in espece_slug or "volailles" in _slug(s) and "poulet" in espece_slug for s in p.get("especes_beneficiaires", []))
             if in_region and (for_species or len(plants) < 10):
-                plants.append(p)
+                plants.append(_enrich_plant_with_posology(p))
         plants.sort(key=lambda x: float(x.get("score_floravet") or 0), reverse=True)
         return plants[:10]
 
     async def get_plantes_saison(self, saison: str, espece_animale: str) -> List[Dict[str, Any]]:
         saison_slug = _slug(saison)
-        return [p for p in _load_library() if any(saison_slug in _slug(s) for s in p.get("saisons", []))][:10]
+        return [_enrich_plant_with_posology(p) for p in _load_library() if any(saison_slug in _slug(s) for s in p.get("saisons", []))][:10]
 
     async def get_plantes_toxiques_alerte(self, region_benin: str) -> List[Dict[str, Any]]:
         region_slug = _slug(region_benin)
-        toxic = [p for p in _load_library() if p.get("est_toxique") and (any(region_slug in _slug(r) or _slug(r) == "tous" for r in p.get("regions_benin", [])) or region_slug)]
+        toxic = [_enrich_plant_with_posology(p) for p in _load_library() if p.get("est_toxique") and (any(region_slug in _slug(r) or _slug(r) == "tous" for r in p.get("regions_benin", [])) or region_slug)]
         return toxic[:10]
 
     async def comparer_plantes(self, plante_1: str, plante_2: str, espece_animale: str) -> Dict[str, Any]:
@@ -372,14 +507,14 @@ class FloraVetService:
         if not p1 or not p2:
             raise HTTPException(status_code=404, detail="Une des deux plantes est introuvable.")
         winner = p1 if float(p1.get("score_floravet") or 0) >= float(p2.get("score_floravet") or 0) else p2
-        return {"plante_1": p1, "plante_2": p2, "espece_animale": espece_animale, "comparaison": {"proteines": [p1.get("proteines_brutes_pct_ms"), p2.get("proteines_brutes_pct_ms")], "toxicite": [p1.get("niveau_toxicite"), p2.get("niveau_toxicite")], "scores": [p1.get("score_floravet"), p2.get("score_floravet")]}, "recommandation": f"Choisir {winner.get('nom_francais')} dans ce contexte, sauf contrainte locale spécifique.", "meilleure_plante": winner}
+        return {"plante_1": _enrich_plant_with_posology(p1), "plante_2": _enrich_plant_with_posology(p2), "espece_animale": espece_animale, "comparaison": {"proteines": [p1.get("proteines_brutes_pct_ms"), p2.get("proteines_brutes_pct_ms")], "toxicite": [p1.get("niveau_toxicite"), p2.get("niveau_toxicite")], "scores": [p1.get("score_floravet"), p2.get("score_floravet")], "posologie_espece": {"plante_1": _usage_posology_for_plant(p1).get(_slug(espece_animale).replace(' ', '_'), _usage_posology_for_plant(p1).get('bovins_zebus')), "plante_2": _usage_posology_for_plant(p2).get(_slug(espece_animale).replace(' ', '_'), _usage_posology_for_plant(p2).get('bovins_zebus'))}}, "recommandation": f"Choisir {winner.get('nom_francais')} dans ce contexte, sauf contrainte locale spécifique.", "meilleure_plante": _enrich_plant_with_posology(winner)}
 
     async def get_historique_analyses(self, user_id: str, db: Session) -> List[Dict[str, Any]]:
         rows = db.query(AnalyseFloraVet).filter(AnalyseFloraVet.user_id == user_id).order_by(AnalyseFloraVet.date_analyse.desc()).all()
         return [{"id": r.id, "date_analyse": r.date_analyse.isoformat() if r.date_analyse else None, "nom_scientifique": r.nom_scientifique, "nom_francais": r.nom_francais, "niveau_confiance": r.niveau_confiance, "points_gagnes": r.points_gagnes, "analyse_complete": json.loads(r.analyse_complete_json or "{}")} for r in rows]
 
     async def get_bibliotheque_plantes_benin(self) -> List[Dict[str, Any]]:
-        return _load_library()
+        return [_enrich_plant_with_posology(p) for p in _load_library()]
 
     def _build_ration_example(self, plant: Dict[str, Any], espece: str) -> Dict[str, Any]:
         return {"module": "NutriCore", "ingredient_floravet": plant.get("nom_scientifique"), "espece": espece, "ration_exemple": {"mais": 55, "tourteau_soja": 22, "son_ble": 12, plant.get("nom_francais", "plante") + " séchée": 5, "cmv": 3, "coquille/calcaire": 3}, "cout_estime_fcfa_kg": 260, "recommandation": "Valider la formulation finale dans NutriCore selon âge et objectif."}
