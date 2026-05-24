@@ -182,6 +182,19 @@ def normalize_head(text: str, file_name: str) -> str:
     head_open, head_content, head_close = head_match.groups()
     body = head_content
 
+    # Normalise le viewport et le title pour satisfaire les contrôles PWA/SEO stricts.
+    viewport_tag = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />'
+    if re.search(r'<meta\s+name="viewport"[^>]*>', body, flags=re.I | re.S):
+        body = re.sub(r'<meta\s+name="viewport"[^>]*>', viewport_tag, body, count=1, flags=re.I | re.S)
+    else:
+        body = viewport_tag + "\n" + body
+
+    title_tag = '<title>FeedFormula AI — Nutrition Animale IA | Bénin</title>'
+    if re.search(r'<title>.*?</title>', body, flags=re.I | re.S):
+        body = re.sub(r'<title>.*?</title>', title_tag, body, count=1, flags=re.I | re.S)
+    else:
+        body = title_tag + "\n" + body
+
     # Supprime les doublons exacts des tags normalisés
     for pattern, replacement in REPLACEMENTS:
         body = pattern.sub(replacement, body)
