@@ -212,7 +212,12 @@
     if (btn) btn.textContent = normalized === "dark" ? "☀️ Jour" : "🌙 Nuit";
   }
 
+  function isSimpleHome() {
+    return document.body && document.body.classList.contains("simple-home");
+  }
+
   function addHeadingIcons() {
+    if (isSimpleHome()) return;
     qsa("h1, h2, h3").forEach((heading) => {
       if (heading.dataset.ffIconReady === "1") return;
       const text = clean(heading.textContent);
@@ -249,6 +254,7 @@
   }
 
   function addIllustrationSlots() {
+    if (isSimpleHome()) return;
     qsa(
       ".module-card, .formation-card, .plant-card, .animal-card, .profile-card, .metric",
     ).forEach((card) => {
@@ -263,6 +269,7 @@
   }
 
   function injectPageExperienceBanner() {
+    if (isSimpleHome()) return;
     if (qs("#ffPageExperience")) return;
     const config = pageExperience();
     if (!config) return;
@@ -298,6 +305,7 @@
   }
 
   function buildQuickNav() {
+    if (isSimpleHome()) return;
     if (qs("#ffQuickNav")) return;
     const headings = qsa("main h2, .app h2, .wrap h2")
       .filter((h) => clean(h.textContent).length > 2)
@@ -326,6 +334,7 @@
   }
 
   function injectUxDock() {
+    if (isSimpleHome()) return;
     if (qs("#ffUxDock")) return;
     const dock = document.createElement("div");
     dock.id = "ffUxDock";

@@ -5554,6 +5554,13 @@ body.simple-home .aya-floating,
 body.simple-home .wave-canvas,
 body.simple-home .mic-wave,
 body.simple-home .species-emoji,
+body.simple-home .xp-sticky,
+body.simple-home .challenge-card,
+body.simple-home .subscription-card,
+body.simple-home #offlineCachePanel,
+body.simple-home .language-strip > .section-subtitle,
+body.simple-home .language-strip > .language-list,
+body.simple-home .language-strip > details,
 body.simple-home .challenge-progress,
 body.simple-home .subscription-benefits,
 body.simple-home #subscriptionOffersHome,
@@ -5565,6 +5572,9 @@ body.simple-home .site-footer {
 body.simple-home .page-shell {
     padding-top: calc(var(--header-height) + 16px);
     padding-bottom: calc(var(--bottom-nav-height) + 24px);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 body.simple-home .app-header {
@@ -5618,6 +5628,19 @@ body.simple-home .challenge-card::after {
 body.simple-home .challenge-card,
 body.simple-home .subscription-card {
     background: var(--surface-primary);
+}
+
+body.simple-home .language-strip {
+    margin-bottom: 0;
+    padding: 12px 14px;
+}
+
+body.simple-home .strip-label {
+    margin-bottom: 8px;
+}
+
+body.simple-home .language-preference {
+    margin-top: 0;
 }
 
 body.simple-home .language-list {
