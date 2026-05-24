@@ -210,10 +210,183 @@
                 gap: 8px;
                 flex-wrap: wrap;
             }
+            .plant-hero-card {
+                display: grid;
+                grid-template-columns: minmax(220px, 0.85fr) minmax(0, 1.15fr);
+                gap: 18px;
+                align-items: stretch;
+                overflow: hidden;
+                border: 0;
+                background:
+                    radial-gradient(
+                        circle at 20% 15%,
+                        rgba(129, 199, 132, 0.35),
+                        transparent 28%
+                    ),
+                    linear-gradient(135deg, #ffffff, #edf8ed);
+            }
+            .botanical-illustration {
+                min-height: 260px;
+                border-radius: 24px;
+                background:
+                    linear-gradient(
+                        180deg,
+                        rgba(46, 125, 50, 0.12),
+                        rgba(46, 125, 50, 0.04)
+                    ),
+                    radial-gradient(
+                        circle at 50% 85%,
+                        rgba(46, 125, 50, 0.25),
+                        transparent 22%
+                    );
+                display: grid;
+                place-items: center;
+                position: relative;
+                overflow: hidden;
+            }
+            .botanical-illustration::before,
+            .botanical-illustration::after {
+                content: "";
+                position: absolute;
+                width: 90px;
+                height: 180px;
+                border-radius: 100% 0 100% 0;
+                background: linear-gradient(135deg, #2e7d32, #9ccc65);
+                transform: rotate(-28deg);
+                opacity: 0.88;
+            }
+            .botanical-illustration::before {
+                left: 46%;
+                top: 18%;
+            }
+            .botanical-illustration::after {
+                left: 24%;
+                top: 30%;
+                transform: rotate(38deg);
+                opacity: 0.72;
+            }
+            .botanical-illustration span {
+                position: relative;
+                z-index: 2;
+                width: 120px;
+                height: 120px;
+                display: grid;
+                place-items: center;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.86);
+                font-size: 58px;
+                box-shadow: 0 20px 50px rgba(20, 90, 35, 0.18);
+            }
+            .score-ring {
+                width: 118px;
+                height: 118px;
+                border-radius: 50%;
+                display: grid;
+                place-items: center;
+                background: conic-gradient(
+                    var(--botanic) calc(var(--score) * 10%),
+                    #dfeee0 0
+                );
+                box-shadow:
+                    inset 0 0 0 12px #fff,
+                    0 10px 26px rgba(46, 125, 50, 0.18);
+                font-weight: 1000;
+                color: var(--botanic-dark);
+            }
+            .quick-stats {
+                display: grid;
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: 10px;
+                margin-top: 12px;
+            }
+            .quick-stat {
+                padding: 12px;
+                border-radius: 18px;
+                background: #f5fbf3;
+                border: 1px solid #dce8d9;
+            }
+            .quick-stat strong {
+                display: block;
+                font-size: 18px;
+                color: var(--botanic-dark);
+            }
+            .section-cards {
+                display: grid;
+                gap: 14px;
+            }
+            .section-card {
+                border: 1px solid #e2ecde;
+                border-radius: 22px;
+                padding: 16px;
+                background: #fff;
+            }
+            .section-card h3 {
+                margin: 0 0 12px;
+                color: var(--botanic-dark);
+            }
+            .kv-grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+            }
+            .kv {
+                padding: 10px;
+                border-radius: 14px;
+                background: #f7fbf5;
+            }
+            .kv b {
+                color: var(--botanic-dark);
+            }
+            .animal-posology {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 10px;
+            }
+            .animal-card {
+                padding: 12px;
+                border-radius: 18px;
+                background: #f7fbf5;
+                border-left: 5px solid var(--botanic);
+            }
+            .animal-card h4 {
+                margin: 0 0 8px;
+            }
+            .slide-deck {
+                display: grid;
+                grid-template-columns: repeat(5, minmax(190px, 1fr));
+                gap: 12px;
+                overflow-x: auto;
+                padding-bottom: 4px;
+            }
+            .slide-card {
+                min-height: 250px;
+                border-radius: 22px;
+                padding: 14px;
+                background: linear-gradient(160deg, #ffffff, #eef8ee);
+                border: 1px solid #dce8d9;
+                box-shadow: 0 10px 24px rgba(20, 90, 35, 0.08);
+            }
+            .slide-card .slide-icon {
+                font-size: 34px;
+            }
+            .slide-card ul {
+                padding-left: 18px;
+            }
+            .copy-box {
+                background: #102f16;
+                color: #eaffea;
+                border-radius: 18px;
+                padding: 14px;
+                white-space: pre-wrap;
+            }
             @media (max-width: 850px) {
                 .grid-2,
                 .grid-3,
-                .capture {
+                .capture,
+                .plant-hero-card,
+                .quick-stats,
+                .kv-grid,
+                .animal-posology {
                     grid-template-columns: 1fr;
                 }
             }
@@ -364,6 +537,7 @@
             const $ = (s) => document.querySelector(s);
             let selectedFile = null;
             let library = [];
+            let lastAnalysis = null;
             function apiBase(path) {
                 return path;
             }
@@ -421,27 +595,122 @@
                 renderAnalysis(data);
                 await loadHistory();
             });
+            function esc(value) {
+                return String(value ?? "")
+                    .replaceAll("&", "&amp;")
+                    .replaceAll("<", "&lt;")
+                    .replaceAll(">", "&gt;")
+                    .replaceAll('"', "&quot;");
+            }
+            function prettyKey(key) {
+                const labels = {
+                    matiere_seche_pct: "Matière sèche",
+                    proteines_brutes_pct_ms: "Protéines brutes",
+                    energie_metabolisable_kcal_kg_ms: "Énergie métabolisable",
+                    fibres_brutes_pct_ms: "Fibres brutes",
+                    calcium_pct_ms: "Calcium",
+                    phosphore_pct_ms: "Phosphore",
+                    ratio_ca_p: "Ratio Ca/P",
+                    beta_carotene_mg_kg_ms: "β-carotène",
+                    nom_scientifique: "Nom scientifique",
+                    nom_francais: "Nom français",
+                    famille_botanique: "Famille botanique",
+                    niveau_confiance: "Confiance",
+                };
+                return labels[key] || key.replaceAll("_", " ");
+            }
+            function renderKV(obj, max = 12) {
+                if (!obj || typeof obj !== "object")
+                    return `<p>${esc(obj || "Non renseigné")}</p>`;
+                return `<div class="kv-grid">${Object.entries(obj)
+                    .slice(0, max)
+                    .map(
+                        ([k, v]) =>
+                            `<div class="kv"><b>${esc(prettyKey(k))}</b><br>${esc(typeof v === "object" ? JSON.stringify(v) : v)}</div>`,
+                    )
+                    .join("")}</div>`;
+            }
+            function renderPosology(data) {
+                const posology = data.mode_utilisation_et_posologie || {};
+                const icons = {
+                    bovins_zebus: "🐄",
+                    ovins: "🐑",
+                    caprins: "🐐",
+                    poulets_chair: "🐔",
+                    poules_pondeuses: "🥚",
+                    pintades: "🦜",
+                    porcins: "🐷",
+                    tilapia: "🐟",
+                    lapins: "🐰",
+                };
+                return `<div class="section-card"><h3>🐾 Mode d'utilisation et posologie par animal</h3><div class="animal-posology">${Object.entries(
+                    posology,
+                )
+                    .map(
+                        ([animal, p]) =>
+                            `<div class="animal-card"><h4>${icons[animal] || "🐾"} ${esc(prettyKey(animal))}</h4><p><strong>${esc(p.statut || "")}</strong></p><p><b>Utilisation :</b> ${esc(p.mode_utilisation)}</p><p><b>Posologie :</b> ${esc(p.posologie)}</p><p><b>Préparation :</b> ${esc(p.preparation)}</p><p><b>Fréquence :</b> ${esc(p.frequence)}</p><p class="muted"><b>Précautions :</b> ${esc(p.precautions)}</p></div>`,
+                    )
+                    .join("")}</div></div>`;
+            }
+            function renderDeck(data) {
+                const deck = data.presentation_deck || {};
+                const slides = deck.slides || [];
+                return `<div class="section-card"><h3>🖼️ Fiche PowerPoint — compatible Gamma / Kimi</h3><p class="muted">Cette fiche est prête à être copiée dans Gamma, Kimi ou tout outil de présentation pour générer une fiche illustrée.</p><div class="slide-deck">${slides
+                    .map(
+                        (s) =>
+                            `<div class="slide-card"><div class="slide-icon">${esc(s.icone || "🌿")}</div><h4>Slide ${s.numero} — ${esc(s.titre)}</h4><ul>${(s.bullets || []).map((b) => `<li>${esc(b)}</li>`).join("")}</ul><small class="muted">Illustration : ${esc(s.illustration_prompt)}</small></div>`,
+                    )
+                    .join(
+                        "",
+                    )}</div><h4>Prompt Gamma/Kimi</h4><div class="copy-box" id="gammaPrompt">${esc(deck.prompt_gamma_kimi || "")}</div><div class="actions" style="margin-top:10px"><button class="btn primary" onclick="copyGammaPrompt()">Copier le prompt Gamma/Kimi</button><button class="btn" onclick="downloadDeckJson()">Télécharger JSON présentation</button></div></div>`;
+            }
+            function copyGammaPrompt() {
+                const text =
+                    lastAnalysis?.presentation_deck?.prompt_gamma_kimi || "";
+                navigator.clipboard?.writeText(text);
+                alert("Prompt Gamma/Kimi copié.");
+            }
+            function downloadDeckJson() {
+                const blob = new Blob(
+                    [
+                        JSON.stringify(
+                            lastAnalysis?.presentation_deck || {},
+                            null,
+                            2,
+                        ),
+                    ],
+                    { type: "application/json" },
+                );
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "fiche-floravet-presentation.json";
+                a.click();
+                URL.revokeObjectURL(url);
+            }
             function renderAnalysis(data) {
-                const tabs = [
-                    "identification",
-                    "valeur_nutritive",
-                    "animaux_beneficiaires",
-                    "mode_utilisation_et_posologie",
-                    "vertus_medicinales",
-                    "toxicite",
-                    "integration_rations",
-                    "guide_culture",
-                    "recommandations",
-                ];
+                lastAnalysis = data;
+                const id = data.identification || {};
+                const nutrition = data.valeur_nutritive || {};
+                const reco = data.recommandations || {};
+                const toxic = String(
+                    data.toxicite?.niveau_global || "",
+                ).includes("TOXIQUE");
+                const score = Number(
+                    data.score_floravet || reco.score_global_floravet || 0,
+                );
+                const hero = `<div class="card plant-hero-card"><div class="botanical-illustration"><span>🌿</span></div><div><div class="tags"><span class="tag">${esc(id.famille_botanique || "Famille à préciser")}</span><span class="tag ${toxic ? "toxic" : ""}">${toxic ? "Toxicité à surveiller" : "Utilisable avec dosage"}</span><span class="tag">+${esc(data.points_gagnes || 25)} 🌟</span></div><h2>${esc(id.nom_francais || "Plante")}<br><em>${esc(id.nom_scientifique || "")}</em></h2><p class="muted">${esc(id.justification || "Analyse FloraVet structurée.")}</p><div class="quick-stats"><div class="score-ring" style="--score:${Math.max(0, Math.min(10, score))}">${score}/10</div><div class="quick-stat"><strong>${esc(nutrition.proteines_brutes_pct_ms || "—")}%</strong>Protéines MS</div><div class="quick-stat"><strong>${esc(id.niveau_confiance || "—")}%</strong>Confiance</div><div class="quick-stat"><strong>${esc(data.points_gagnes || 25)}</strong>Points gagnés</div></div><div class="actions" style="margin-top:14px"><button class="btn" onclick="window.print()">📄 PDF</button><button class="btn" onclick="shareAnalysis()">📱 WhatsApp</button><a class="btn primary" href="${data.integration_rations?.bouton_nutricore || "nutricore.html"}">Intégrer → NutriCore</a></div></div></div>`;
+                const identity = `<div class="section-card"><h3>🌿 Identité botanique</h3>${renderKV(id, 10)}</div>`;
+                const nutri = `<div class="section-card"><h3>🔬 Valeur nutritive</h3>${renderKV(nutrition, 14)}</div>`;
+                const toxicity = `<div class="section-card"><h3>⚠️ Toxicité et sécurité</h3>${renderKV(data.toxicite || {}, 10)}</div>`;
+                const ration = `<div class="section-card"><h3>🌾 Intégration ration</h3>${renderKV(data.integration_rations || {}, 8)}</div>`;
+                const medicine = `<div class="section-card"><h3>💊 Vertus médicinales</h3>${renderKV(data.vertus_medicinales || {}, 8)}</div>`;
+                const culture = `<div class="section-card"><h3>🌱 Culture et production</h3>${renderKV(data.guide_culture || {}, 8)}</div>`;
+                const recommendations = `<div class="section-card"><h3>💡 Recommandations personnalisées</h3>${renderKV(reco, 10)}</div>`;
+                const aya = `<div class="section-card"><h3>🌽 Message d'Aya</h3><p>${esc(data.message_aya || "")}</p></div>`;
                 $("#result").innerHTML =
-                    `<div class="card"><h2>${data.identification?.nom_francais || "Plante"} — ${data.identification?.nom_scientifique || ""}</h2><p>Score FloraVet : <strong>${data.score_floravet}/10</strong> · +${data.points_gagnes} 🌟</p><div class="actions"><button class="btn" onclick="window.print()">📄 PDF</button><button class="btn" onclick="shareAnalysis()">📱 WhatsApp</button><a class="btn primary" href="${data.integration_rations?.bouton_nutricore || "nutricore.html"}">Intégrer dans une ration → NutriCore</a></div></div>` +
-                    tabs
-                        .map(
-                            (k) =>
-                                `<details open><summary>${k.replaceAll("_", " ")}</summary><pre>${JSON.stringify(data[k], null, 2)}</pre></details>`,
-                        )
-                        .join("") +
-                    `<details open><summary>Message d'Aya</summary><p>${data.message_aya || ""}</p></details>`;
+                    hero +
+                    `<div class="section-cards">${identity}${nutri}${renderPosology(data)}${toxicity}${ration}${medicine}${culture}${recommendations}${renderDeck(data)}${aya}</div>`;
             }
             function shareAnalysis() {
                 window.open(

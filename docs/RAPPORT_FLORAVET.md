@@ -166,6 +166,20 @@ Après retour utilisateur, FloraVet inclut maintenant explicitement une section 
 
 Chaque fiche précise : statut, mode d'utilisation, dose/posologie, préparation, fréquence et précautions. Les fiches de bibliothèque exposent aussi `modes_utilisation_par_animal` et `posologie_specifique` pour chaque plante.
 
+### Amélioration UX — fiche complète premium et présentation Gamma/Kimi
+
+La fiche FloraVet côté frontend n'est plus affichée comme un JSON brut. Elle est maintenant présentée comme une vraie fiche pédagogique structurée :
+
+- carte héro avec identité botanique, score, confiance, protéines et points gagnés ;
+- illustration botanique stylisée en CSS pour donner un rendu visuel premium même sans image externe ;
+- sections en cards lisibles : identité, nutrition, posologie, toxicité, ration, médecine, culture, recommandations ;
+- tableau visuel de posologie par animal ;
+- fiche "PowerPoint" compatible Gamma/Kimi avec 5 slides ;
+- prompt prêt à copier dans Gamma/Kimi ;
+- export JSON de la présentation pour réutilisation dans un outil de deck.
+
+Le backend ajoute aussi `presentation_deck` à chaque analyse avec : titre, style visuel, slides, bullets, prompts d'illustrations et prompt complet Gamma/Kimi.
+
 ### Section 1 — Analyser une plante
 
 - header vert botanique ;

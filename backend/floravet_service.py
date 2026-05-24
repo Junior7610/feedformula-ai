@@ -307,6 +307,32 @@ def _beneficiaries_for(plant: Dict[str, Any], espece: str) -> Dict[str, Any]:
     }
 
 
+def _build_presentation_deck(plant: Dict[str, Any], analysis_seed: Dict[str, Any]) -> Dict[str, Any]:
+    """Prépare une fiche type PowerPoint compatible Gamma/Kimi."""
+    name = plant.get("nom_francais", "Plante locale")
+    scientific = plant.get("nom_scientifique", "Nom scientifique à confirmer")
+    toxic = bool(plant.get("est_toxique"))
+    score = plant.get("score_floravet", 0)
+    return {
+        "format": "deck_gamma_kimi",
+        "titre": f"Fiche FloraVet — {name}",
+        "sous_titre": f"{scientific} · Usage élevage africain",
+        "style_visuel": {
+            "couleur_principale": "#2E7D32",
+            "ambiance": "botanique premium, pédagogique, terrain africain",
+            "illustrations": "aquarelle botanique + pictogrammes animaux + cartes visuelles",
+        },
+        "slides": [
+            {"numero": 1, "icone": "🌿", "titre": "Identité botanique", "bullets": [name, scientific, plant.get("famille_botanique", "Famille à préciser"), f"Score FloraVet : {score}/10"], "illustration_prompt": f"Illustration botanique réaliste de {scientific}, feuilles et port de la plante, style herbier africain premium"},
+            {"numero": 2, "icone": "🔬", "titre": "Valeur nutritive", "bullets": [f"Protéines brutes : {plant.get('proteines_brutes_pct_ms', 'N/A')}% MS", "Minéraux et composés secondaires à contrôler", "Intérêt ration : protéines, fibres, vitamines selon stade"], "illustration_prompt": "Infographie nutrition animale avec feuilles vertes, protéines, énergie, minéraux"},
+            {"numero": 3, "icone": "🐄", "titre": "Utilisation par animal", "bullets": ["Bovins, ovins, caprins : distribution progressive", "Volailles : farine fine à faible dose", "Lapins : préfanage recommandé", "Tilapia : farine très fine en granulé"], "illustration_prompt": "Icônes bovin caprin poulet lapin poisson autour d'une plante fourragère"},
+            {"numero": 4, "icone": "⚠️" if toxic else "✅", "titre": "Sécurité et toxicité", "bullets": [plant.get("niveau_toxicite", "Non toxique aux doses normales"), "Ne jamais distribuer une plante mal identifiée", "Surveiller appétit, diarrhée, salivation, abattement"], "illustration_prompt": "Carte de sécurité plantes toxiques et non toxiques pour troupeau"},
+            {"numero": 5, "icone": "💡", "titre": "Recommandations pratiques", "bullets": ["Commencer par petite dose", "Sécher à l'ombre pour préserver vitamines", "Noter l'effet dans FarmManager", "Valider la ration finale dans NutriCore"], "illustration_prompt": "Éleveur africain utilisant une application mobile pour analyser une plante"},
+        ],
+        "prompt_gamma_kimi": f"Crée une présentation pédagogique de 5 slides sur {name} ({scientific}) pour des éleveurs africains. Style botanique premium vert #2E7D32, illustrations type herbier, pictogrammes animaux, tableaux de posologie, alertes toxicité claires, ton simple et professionnel.",
+    }
+
+
 def _build_complete_analysis(plant: Dict[str, Any], espece: str, region: str, langue: str, confidence: float = 92.0) -> Dict[str, Any]:
     name = plant.get("nom_francais", "Moringa")
     scientific = plant.get("nom_scientifique", "Moringa oleifera")
@@ -376,6 +402,7 @@ def _build_complete_analysis(plant: Dict[str, Any], espece: str, region: str, la
         "plantes_similaires": {"confusions": ["autres Fabaceae à feuilles composées", "jeunes arbustes de haie"], "complementaires": ["Panicum maximum", "Pennisetum purpureum", "Moringa oleifera"], "a_ne_pas_associer": ["plantes moisies", "plantes toxiques inconnues"]},
         "recommandations": {"score_interet_zootechnique": min(10, score_global), "score_accessibilite_benin": 8.5, "score_securite": score_security, "score_global_floravet": score_global, "recommandation_principale": f"Pour {espece} dans la région {region}, utiliser {name} progressivement, propre, bien identifié et sans surdosage.", "top_3_usages": ["complément protéique/vitaminique", "sécher et moudre pour ration", "haie/agroforesterie près de la ferme"], "integrations": {"NutriCore": "intégrer comme ingrédient disponible", "VetScan": "plante de soutien selon symptômes", "ReproTrack": "suivi indirect via état corporel", "PastureMap": "cartographier présence au pâturage", "FarmManager": "enregistrer dans stock/plantes cultivées", "FarmAcademy": "formation plantes fourragères du Bénin"}},
         "message_aya": f"🌽 Bravo ! Tu viens de valoriser une ressource locale avec FloraVet. Conseil : commence toujours par une petite dose et observe l'appétit. Fait surprenant : {name} peut rendre la ration plus stratégique qu'un simple fourrage. +25 🌟 gagnés !",
+        "presentation_deck": _build_presentation_deck(plant, {}),
         "score_floravet": score_global,
         "points_gagnes": POINTS_FLORAVET_ANALYSE,
         "langue": langue,
