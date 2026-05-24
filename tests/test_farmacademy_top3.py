@@ -49,7 +49,10 @@ def test_formation_complete_espece_et_lesson_design() -> None:
     formation = c.get("/academy/formation/production_poulet_chair")
     assert formation.status_code == 200, formation.text
     data = formation.json()
-    assert data["total_lecons"] == 8
+    assert data["total_lecons"] == 12
+    assert data["public_cible"].lower().startswith("débutant")
+    assert "roadmap_debutant" in data
+    assert len(data["roadmap_debutant"]) == 5
     assert data["categorie"] == "Volailles"
     assert data["experience"]["format"] == "micro-learning premium"
     assert data["certification"]["nom"]

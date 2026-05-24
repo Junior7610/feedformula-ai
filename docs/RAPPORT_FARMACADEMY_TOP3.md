@@ -30,16 +30,22 @@ FarmAcademy couvre maintenant les grandes espèces d’élevage :
 
 ### Parcours complets par espèce
 
-Chaque espèce dispose d’un parcours `production_<espece>` avec 8 leçons :
+Chaque espèce dispose désormais d’un parcours `production_<espece>` en 12 leçons, pensé pour un débutant absolu qui veut apprendre de bout en bout :
 
-1. cycle de production ;
-2. bâtiment, logement, bien-être ;
-3. alimentation et formulation rentable ;
-4. santé, biosécurité, prévention ;
-5. reproduction, croissance, performances ;
-6. gestion quotidienne avec FarmManager ;
-7. coût de revient, marge, prix de vente ;
-8. commercialisation et plan de croissance.
+1. découvrir l’espèce avant d’investir ;
+2. choisir son modèle d’élevage et son objectif ;
+3. préparer le budget de démarrage et le matériel ;
+4. construire/aménager bâtiment, logement, densité et bien-être ;
+5. choisir et acheter ses premiers animaux ;
+6. comprendre l’alimentation de base et l’eau propre ;
+7. appliquer la routine quotidienne de l’éleveur ;
+8. prévenir les maladies et reconnaître les premiers signes d’alerte ;
+9. suivre croissance, reproduction ou production ;
+10. tenir les registres et gérer avec FarmManager ;
+11. calculer coût de revient, marge et prix de vente ;
+12. vendre, fidéliser et préparer le cycle suivant.
+
+Chaque parcours précise maintenant `public_cible`, `promesse`, `roadmap_debutant` et `accompagnement_debutant` pour guider les personnes qui ne connaissent absolument rien au domaine.
 
 ### Parcours premium transversaux
 
@@ -126,9 +132,14 @@ Tests couverts :
 4. dashboard et recommandations ;
 5. recherche et score.
 
-Résultat :
+Résultat initial :
 
 - `5 passed in 41.69s`
+- Score FarmAcademy Top3 : `10/10`
+
+Résultat après transformation des parcours en formations zéro-débutant de bout en bout :
+
+- `5 passed in 16.09s`
 - Score FarmAcademy Top3 : `10/10`
 
 ## Résultat
