@@ -32,6 +32,42 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
+REPRO_SPECIES_PROFILES: Dict[str, Dict[str, Any]] = {
+    "vache": {"nom": "Vache / bovin", "icone": "🐄", "cycle_jours": 21, "gestation_jours": 283, "age_repro": "15-24 mois selon race et état", "ratio_male_femelle": "1 taureau pour 20-30 femelles", "diagnostic": "J+30 à J+60", "sevrage": "6-8 mois", "signes_chaleur": ["agitation", "chevauchement", "mucus clair", "acceptation du mâle"], "prophylaxie": ["déparasitage avant reproduction", "minéraux", "vaccins selon zone", "quarantaine"], "urgence": ["dystocie", "rétention placentaire >12h", "fièvre", "écoulement malodorant"]},
+    "chevre": {"nom": "Chèvre / caprin", "icone": "🐐", "cycle_jours": 21, "gestation_jours": 150, "age_repro": "8-12 mois si poids suffisant", "ratio_male_femelle": "1 bouc pour 25-35 femelles", "diagnostic": "J+30 à J+45", "sevrage": "2-3 mois", "signes_chaleur": ["bêlements", "queue agitée", "recherche du mâle", "vulve humide"], "prophylaxie": ["déparasitage", "apport minéral", "vaccination selon zone", "parage si nécessaire"], "urgence": ["avortement", "non délivrance", "mammite", "faiblesse chevreaux"]},
+    "mouton": {"nom": "Mouton / ovin", "icone": "🐑", "cycle_jours": 17, "gestation_jours": 147, "age_repro": "8-12 mois si croissance correcte", "ratio_male_femelle": "1 bélier pour 25-40 brebis", "diagnostic": "J+30 à J+45", "sevrage": "2-3 mois", "signes_chaleur": ["recherche du bélier", "agitation", "acceptation", "vulve légèrement gonflée"], "prophylaxie": ["flushing alimentaire", "déparasitage", "minéraux", "vaccination selon contexte"], "urgence": ["toxémie gestation", "dystocie", "agneau faible", "métrite"]},
+    "porc": {"nom": "Porc / truie", "icone": "🐷", "cycle_jours": 21, "gestation_jours": 114, "age_repro": "7-8 mois et poids suffisant", "ratio_male_femelle": "1 verrat pour 10-20 truies", "diagnostic": "retour chaleur J+21 ou échographie", "sevrage": "28-45 jours", "signes_chaleur": ["immobilité au verrat", "vulve rouge", "grognements", "baisse appétit"], "prophylaxie": ["désinfection maternité", "vermifuge", "vaccins selon élevage", "contrôle boiteries"], "urgence": ["mise-bas longue", "fièvre post-partum", "écrasement porcelets", "mammite-métrite-agalactie"]},
+    "lapin": {"nom": "Lapin", "icone": "🐰", "cycle_jours": 16, "gestation_jours": 31, "age_repro": "5-6 mois selon race", "ratio_male_femelle": "1 mâle pour 8-10 femelles", "diagnostic": "palpation J+10 à J+14 par personne formée", "sevrage": "30-45 jours", "signes_chaleur": ["vulve rouge violacée", "réceptivité", "agitation"], "prophylaxie": ["hygiène cages", "eau propre", "prévention coccidiose", "nid propre"], "urgence": ["diarrhée lapereaux", "mortalité portée", "mammite", "refus d'allaiter"]},
+    "poule": {"nom": "Poule pondeuse / reproduction", "icone": "🥚", "cycle_jours": 1, "gestation_jours": 21, "age_repro": "18-22 semaines selon souche", "ratio_male_femelle": "1 coq pour 8-12 poules", "diagnostic": "mirage œufs J+7/J+14", "sevrage": "poussins autonomes au chauffage", "signes_chaleur": ["ponte régulière", "acceptation du coq", "crête rouge"], "prophylaxie": ["vaccins Newcastle/Gumboro selon programme", "désinfection pondoirs", "collecte œufs", "biosécurité"], "urgence": ["chute ponte", "œufs mous", "mortalité poussins", "signes respiratoires"]},
+    "pintade": {"nom": "Pintade", "icone": "🦜", "cycle_jours": 1, "gestation_jours": 26, "age_repro": "28-32 semaines", "ratio_male_femelle": "1 mâle pour 4-6 femelles", "diagnostic": "mirage J+7/J+14", "sevrage": "pintadeaux très sensibles 0-6 semaines", "signes_chaleur": ["ponte saisonnière", "activité mâle", "nidification"], "prophylaxie": ["chauffage strict", "eau propre", "protection pluie", "vaccins locaux"], "urgence": ["froid pintadeaux", "diarrhée", "mortalité brutale"]},
+    "canard": {"nom": "Canard", "icone": "🦆", "cycle_jours": 1, "gestation_jours": 28, "age_repro": "5-7 mois", "ratio_male_femelle": "1 mâle pour 4-6 femelles", "diagnostic": "mirage J+7/J+14", "sevrage": "4-6 semaines", "signes_chaleur": ["ponte", "accouplement", "nid"], "prophylaxie": ["eau propre", "litière sèche", "protection prédateurs"], "urgence": ["boiterie", "eau sale", "mortalité canetons"]},
+    "tilapia": {"nom": "Tilapia", "icone": "🐟", "cycle_jours": 14, "gestation_jours": 7, "age_repro": "3-5 mois selon poids", "ratio_male_femelle": "souvent sexage mâles en grossissement", "diagnostic": "observation frai/alevins", "sevrage": "alevins triés/calibrés", "signes_chaleur": ["nidification", "femelle incubatrice buccale", "alevins"], "prophylaxie": ["qualité eau", "densité", "tri", "alimentation régulière"], "urgence": ["manque oxygène", "mortalité surface", "eau polluée"]},
+}
+
+
+def _profile_for_species(espece: Any) -> Dict[str, Any]:
+    key = _species_key(espece)
+    aliases = {"bovin": "vache", "vache_laitiere": "vache", "zebu": "vache", "chèvre": "chevre", "caprin": "chevre", "ovin": "mouton", "porcin": "porc", "truie": "porc", "poulet": "poule", "pondeuse": "poule", "volaille": "poule", "clarias": "tilapia", "poisson_chat": "tilapia"}
+    key = aliases.get(key, key)
+    return REPRO_SPECIES_PROFILES.get(key, REPRO_SPECIES_PROFILES["vache"])
+
+
+def _repro_score_from_stats(taux: Dict[str, Any], total_events: int) -> Dict[str, Any]:
+    gest = float(taux.get("taux_gestation", 0) or 0)
+    if total_events < 5:
+        score = 45
+        label = "Données insuffisantes"
+    elif gest >= 80:
+        score = 90
+        label = "Très bon"
+    elif gest >= 60:
+        score = 72
+        label = "Correct à améliorer"
+    else:
+        score = 48
+        label = "Alerte fertilité"
+    return {"score": score, "label": label, "priorite": "enregistrer plus de données" if total_events < 5 else "analyser retours en chaleur et alimentation"}
+
 # -----------------------------------------------------------------------------
 # Routeur FastAPI
 # -----------------------------------------------------------------------------
@@ -277,18 +313,44 @@ class ReproTrackService:
 
     CYCLES_CHALEURS = {
         "vache": 21,
+        "bovin": 21,
+        "vache_laitiere": 21,
+        "zebu": 21,
         "chevre": 21,
-        "mouton": 21,
+        "caprin": 21,
+        "mouton": 17,
+        "ovin": 17,
         "porc": 21,
+        "truie": 21,
         "lapin": 16,
+        "poule": 1,
+        "poulet": 1,
+        "pondeuse": 1,
+        "pintade": 1,
+        "canard": 1,
+        "tilapia": 14,
+        "clarias": 14,
     }
 
     GESTATIONS = {
         "vache": 283,
+        "bovin": 283,
+        "vache_laitiere": 283,
+        "zebu": 283,
         "chevre": 150,
+        "caprin": 150,
         "mouton": 147,
+        "ovin": 147,
         "porc": 114,
+        "truie": 114,
         "lapin": 31,
+        "poule": 21,
+        "poulet": 21,
+        "pondeuse": 21,
+        "pintade": 26,
+        "canard": 28,
+        "tilapia": 7,
+        "clarias": 7,
     }
 
     def predire_prochaines_chaleurs(
@@ -327,6 +389,46 @@ class ReproTrackService:
             )
 
         return resultats
+
+    def get_profil_reproduction_espece(self, espece: Any) -> Dict[str, Any]:
+        """Retourne la fiche reproduction complète d'une espèce."""
+        profile = dict(_profile_for_species(espece))
+        profile["espece_recherchee"] = _clean_text(espece)
+        profile["checklist_repro"] = [
+            "Animal identifié clairement",
+            "Âge et poids compatibles avec la reproduction",
+            "État corporel correct",
+            "Déparasitage et minéraux à jour",
+            "Logement propre et calme",
+            "Registre ReproTrack ouvert",
+        ]
+        profile["modules_connectes"] = {
+            "ReproTrack": "calendrier chaleurs, saillies, gestation et alertes",
+            "NutriCore": "ration pré-reproduction, gestation, lactation ou ponte",
+            "VetScan": "signes d'urgence, avortement, métrite, dystocie, infertilité",
+            "FarmManager": "registre animal, coûts, tâches et rappels",
+            "FloraVet": "plantes utiles ou toxiques pour reproduction et lactation",
+        }
+        return profile
+
+    def generer_plan_reproduction(self, espece: Any, objectif: str = "productivite") -> Dict[str, Any]:
+        """Plan reproductif complet, utile pour débutants et fermes structurées."""
+        profile = self.get_profil_reproduction_espece(espece)
+        return {
+            "espece": profile["nom"],
+            "objectif": objectif,
+            "phases": [
+                {"phase": "Préparation", "periode": "J-30 à J0", "actions": ["sélection reproducteurs", "contrôle état corporel", "minéraux", "déparasitage", "quarantaine si nouvel animal"]},
+                {"phase": "Détection", "periode": "cycle reproductif", "actions": ["observer signes de chaleur", "noter date et heure", "éviter stress", "préparer mâle/IA"]},
+                {"phase": "Accouplement/IA", "periode": "fenêtre optimale", "actions": ["respecter timing", "noter mâle/semence", "surveiller 48h", "éviter changement brutal de ration"]},
+                {"phase": "Contrôle gestation/fertilité", "periode": profile.get("diagnostic", "J+30"), "actions": ["observer retour chaleur", "diagnostic si possible", "reprogrammer si échec"]},
+                {"phase": "Fin gestation/incubation", "periode": "J-21 à mise-bas/éclosion", "actions": ["transition alimentaire", "préparer aire propre", "surveillance rapprochée", "matériel urgence"]},
+                {"phase": "Naissance/éclosion/frai", "periode": "jour J", "actions": ["sécurité nouveau-né", "colostrum/chaleur/eau selon espèce", "désinfection nombril si mammifère", "enregistrement FarmManager"]},
+                {"phase": "Post-partum et relance", "periode": "J+1 à sevrage", "actions": ["surveiller mère et jeunes", "prévenir infections", "suivre croissance", "planifier prochain cycle"]},
+            ],
+            "profil_espece": profile,
+            "indicateurs": ["taux de conception", "taux de mise-bas/éclosion", "mortalité jeunes", "retours en chaleur", "intervalle entre cycles", "coût reproduction FCFA"],
+        }
 
     def calculer_date_mise_bas(self, espece: Any, date_saillie: Any) -> Dict[str, Any]:
         """
@@ -865,12 +967,106 @@ def get_mise_bas(
             "espece": espece,
             "date_saillie": date_saillie,
             "resultat": SERVICE.calculer_date_mise_bas(espece, date_saillie),
+            "profil_espece": SERVICE.get_profil_reproduction_espece(espece),
         }
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Impossible de calculer la date de mise-bas: {exc}",
         )
+
+
+@router.get("/especes")
+def get_repro_especes() -> Dict[str, Any]:
+    """Liste les espèces supportées avec profils reproductifs complets."""
+    profiles = [dict(value, code=key) for key, value in REPRO_SPECIES_PROFILES.items()]
+    return {
+        "total": len(profiles),
+        "especes": profiles,
+        "couverture": "mammifères, volailles et aquaculture",
+        "message": "ReproTrack couvre chaleurs, saillies/IA, gestation, mises-bas, éclosions, frai, alertes et indicateurs de fertilité.",
+    }
+
+
+@router.get("/profil-espece/{espece}")
+def get_profil_espece(espece: str) -> Dict[str, Any]:
+    """Fiche reproduction complète par espèce."""
+    return SERVICE.get_profil_reproduction_espece(espece)
+
+
+@router.get("/plan/{espece}")
+def get_plan_reproduction(espece: str, objectif: str = Query("productivite")) -> Dict[str, Any]:
+    """Plan reproductif A-Z pour une espèce."""
+    return SERVICE.generer_plan_reproduction(espece, objectif)
+
+
+@router.get("/animaux/{user_id}")
+def get_animaux_repro(user_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
+    """Retourne les animaux suivis et leur dernier statut reproduction."""
+    data = SERVICE.animaux_par_user(db, user_id)
+    alerts = SERVICE.obtenir_alertes(db, user_id)
+    alert_by_animal = {a.get("animal_id"): a for a in alerts if a.get("animal_id")}
+    for animal in data.get("animaux", []):
+        animal["alerte_active"] = alert_by_animal.get(animal.get("animal_id"))
+        animal["profil_espece"] = SERVICE.get_profil_reproduction_espece(animal.get("espece"))
+    return data
+
+
+@router.get("/performance/{user_id}")
+def get_performance_repro(user_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
+    """Analyse avancée de performance reproductive du troupeau."""
+    taux = SERVICE.calculer_taux_gestation(user_id, db)
+    evenements = SERVICE.lister_evenements(db, user_id, limit=500)
+    score = _repro_score_from_stats(taux, len(evenements))
+    retours_chaleur = sum(1 for e in evenements if _clean_text(e.type_evenement).lower() in {"chaleur", "chaleur observée", "chaleur_observee"})
+    avortements = sum(1 for e in evenements if "avort" in _clean_text(e.type_evenement).lower())
+    return {
+        "user_id": user_id,
+        "score_reprotrack": score,
+        "taux_gestation": taux,
+        "retours_chaleur": retours_chaleur,
+        "avortements_signales": avortements,
+        "interpretation": "Les données permettent un pilotage reproductif fiable." if len(evenements) >= 5 else "Historique encore faible : enregistrez chaleurs, saillies, diagnostics et mises-bas.",
+        "priorites": [
+            "Noter toutes les chaleurs même sans saillie.",
+            "Contrôler les retours 18-24 jours après saillie selon espèce.",
+            "Préparer la mise-bas ou l'éclosion 7 jours avant la date prévue.",
+            "Relier reproduction, alimentation et état corporel dans FarmManager.",
+        ],
+    }
+
+
+@router.get("/dashboard/{user_id}")
+def get_dashboard_reprotrack(user_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
+    """Tableau de bord premium ReproTrack."""
+    calendar = SERVICE.calendrier_mensuel(db, user_id)
+    alerts = SERVICE.obtenir_alertes(db, user_id)
+    stats_payload = get_stats(user_id, db)
+    performance = get_performance_repro(user_id, db)
+    animals = SERVICE.animaux_par_user(db, user_id)
+    return {
+        "user_id": user_id,
+        "statut_global": performance["score_reprotrack"]["label"],
+        "score_reprotrack": performance["score_reprotrack"],
+        "metriques": {
+            "animaux_suivis": animals.get("total_animaux", 0),
+            "evenements": calendar.get("total_evenements", 0),
+            "alertes": len(alerts),
+            "taux_gestation": stats_payload.get("taux_gestation_global", 0),
+        },
+        "prochaine_action": alerts[0]["message"] if alerts else "Enregistrer la prochaine chaleur, saillie, IA, ponte ou mise-bas observée.",
+        "alertes": alerts,
+        "calendrier": calendar,
+        "stats": stats_payload,
+        "performance": performance,
+        "animaux": animals.get("animaux", []),
+        "guide_rapide": {
+            "reproduction": "Observer, dater, confirmer, préparer, enregistrer.",
+            "nutrition": "État corporel, minéraux et transition alimentaire conditionnent la fertilité.",
+            "sanitaire": "Avortement, fièvre, dystocie ou rétention placentaire = vétérinaire rapidement.",
+            "genetique": "Choisir reproducteurs selon objectif : lait, viande, rusticité ou prolificité.",
+        },
+    }
 
 
 __all__ = [

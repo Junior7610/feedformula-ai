@@ -4,124 +4,207 @@
         <meta charset="UTF-8" />
         <meta
             name="viewport"
-            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
         />
-        <meta name="theme-color" content="#1B5E20" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta
-            name="apple-mobile-web-app-status-bar-style"
-            content="black-translucent"
-        />
-        <meta name="apple-mobile-web-app-title" content="FeedFormula AI" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="application-name" content="FeedFormula AI" />
-        <link rel="manifest" href="/app/manifest.json" />
-        <link
-            rel="apple-touch-icon"
-            href="/assets/branding/logo_principal_hd.png"
-        />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            rel="preload"
-            href="/assets/branding/logo_principal_hd.png"
-            as="image"
-        />
-        <link rel="preload" href="/app/style.css" as="style" />
+        <meta name="theme-color" content="#8E24AA" />
         <meta
             name="description"
-            content="FeedFormula AI génère la ration parfaite pour vos animaux en 30 secondes. 50 langues africaines. 8 modules IA. Gratuit pour les éleveurs béninois."
+            content="ReproTrack — copilote premium de reproduction animale : chaleurs, saillies, IA, gestation, mise-bas, éclosion, alertes, fertilité et amélioration génétique."
         />
-        <title>FeedFormula AI — Nutrition Animale IA | Bénin</title>
-        <meta
-            name="keywords"
-            content="élevage bénin, nutrition animale, IA agricole, fon, poulet, vache, ration animale"
-        />
-        <meta name="author" content="Leonel TOGBE" />
-        <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://feedformula-ai.vercel.app/app/" />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://feedformula-ai.vercel.app" />
-        <meta
-            property="og:title"
-            content="FeedFormula AI — L IA au service de l élevage africain"
-        />
-        <meta
-            property="og:description"
-            content="Formulez la ration parfaite de vos animaux en 30 secondes. En fon, yoruba, français et 47 autres langues africaines."
-        />
-        <meta
-            property="og:image"
-            content="https://feedformula-ai.vercel.app/assets/branding/hero_image_accueil.png"
-        />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:locale" content="fr_BJ" />
-        <meta property="og:site_name" content="FeedFormula AI" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta
-            name="twitter:title"
-            content="FeedFormula AI — Nutrition Animale IA"
-        />
-        <meta
-            name="twitter:description"
-            content="L intelligence africaine au service de vos animaux."
-        />
-        <meta
-            name="twitter:image"
-            content="https://feedformula-ai.vercel.app/assets/branding/hero_image_accueil.png"
-        />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-            rel="stylesheet"
-        />
+        <title>ReproTrack — Copilote reproduction animale</title>
+        <link rel="manifest" href="/app/manifest.json" />
         <link rel="stylesheet" href="style.css" />
         <style>
+            :root {
+                --purple: #8e24aa;
+                --deep: #341842;
+                --soft: #f8f0fb;
+                --green: #2e7d32;
+                --orange: #ef6c00;
+                --red: #c62828;
+                --blue: #1565c0;
+                --card: #fff;
+                --muted: #6f6176;
+                --line: #eadcf0;
+                --shadow: 0 18px 48px rgba(52, 24, 66, 0.13);
+            }
+            * {
+                box-sizing: border-box;
+            }
             body {
                 margin: 0;
-                font-family: var(--font-primary);
-                background: #f8f4fb;
-                color: #341842;
+                font-family: Inter, "Plus Jakarta Sans", system-ui, sans-serif;
+                background: linear-gradient(180deg, #fbf4ff, #fff 34%, #f8f4fb);
+                color: var(--deep);
             }
-            .wrap {
-                max-width: 1040px;
+            .app {
+                max-width: 1280px;
                 margin: 0 auto;
-                padding: 16px 16px 120px;
+                padding: 16px 16px 110px;
             }
             .grid {
                 display: grid;
+                gap: 14px;
+            }
+            .grid-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .grid-3 {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+            .grid-4 {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+            .hero {
+                display: grid;
+                grid-template-columns: 1.25fr 0.75fr;
                 gap: 16px;
+                margin-bottom: 16px;
+            }
+            .hero-main {
+                position: relative;
+                overflow: hidden;
+                border-radius: 34px;
+                padding: 28px;
+                color: #fff;
+                background:
+                    radial-gradient(
+                        circle at 80% 10%,
+                        rgba(255, 255, 255, 0.2),
+                        transparent 25%
+                    ),
+                    linear-gradient(135deg, #4a145c, #8e24aa 58%, #ce63dd);
+                box-shadow: var(--shadow);
+            }
+            .hero-main:after {
+                content: "🐣";
+                position: absolute;
+                right: 18px;
+                bottom: -18px;
+                font-size: 130px;
+                opacity: 0.14;
+            }
+            .hero h1 {
+                font-size: clamp(34px, 5vw, 62px);
+                line-height: 1;
+                margin: 0 0 10px;
+            }
+            .hero p {
+                font-size: 18px;
+                line-height: 1.55;
+                max-width: 760px;
+            }
+            .badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                width: max-content;
+                padding: 8px 13px;
+                border-radius: 999px;
+                background: rgba(255, 255, 255, 0.17);
+                font-weight: 900;
             }
             .card {
-                background: #fff;
-                border-radius: 20px;
-                padding: 16px;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+                background: rgba(255, 255, 255, 0.97);
+                border: 1px solid rgba(142, 36, 170, 0.12);
+                border-radius: 26px;
+                padding: 18px;
+                box-shadow: var(--shadow);
             }
-            .input,
-            .select {
+            .muted {
+                color: var(--muted);
+            }
+            input,
+            select,
+            textarea {
                 width: 100%;
-                border: 1px solid #ddd;
-                border-radius: 14px;
-                padding: 14px;
-                font-size: 16px;
-                box-sizing: border-box;
+                border: 1px solid var(--line);
+                border-radius: 16px;
+                padding: 12px 13px;
+                font: inherit;
+                background: #fff;
             }
+            textarea {
+                min-height: 82px;
+            }
+            button,
             .btn {
                 border: 0;
-                border-radius: 16px;
-                padding: 16px;
-                font-size: 17px;
-                font-weight: 700;
+                border-radius: 18px;
+                padding: 12px 15px;
+                font-weight: 900;
                 cursor: pointer;
+                background: #f2e7f6;
+                color: var(--deep);
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
             }
-            .primary {
-                background: #8e24aa;
+            button.primary,
+            .btn.primary {
+                background: var(--purple);
                 color: #fff;
             }
-            .secondary {
-                background: #f3f3f3;
-                color: #222;
+            .btn.green,
+            button.green {
+                background: var(--green);
+                color: #fff;
+            }
+            .btn.red,
+            button.red {
+                background: var(--red);
+                color: #fff;
+            }
+            .btn.orange,
+            button.orange {
+                background: var(--orange);
+                color: #fff;
+            }
+            .actions {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+            .metric strong {
+                display: block;
+                font-size: 28px;
+                color: var(--purple);
+            }
+            .metric span {
+                color: var(--muted);
+            }
+            .layout {
+                display: grid;
+                grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.35fr);
+                gap: 16px;
+                align-items: start;
+            }
+            .tabs {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+                position: sticky;
+                top: 0;
+                background: rgba(248, 244, 251, 0.9);
+                backdrop-filter: blur(12px);
+                z-index: 8;
+                padding: 10px 0;
+            }
+            .tab {
+                border: 1px solid var(--line);
+                background: #fff;
+            }
+            .tab.active {
+                background: var(--purple);
+                color: #fff;
+            }
+            .panel {
+                display: none;
+            }
+            .panel.active {
+                display: grid;
             }
             .calendar {
                 display: grid;
@@ -130,308 +213,511 @@
             }
             .day {
                 padding: 10px;
-                border-radius: 12px;
-                background: #f8f8f8;
-                min-height: 48px;
-                text-align: center;
-            }
-            .heat {
-                background: #fff3e0;
-            }
-            .ai {
-                background: #ede7f6;
-            }
-            .birth {
-                background: #e8f5e9;
-            }
-            .metric {
-                background: #fafafa;
                 border-radius: 14px;
-                padding: 14px;
+                background: #faf7fb;
+                min-height: 58px;
+                text-align: center;
+                border: 1px solid #f0e3f4;
             }
-            .metric strong {
-                display: block;
-                font-size: 22px;
+            .day.heat {
+                background: #fff3e0;
+                border-color: #ffd7a3;
+            }
+            .day.ai {
+                background: #ede7f6;
+                border-color: #c7b5dd;
+            }
+            .day.birth {
+                background: #e8f5e9;
+                border-color: #bfe5c2;
             }
             .alert {
                 padding: 14px;
-                border-radius: 14px;
-                background: #f9f0fb;
+                border-radius: 18px;
+                background: #f8f0fb;
+                border-left: 6px solid var(--purple);
             }
             .alert.urgent {
                 background: #ffebee;
-            }
-            .meta {
-                color: #666;
-                font-size: 14px;
+                border-left-color: var(--red);
             }
             .event-item {
-                padding: 12px 0;
-                border-bottom: 1px solid #eee;
+                padding: 12px;
+                border-radius: 16px;
+                background: #faf7fb;
+                border: 1px solid #f0e3f4;
+                margin-bottom: 8px;
+            }
+            .profile-card,
+            .phase-card,
+            .animal-card {
+                padding: 13px;
+                border-radius: 18px;
+                background: #faf7fb;
+                border: 1px solid #f0e3f4;
+            }
+            .profile-card h4,
+            .phase-card h4 {
+                margin: 0 0 8px;
+                color: var(--purple);
+            }
+            .phase-card {
+                border-left: 5px solid var(--purple);
+            }
+            .guide-grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+            }
+            .checklist {
+                display: grid;
+                gap: 8px;
+            }
+            .check {
+                padding: 10px;
+                border-radius: 14px;
+                background: #fff;
+                border-left: 4px solid var(--green);
+            }
+            .score-ring {
+                width: 118px;
+                height: 118px;
+                border-radius: 50%;
+                display: grid;
+                place-items: center;
+                background: conic-gradient(
+                    var(--purple) calc(var(--score) * 1%),
+                    #eadcf0 0
+                );
+                box-shadow:
+                    inset 0 0 0 12px #fff,
+                    0 10px 28px rgba(142, 36, 170, 0.18);
+                font-weight: 1000;
+            }
+            .risk {
+                font-weight: 900;
+            }
+            .risk.red {
+                color: var(--red);
+            }
+            .risk.green {
+                color: var(--green);
+            }
+            @media (max-width: 980px) {
+                .hero,
+                .layout,
+                .grid-2,
+                .grid-3,
+                .grid-4,
+                .guide-grid {
+                    grid-template-columns: 1fr;
+                }
+                .calendar {
+                    font-size: 13px;
+                }
+                .day {
+                    min-height: 46px;
+                    padding: 8px;
+                }
             }
         </style>
-        <script defer src="assets_manager.js"></script>
-        <script defer src="i18n.js"></script>
-        <script defer src="script.js"></script>
     </head>
     <body data-i18n-page="reprotrack">
-        <div class="wrap">
-            <header class="card">
-                <h1>📅 ReproTrack</h1>
-                <p class="meta">
-                    Calendrier de reproduction, alertes 48h et statistiques du
-                    troupeau, avec une lecture plus rapide.
-                </p>
-            </header>
-
-            <main class="grid">
-                <section class="card">
-                    <h2>Calendrier du mois</h2>
-                    <div id="calendar" class="calendar"></div>
-                </section>
-
-                <section class="card">
-                    <h2>Enregistrer un événement</h2>
-                    <div style="display: grid; gap: 12px">
-                        <select id="type" class="select">
-                            <option>Saillie</option>
-                            <option>Insémination</option>
-                            <option>Mise-bas</option>
-                            <option>Chaleur observée</option>
-                        </select>
-                        <input
-                            id="animal"
-                            class="input"
-                            placeholder="Nom ou numéro de l’animal"
-                        />
-                        <input
-                            id="species"
-                            class="input"
-                            placeholder="Espèce (vache, chèvre...)"
-                        />
-                        <input id="date" class="input" type="date" />
-                        <input
-                            id="notes"
-                            class="input"
-                            placeholder="Notes optionnelles"
-                        />
-                        <button
-                            id="saveEvent"
-                            class="btn primary"
-                            type="button"
+        <div class="app">
+            <section class="hero">
+                <div class="hero-main">
+                    <div class="badge">
+                        📅 ReproTrack Premium · Copilote reproduction
+                    </div>
+                    <h1>
+                        Maîtrisez chaleurs, gestation, mise-bas et fertilité
+                    </h1>
+                    <p>
+                        Un tableau de bord clair pour suivre chaque animal,
+                        calculer les dates clés, préparer les
+                        mises-bas/éclosions, détecter les anomalies et améliorer
+                        la reproduction de tout le troupeau.
+                    </p>
+                    <div class="actions">
+                        <a href="farmacademy.html" class="btn"
+                            >🎓 Apprendre la reproduction</a
+                        ><a href="farmmanager.html" class="btn green"
+                            >📊 Suivre dans FarmManager</a
                         >
-                            Enregistrer
-                        </button>
                     </div>
-                </section>
-
-                <section class="card">
-                    <h2>Alertes 48h avant mise-bas</h2>
-                    <div id="alerts"></div>
-                </section>
-
-                <section class="card">
-                    <h2>Statistiques du troupeau</h2>
-                    <div
-                        id="stats"
-                        style="
-                            display: grid;
-                            grid-template-columns: repeat(3, 1fr);
-                            gap: 12px;
-                        "
-                    ></div>
-                </section>
-
-                <section class="card">
-                    <h2>Événements du jour</h2>
-                    <div
-                        style="
-                            display: grid;
-                            grid-template-columns: 1fr 1fr 1fr;
-                            gap: 8px;
-                            margin-bottom: 12px;
-                        "
-                    >
-                        <input
-                            id="filterAnimal"
-                            class="input"
-                            placeholder="Filtre animal"
-                        />
-                        <input id="filterDate" class="input" type="date" />
-                        <input
-                            id="filterType"
-                            class="input"
-                            placeholder="Filtre type"
-                        />
-                    </div>
-                    <button
-                        id="refreshList"
-                        class="btn secondary"
-                        type="button"
-                    >
-                        Actualiser
-                    </button>
-                    <div id="events" style="margin-top: 12px"></div>
-                </section>
-            </main>
-        </div>
-
-        <footer class="site-footer" aria-label="Pied de page">
-            <div class="site-footer__inner">
-                <strong>FeedFormula AI</strong>
-                <span>Reproduction, alertes et suivi du troupeau</span>
-                <div class="site-footer__links">
-                    <a href="index.html">Accueil</a>
-                    <a href="modules.html">Modules</a>
-                    <a href="profil.html">Profil</a>
                 </div>
+                <div class="card grid">
+                    <h2>🌽 Aya Repro</h2>
+                    <p id="ayaText" class="muted">
+                        Chargez votre tableau de bord pour voir vos priorités.
+                    </p>
+                    <label
+                        >ID utilisateur<input
+                            id="userId"
+                            placeholder="demo-user" /></label
+                    ><button class="primary" onclick="loadAll()">
+                        Charger ReproTrack
+                    </button>
+                </div>
+            </section>
+            <section id="metricCards" class="grid grid-4">
+                <div class="card metric">
+                    <strong>—</strong><span>animaux suivis</span>
+                </div>
+                <div class="card metric">
+                    <strong>—</strong><span>événements</span>
+                </div>
+                <div class="card metric">
+                    <strong>—</strong><span>alertes</span>
+                </div>
+                <div class="card metric">
+                    <strong>—</strong><span>gestation</span>
+                </div>
+            </section>
+            <div class="tabs">
+                <button class="tab active" data-tab="dashboard">
+                    🏠 Dashboard</button
+                ><button class="tab" data-tab="events">➕ Événement</button
+                ><button class="tab" data-tab="species">
+                    🐾 Profils espèces</button
+                ><button class="tab" data-tab="calendarPanel">
+                    📅 Calendrier</button
+                ><button class="tab" data-tab="performance">
+                    📈 Performance
+                </button>
             </div>
-        </footer>
-
+            <section id="dashboard" class="panel active layout">
+                <aside class="grid">
+                    <div class="card">
+                        <h2>Score reproduction</h2>
+                        <div
+                            id="scoreRing"
+                            class="score-ring"
+                            style="--score: 0"
+                        >
+                            —
+                        </div>
+                        <p id="scoreText" class="muted"></p>
+                    </div>
+                    <div class="card">
+                        <h2>🚨 Alertes</h2>
+                        <div id="alerts"></div>
+                    </div>
+                </aside>
+                <main class="grid">
+                    <div class="card">
+                        <h2>Prochaine action</h2>
+                        <p id="nextAction" class="risk"></p>
+                    </div>
+                    <div class="card">
+                        <h2>Animaux suivis</h2>
+                        <div id="animals" class="grid grid-2"></div>
+                    </div>
+                    <div class="card">
+                        <h2>Guide rapide</h2>
+                        <div id="quickGuide" class="guide-grid"></div>
+                    </div>
+                </main>
+            </section>
+            <section id="events" class="panel grid">
+                <div class="card">
+                    <h2>Enregistrer un événement reproductif</h2>
+                    <div class="grid grid-3">
+                        <label
+                            >Type<select id="type">
+                                <option>Saillie</option>
+                                <option>Insémination</option>
+                                <option>Mise-bas</option>
+                                <option>Chaleur observée</option>
+                                <option>Avortement</option>
+                                <option>Diagnostic gestation</option>
+                                <option>Ponte</option>
+                                <option>Éclosion</option>
+                                <option>Frai</option>
+                            </select></label
+                        ><label
+                            >Animal<input
+                                id="animal"
+                                placeholder="VACHE_001" /></label
+                        ><label
+                            >Espèce<input
+                                id="speciesInput"
+                                placeholder="vache, chèvre, porc, poule..." /></label
+                        ><label>Date<input id="date" type="date" /></label
+                        ><label
+                            >Date prévue<input
+                                id="nextDate"
+                                type="date" /></label
+                        ><label
+                            >Notes<input id="notes" placeholder="observations"
+                        /></label>
+                    </div>
+                    <div class="actions" style="margin-top: 12px">
+                        <button id="saveEvent" class="primary">
+                            Enregistrer</button
+                        ><button onclick="fillDemo()">Exemple</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <h2>Rapport expert</h2>
+                    <pre id="expertReport" style="white-space: pre-wrap"></pre>
+                </div>
+                <div class="card">
+                    <h2>Événements</h2>
+                    <div id="eventList"></div>
+                </div>
+            </section>
+            <section id="species" class="panel grid">
+                <div class="card">
+                    <h2>Profils reproduction par espèce</h2>
+                    <div id="speciesProfiles" class="grid grid-3"></div>
+                </div>
+                <div class="card">
+                    <h2>Plan reproductif A-Z</h2>
+                    <select id="planSpecies">
+                        <option value="vache">Vache / bovin</option>
+                        <option value="chevre">Chèvre</option>
+                        <option value="mouton">Mouton</option>
+                        <option value="porc">Porc</option>
+                        <option value="lapin">Lapin</option>
+                        <option value="poule">Poule</option>
+                        <option value="pintade">Pintade</option>
+                        <option value="tilapia">Tilapia</option></select
+                    ><button class="primary" onclick="loadPlan()">
+                        Générer plan
+                    </button>
+                    <div
+                        id="planBox"
+                        class="grid"
+                        style="margin-top: 12px"
+                    ></div>
+                </div>
+            </section>
+            <section id="calendarPanel" class="panel grid">
+                <div class="card">
+                    <h2>Calendrier reproduction</h2>
+                    <div id="calendar" class="calendar"></div>
+                </div>
+            </section>
+            <section id="performance" class="panel grid">
+                <div class="card">
+                    <h2>Analyse performance</h2>
+                    <div id="performanceBox" class="grid grid-3"></div>
+                </div>
+                <div class="card">
+                    <h2>Priorités d’amélioration</h2>
+                    <div id="priorityBox" class="checklist"></div>
+                </div>
+            </section>
+        </div>
         <script>
-            const userId =
-                localStorage.getItem("feedformula_user_id") || "demo-user";
             const $ = (s) => document.querySelector(s);
-            const calendar = $("#calendar");
-            const alerts = $("#alerts");
-            const stats = $("#stats");
-            const events = $("#events");
-            const type = $("#type");
-            const animal = $("#animal");
-            const species = $("#species");
-            const dateInput = $("#date");
-            const notes = $("#notes");
-            const filterAnimal = $("#filterAnimal");
-            const filterDate = $("#filterDate");
-            const filterType = $("#filterType");
-
+            const userId = () =>
+                (
+                    $("#userId").value ||
+                    localStorage.getItem("feedformula_user_id") ||
+                    "demo-user"
+                ).trim();
+            let dashboardData = null;
+            async function jget(url) {
+                const r = await fetch(url);
+                const d = await r.json();
+                if (!r.ok) throw new Error(d.detail || "Erreur");
+                return d;
+            }
+            async function jpost(url, data) {
+                const r = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data),
+                });
+                const d = await r.json();
+                if (!r.ok) throw new Error(d.detail || "Erreur");
+                return d;
+            }
+            function esc(v) {
+                return String(v ?? "")
+                    .replaceAll("&", "&amp;")
+                    .replaceAll("<", "&lt;")
+                    .replaceAll(">", "&gt;");
+            }
+            document.querySelectorAll(".tab").forEach(
+                (b) =>
+                    (b.onclick = () => {
+                        document
+                            .querySelectorAll(".tab")
+                            .forEach((x) => x.classList.remove("active"));
+                        document
+                            .querySelectorAll(".panel")
+                            .forEach((x) => x.classList.remove("active"));
+                        b.classList.add("active");
+                        document
+                            .getElementById(b.dataset.tab)
+                            .classList.add("active");
+                    }),
+            );
+            function renderMetrics(d) {
+                const m = d.metriques || {};
+                $("#metricCards").innerHTML = [
+                    [m.animaux_suivis, "animaux suivis"],
+                    [m.evenements, "événements"],
+                    [m.alertes, "alertes"],
+                    [(m.taux_gestation || 0) + "%", "gestation"],
+                ]
+                    .map(
+                        ([v, l]) =>
+                            `<div class="card metric"><strong>${v ?? 0}</strong><span>${l}</span></div>`,
+                    )
+                    .join("");
+                const s = d.score_reprotrack || {};
+                $("#scoreRing").style.setProperty("--score", s.score || 0);
+                $("#scoreRing").textContent = (s.score || 0) + "/100";
+                $("#scoreText").textContent =
+                    `${s.label || ""} — priorité : ${s.priorite || ""}`;
+                $("#nextAction").textContent = d.prochaine_action || "";
+                $("#ayaText").textContent =
+                    "Aya : " + (d.prochaine_action || "Continuez le suivi.");
+            }
+            function renderAlerts(items) {
+                $("#alerts").innerHTML = (items || []).length
+                    ? (items || [])
+                          .map(
+                              (a) =>
+                                  `<div class="alert ${a.type === "mise-bas_proche" ? "urgent" : ""}"><strong>${esc(a.message)}</strong><div class="muted">${esc(a.animal_id || "")} ${esc(a.espece || "")} · ${esc(a.date_alerte || "")}</div>${a.whatsapp_url ? `<a class="btn" href="${a.whatsapp_url}" target="_blank">WhatsApp</a>` : ""}</div>`,
+                          )
+                          .join("")
+                    : '<p class="muted">Aucune alerte critique.</p>';
+            }
+            function renderAnimals(items) {
+                $("#animals").innerHTML = (items || []).length
+                    ? (items || [])
+                          .map(
+                              (a) =>
+                                  `<div class="animal-card"><h3>${esc(a.animal_id)}</h3><p class="muted">${esc(a.espece)} · ${a.evenements} événement(s)</p><p>${a.alerte_active ? esc(a.alerte_active.message) : "Aucune alerte active"}</p></div>`,
+                          )
+                          .join("")
+                    : '<p class="muted">Aucun animal suivi.</p>';
+            }
+            function renderGuide(g) {
+                $("#quickGuide").innerHTML = Object.entries(g || {})
+                    .map(
+                        ([k, v]) =>
+                            `<div class="profile-card"><h4>${esc(k)}</h4><p>${esc(v)}</p></div>`,
+                    )
+                    .join("");
+            }
             function buildCalendar(items) {
                 const now = new Date();
-                const year = now.getFullYear();
-                const month = now.getMonth();
-                const first = new Date(year, month, 1).getDay();
-                const total = new Date(year, month + 1, 0).getDate();
+                const y = now.getFullYear();
+                const m = now.getMonth();
+                const first = new Date(y, m, 1).getDay();
+                const total = new Date(y, m + 1, 0).getDate();
                 const labels = ["D", "L", "M", "M", "J", "V", "S"];
                 const cells = labels.map(
                     (d) => `<div class="day"><strong>${d}</strong></div>`,
                 );
-                for (let i = 0; i < first; i += 1)
+                for (let i = 0; i < first; i++)
                     cells.push('<div class="day"></div>');
-                const heat = new Set([3, 9, 14, 21, 26]);
-                const ai = new Set([5, 17, 24]);
                 const birth = new Set(
-                    items
+                    (items || [])
                         .filter((e) => e.date_prevue_prochain)
                         .map((e) => new Date(e.date_prevue_prochain).getDate()),
                 );
-                for (let day = 1; day <= total; day += 1) {
+                for (let day = 1; day <= total; day++) {
                     let cls = "day";
-                    if (heat.has(day)) cls += " heat";
-                    if (ai.has(day)) cls += " ai";
+                    if ([3, 9, 14, 21, 26].includes(day)) cls += " heat";
+                    if ([5, 17, 24].includes(day)) cls += " ai";
                     if (birth.has(day)) cls += " birth";
                     cells.push(
                         `<div class="${cls}"><strong>${day}</strong></div>`,
                     );
                 }
-                calendar.innerHTML = cells.join("");
+                $("#calendar").innerHTML = cells.join("");
             }
-
-            function renderAlerts(items) {
-                if (!items.length) {
-                    alerts.innerHTML =
-                        '<p class="meta">Aucune alerte imminente.</p>';
-                    return;
-                }
-                alerts.innerHTML = items
-                    .map(
-                        (a) =>
-                            `<div class="alert ${a.type === "mise-bas_proche" ? "urgent" : ""}"><strong>${a.message}</strong><div class="meta">${a.espece || ""} ${a.animal_id || ""}</div>${a.whatsapp_url ? `<a class="btn secondary" href="${a.whatsapp_url}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:10px;text-decoration:none">WhatsApp</a>` : ""}</div>`,
-                    )
-                    .join("");
+            function renderEvents(items) {
+                $("#eventList").innerHTML =
+                    (items || [])
+                        .map(
+                            (e) =>
+                                `<div class="event-item"><strong>${esc(e.type_evenement)}</strong><div class="muted">${esc(e.animal_id)} · ${esc(e.espece)} · ${esc(e.date_evenement || "")}</div></div>`,
+                        )
+                        .join("") || '<p class="muted">Aucun événement.</p>';
             }
-
-            function renderStats(data) {
-                stats.innerHTML = [
-                    {
-                        label: "Taux gestation",
-                        value: `${data.taux_gestation_global || 0}%`,
-                    },
-                    { label: "Saillies", value: data.total_saillies || 0 },
-                    { label: "Mises-bas", value: data.total_mises_bas || 0 },
+            function renderPerformance(p) {
+                $("#performanceBox").innerHTML = [
+                    ["Score", p.score_reprotrack?.score || 0],
+                    ["Retours chaleur", p.retours_chaleur || 0],
+                    ["Avortements", p.avortements_signales || 0],
                 ]
                     .map(
-                        (m) =>
-                            `<div class="metric"><strong>${m.value}</strong><div class="meta">${m.label}</div></div>`,
+                        ([l, v]) =>
+                            `<div class="card metric"><strong>${v}</strong><span>${l}</span></div>`,
                     )
                     .join("");
+                $("#priorityBox").innerHTML = (p.priorites || [])
+                    .map((x) => `<div class="check">✅ ${esc(x)}</div>`)
+                    .join("");
             }
-
-            function renderEvents(items) {
-                if (!items.length) {
-                    events.innerHTML = '<p class="meta">Aucun événement.</p>';
-                    return;
-                }
-                events.innerHTML = items
+            async function loadProfiles() {
+                const data = await jget("/reprotrack/especes");
+                $("#speciesProfiles").innerHTML = (data.especes || [])
                     .map(
-                        (e) =>
-                            `<div class="event-item"><strong>${e.event?.type_evenement || e.type_evenement || "Événement"}</strong><div class="meta">${e.event?.animal_id || e.animal_id || ""} — ${e.event?.date_evenement || e.date_evenement || ""}</div><div class="meta">${e.event?.details || e.notes || ""}</div></div>`,
+                        (p) =>
+                            `<div class="profile-card"><h4>${p.icone} ${esc(p.nom)}</h4><p><b>Cycle :</b> ${p.cycle_jours} j · <b>Gestation/incubation :</b> ${p.gestation_jours} j</p><p><b>Âge repro :</b> ${esc(p.age_repro)}</p><p><b>Signes :</b> ${(p.signes_chaleur || []).map(esc).join(" · ")}</p></div>`,
                     )
                     .join("");
             }
-
-            async function loadData() {
-                const cal = await fetch(
-                    `/reprotrack/calendrier/${encodeURIComponent(userId)}`,
-                ).then((r) => r.json());
-                const al = await fetch(
-                    `/reprotrack/alertes/${encodeURIComponent(userId)}`,
-                ).then((r) => r.json());
-                const st = await fetch(
-                    `/reprotrack/stats/${encodeURIComponent(userId)}`,
-                ).then((r) => r.json());
-                buildCalendar(cal.evenements || []);
-                renderAlerts(al.alertes || []);
-                renderStats(st || {});
-                renderEvents(cal.evenements || []);
+            async function loadPlan() {
+                const sp = $("#planSpecies").value;
+                const data = await jget(
+                    `/reprotrack/plan/${encodeURIComponent(sp)}`,
+                );
+                $("#planBox").innerHTML = (data.phases || [])
+                    .map(
+                        (p) =>
+                            `<div class="phase-card"><h4>${esc(p.phase)} — ${esc(p.periode)}</h4><p>${(p.actions || []).map(esc).join(" · ")}</p></div>`,
+                    )
+                    .join("");
             }
-
-            $("#saveEvent").addEventListener("click", async () => {
+            async function loadAll() {
+                dashboardData = await jget(
+                    `/reprotrack/dashboard/${encodeURIComponent(userId())}`,
+                );
+                renderMetrics(dashboardData);
+                renderAlerts(dashboardData.alertes);
+                renderAnimals(dashboardData.animaux);
+                renderGuide(dashboardData.guide_rapide);
+                buildCalendar(dashboardData.calendrier?.evenements || []);
+                renderEvents(dashboardData.calendrier?.evenements || []);
+                renderPerformance(dashboardData.performance);
+                await loadProfiles();
+                await loadPlan();
+            }
+            function fillDemo() {
+                $("#animal").value = "VACHE_001";
+                $("#speciesInput").value = "vache";
+                $("#type").value = "Saillie";
+                $("#date").value = new Date().toISOString().slice(0, 10);
+                $("#notes").value = "Saillie observée matin, animal calme.";
+            }
+            $("#saveEvent").onclick = async () => {
                 const payload = {
-                    user_id: userId,
-                    animal_id: animal.value,
-                    espece: species.value,
-                    type_evenement: type.value,
-                    date_evenement: dateInput.value || new Date().toISOString(),
-                    notes: notes.value,
+                    user_id: userId(),
+                    animal_id: $("#animal").value,
+                    espece: $("#speciesInput").value,
+                    type_evenement: $("#type").value,
+                    date_evenement:
+                        $("#date").value || new Date().toISOString(),
+                    date_prevue_prochain: $("#nextDate").value || null,
+                    notes: $("#notes").value,
                 };
-                const res = await fetch("/reprotrack/evenement", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload),
-                });
-                const data = await res.json();
-                if (!res.ok) {
-                    alert(data.detail || "Erreur");
-                    return;
-                }
-                await loadData();
-            });
-
-            $("#refreshList").addEventListener("click", async () => {
-                const params = new URLSearchParams();
-                if (filterAnimal.value)
-                    params.set("animal_id", filterAnimal.value);
-                if (filterDate.value)
-                    params.set("date_filtre", filterDate.value);
-                if (filterType.value)
-                    params.set("type_evenement", filterType.value);
-                const cal = await fetch(
-                    `/reprotrack/evenements/${encodeURIComponent(userId)}?${params.toString()}`,
-                ).then((r) => r.json());
-                renderEvents(cal.evenements || []);
-            });
-
-            loadData();
+                const data = await jpost("/reprotrack/evenement", payload);
+                $("#expertReport").textContent = data.rapport_expert || "";
+                await loadAll();
+            };
+            $("#userId").value =
+                localStorage.getItem("feedformula_user_id") || "demo-user";
+            loadAll().catch(() => loadProfiles());
         </script>
     </body>
 </html>
